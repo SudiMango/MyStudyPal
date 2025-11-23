@@ -1,6 +1,6 @@
-import React from 'react'
-import Link from 'next/link'
-import { Github } from 'lucide-react'
+import React from "react";
+import Link from "next/link";
+import { Github } from "lucide-react";
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
@@ -10,10 +10,18 @@ const Footer = () => {
                 &copy; {currentYear} MyStudyPal. All rights reserved.
             </div>
             <div className="flex space-x-4">
-                <Link href="https://github.com/your-github" target="_blank" rel="noopener noreferrer" className="hover:text-(--discord-blurple)">
+                <Link
+                    href="https://github.com/SudiMango/MyStudyPal"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-(--discord-blurple)"
+                >
                     <Github className="w-5 h-5" />
                 </Link>
-                <Link href="/privacy" className="hover:text-(--discord-blurple)">
+                <Link
+                    href="/privacy"
+                    className="hover:text-(--discord-blurple)"
+                >
                     Privacy Policy
                 </Link>
                 <Link href="/terms" className="hover:text-(--discord-blurple)">
@@ -21,7 +29,7 @@ const Footer = () => {
                 </Link>
             </div>
         </footer>
-    )
-}
+    );
+};
 
-export default Footer
+export default Footer;
