@@ -48,14 +48,14 @@ public class WebSecurityConfig {
             request
                 .requestMatchers("/api/public/**", "/api/auth/**", "/error").permitAll()
                 .anyRequest().authenticated())
-        .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .oauth2Login(customizer -> customizer
                                         .loginPage("/oauth2/authorization/google")
                                         .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
                                         .successHandler(oauth2LoginSuccessHandler)
                                         .failureHandler((request, response, exception) -> {
                                             String encodedMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
-                                            response.sendRedirect("/public/bruh?error=" + encodedMessage);
+                                            response.sendRedirect("http://localhost:3000/signup?error=" + encodedMessage);
                                         }))
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
