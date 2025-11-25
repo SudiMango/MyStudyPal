@@ -67,7 +67,7 @@ const SignupPage = () => {
                 </div>
 
                 {/* Form */}
-                <form className="space-y-4 w-full">
+                <form className="space-y-4 w-full" onSubmit={handleEmailSignup}>
                     {/* Email */}
                     <div className="flex flex-col">
                         <label htmlFor="email" className="text-md">
@@ -153,7 +153,6 @@ const SignupPage = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        onClick={handleEmailSignup}
                         className="bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) w-full text-xl font-bold py-1.5 rounded-md mt-1 hover:cursor-pointer"
                     >
                         {loading ? "Creating account..." : "Sign up"}

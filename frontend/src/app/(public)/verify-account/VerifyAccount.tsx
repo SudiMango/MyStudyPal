@@ -64,7 +64,7 @@ const VerifyAccount = () => {
                 </div>
 
                 {/* Form */}
-                <form className="space-y-4 w-full">
+                <form className="space-y-4 w-full" onSubmit={verifyAccount}>
                     {/* Email */}
                     <div className="flex flex-col">
                         <label htmlFor="email" className="text-md">
@@ -103,7 +103,6 @@ const VerifyAccount = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        onClick={verifyAccount}
                         className="bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) w-full text-xl font-bold py-1.5 rounded-md mt-1 hover:cursor-pointer"
                     >
                         {loading ? "Verifying..." : "Verify"}
