@@ -4,18 +4,27 @@ import { getGoogleLoginUrl } from "@/lib/api/auth-api";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/app/components/global/AuthProvider";
 
 const LoginPage = () => {
     const { login } = useAuth();
     const searchParams = useSearchParams();
     const initialEmail = searchParams.get("email") || "";
+    const error = searchParams.get("error");
+    const shownRef = useRef(false);
 
     const [email, setEmail] = useState<string>(initialEmail);
     const [password, setPassword] = useState<string>("");
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (error && !shownRef.current) {
+            alert(error);
+            shownRef.current = true;
+        }
+    }, [error]);
 
     const handleEmailLogin = async (e: React.FormEvent) => {
         e.preventDefault();
