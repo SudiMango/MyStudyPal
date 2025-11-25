@@ -1,46 +1,99 @@
-export const API_BASE_URL = "http://localhost:8080/api";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { TokenStore } from "../token-store";
 
-interface FetchOptions {
-    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    body?: unknown;
-}
+let isRefreshing = false;
+let failedQueue: {
+    resolve: (value?: any) => void;
+    reject: (reason?: any) => void;
+}[] = [];
 
-interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
-
-export const apiCall = async <T>(
-    endpoint: string,
-    options: FetchOptions = {}
-): Promise<ApiResponse<T>> => {
-    const { method = "GET", body } = options;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: body ? JSON.stringify(body) : undefined,
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (response.ok) {
-            return { success: true, data };
+const processQueue = (error: Error | null, token: string | null = null) => {
+    failedQueue.forEach((prom) => {
+        if (error) {
+            prom.reject(error);
         } else {
-            return {
-                success: false,
-                error:
-                    data.error ||
-                    data.errors?.join(" ") ||
-                    "An error occurred. Please try again.",
-            };
+            prom.resolve(token);
         }
-    } catch (err) {
-        return {
-            success: false,
-            error: "Unable to connect to the server. Please try again later.",
-        };
-    }
+    });
+    failedQueue = [];
 };
+
+const apiClient = axios.create({
+    baseURL: "/api",
+    withCredentials: true,
+});
+
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = TokenStore.get();
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+apiClient.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & {
+            _retry?: boolean;
+        };
+
+        const nonRefreshableURLs = ["/auth/login", "/auth/refresh"];
+        const requestedUrl = originalRequest.url || "";
+
+        if (
+            error.response?.status === 401 &&
+            originalRequest &&
+            !originalRequest._retry &&
+            !nonRefreshableURLs.includes(requestedUrl)
+        ) {
+            if (isRefreshing) {
+                return new Promise(function (resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then((token) => {
+                        if (originalRequest.headers) {
+                            originalRequest.headers.Authorization =
+                                "Bearer " + token;
+                        }
+                        return apiClient(originalRequest);
+                    })
+                    .catch((err) => {
+                        return Promise.reject(err);
+                    });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                const { data } = await apiClient.post("/auth/refresh");
+                const newAccessToken = data.accessToken;
+                TokenStore.set(newAccessToken);
+
+                if (originalRequest.headers) {
+                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                }
+
+                processQueue(null, newAccessToken);
+
+                return apiClient(originalRequest);
+            } catch (refreshError: any) {
+                processQueue(refreshError, null);
+                TokenStore.set(null);
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+export default apiClient;

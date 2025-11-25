@@ -3,6 +3,7 @@ package com.sudimango.MyStudyPal.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -90,11 +91,15 @@ public class AuthService {
             refreshTokenService.saveRefreshTokenForUser(savedUser, refreshToken);
 
             // Add refresh token to response as cookie
-            Cookie cookie = new Cookie("refresh_token", refreshToken);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/auth");
-            cookie.setMaxAge(7 * 24 * 60 * 60);
-            response.addCookie(cookie);
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION/1000)
+                .build();
+            
+            response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
             return new LoginResponse(accessToken);
         } else {

@@ -3,6 +3,7 @@ package com.sudimango.MyStudyPal.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import com.sudimango.MyStudyPal.entity.RefreshToken;
@@ -33,11 +34,14 @@ public class RefreshTokenService {
             for (Cookie cookie : cookies) {
                 if ("refresh_token".equals(cookie.getName())) {
                     refreshTokenRepository.deleteById(cookie.getValue());
-                    cookie.setValue("");
-                    cookie.setPath("/auth");
-                    cookie.setMaxAge(0);
-                    cookie.setHttpOnly(true);
-                    response.addCookie(cookie);
+                    ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
+                        .httpOnly(true)
+                        .secure(false)
+                        .sameSite("Lax")
+                        .path("/")
+                        .maxAge(0)
+                        .build();
+                    response.addHeader("Set-Cookie", deleteCookie.toString());
                     break;
                 }
             }

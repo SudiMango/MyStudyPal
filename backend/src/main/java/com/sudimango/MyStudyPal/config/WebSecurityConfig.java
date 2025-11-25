@@ -42,7 +42,7 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-        .cors(customizer -> {})
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(customizer -> customizer.disable())
         .authorizeHttpRequests(request -> 
             request
