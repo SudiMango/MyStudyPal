@@ -31,13 +31,6 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
-        // Skip JWT authentication if in auth router
-        String path = request.getServletPath();
-        if (path.startsWith("/auth")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         // Variables
         String authHeader = request.getHeader("Authorization");
@@ -45,6 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = null;
 
 
+        // Ensure auth header exists
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
@@ -57,13 +51,13 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-
-
+        // If no auth header and auth header doesn't start with bearer, skip
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        // Validate token
         token = authHeader.substring(7);
         try {
             username = jwtService.extractClaim(token, Claims::getSubject);
@@ -74,6 +68,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Ensure it isn't refresh token
         if (("refresh".equals(jwtService.extractClaim(token, claims -> claims.get("type", String.class))))) {
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -81,6 +76,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Authenticate user
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(token, userDetails)) {

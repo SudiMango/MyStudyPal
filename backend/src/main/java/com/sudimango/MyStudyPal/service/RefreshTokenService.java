@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.sudimango.MyStudyPal.entity.RefreshToken;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.repository.RefreshTokenRepository;
+import com.sudimango.MyStudyPal.service.auth.JwtService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +52,18 @@ public class RefreshTokenService {
     public boolean isRefreshTokenFoundInDatabase(String refreshToken) {
         Optional<RefreshToken> refreshTokenObj = refreshTokenRepository.findById(refreshToken);
         return refreshTokenObj.isPresent();
+    }
+
+    public ResponseCookie createRefreshTokenCookie(String refreshToken, HttpServletResponse response) {
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION/1000)
+                .build();
+            
+        return refreshTokenCookie;
     }
 
 }

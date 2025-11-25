@@ -88,18 +88,9 @@ public class AuthService {
                 throw new UserAccountNotEnabledException("Account not verified.");
             }
 
-            refreshTokenService.saveRefreshTokenForUser(savedUser, refreshToken);
-
-            // Add refresh token to response as cookie
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION/1000)
-                .build();
-            
+            ResponseCookie refreshTokenCookie = refreshTokenService.createRefreshTokenCookie(refreshToken, response);
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+            refreshTokenService.saveRefreshTokenForUser(savedUser, refreshToken);
 
             return new LoginResponse(accessToken);
         } else {

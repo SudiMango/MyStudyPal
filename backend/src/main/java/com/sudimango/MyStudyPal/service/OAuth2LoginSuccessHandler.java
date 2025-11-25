@@ -41,18 +41,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String accessToken = jwtService.generateAccessToken(user.getUsername());
         String refreshToken = jwtService.generateRefreshToken(user.getUsername());
 
-        refreshTokenService.saveRefreshTokenForUser(user, refreshToken);
-
-        // Add refresh token to response as cookie
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
-            .httpOnly(true)
-            .secure(false)
-            .sameSite("Lax")
-            .path("/")
-            .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION/1000)
-            .build();
-
+        ResponseCookie refreshTokenCookie = refreshTokenService.createRefreshTokenCookie(refreshToken, response);
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+        refreshTokenService.saveRefreshTokenForUser(user, refreshToken);
 
         String targetUrl = "http://localhost:3000/login/oauth/callback?token=" + accessToken;
         response.sendRedirect(targetUrl);

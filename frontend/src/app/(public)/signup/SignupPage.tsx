@@ -4,11 +4,12 @@ import { getGoogleLoginUrl, signupWithEmail } from "@/lib/api/auth-api";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const SignupPage = () => {
     const searchParams = useSearchParams();
-    const error = searchParams.get("error") || "";
+    const error = searchParams.get("error");
+    const shownRef = useRef(false);
 
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -19,10 +20,11 @@ const SignupPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        if (error) {
+        if (error && !shownRef.current) {
             alert(error);
+            shownRef.current = true;
         }
-    }, []);
+    }, [error]);
 
     const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
