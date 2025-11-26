@@ -21,7 +21,7 @@ const page = () => {
     };
 
     return (
-        <div>
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)]">
             <label>Flashcard Sets Page</label>
             <button onClick={handleButtonPress}>Make Protected Call</button>
 
