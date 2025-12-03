@@ -31,6 +31,11 @@ spring:
         username: { MAIL_USERNAME }
         password: { MAIL_PASSWORD }
 
+    servlet:
+        multipart:
+            max-file-size: 100MB
+            max-request-size: 100MB
+
 jwt:
     secret:
         key: { JWT_SECRET_KEY }
@@ -39,4 +44,13 @@ logging:
     level:
         org:
             springframework:
-                security: TRACE
+                security: DEBUG
+
+gemini:
+    api:
+        key: { GEMINI_API_KEY }
+
+server:
+    tomcat:
+        max-swallow-size: 100MB
+        max-http-form-post-size: 100MB
