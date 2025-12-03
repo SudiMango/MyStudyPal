@@ -25,7 +25,7 @@ const AppSidebar = () => {
 
     return (
         <aside
-            className={`h-screen flex flex-col bg-(--discord-gray-4) group ${
+            className={`min-h-screen hidden md:flex flex-col bg-(--discord-gray-4) group ${
                 collapsed ? "w-16" : "w-64"
             }`}
         >
