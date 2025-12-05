@@ -1,58 +1,43 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SearchBar from "@/app/components/create-flashcard-set-page/SearchBar";
 import {
     BookOpenText,
     Brain,
     ChartNoAxesCombined,
     EllipsisVertical,
+    Loader,
     Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { FlashcardSet, getAllFlashcardSets } from "@/lib/api/flashcard-api";
 
 const FlashcardSetsPage = () => {
     const router = useRouter();
 
     const [query, setQuery] = useState("");
-    const [flashcardSets, setFlashcardSets] = useState([
-        {
-            flashcard_set_id: "df3c0dcb-ed45-427d-a781-e7aa96ebfbcd",
-            icon: "📖",
-            name: "First flashcard set",
-            created_at: "2025-12-01 06:56:48.399253+00",
-            updated_at: "2025-12-01 06:56:48.399253+00",
-        },
-        {
-            flashcard_set_id: "eba63830-41a2-4396-ad40-23bf599a9b43",
-            icon: "😡",
-            name: "Second flashcard set",
-            created_at: "2025-12-01 06:57:29.158687+00",
-            updated_at: "2025-12-01 06:57:29.158687+00",
-        },
-        {
-            flashcard_set_id: "eba63830-41a2-4396-ad40-23bf599a9b43",
-            icon: "👽",
-            name: "Bio 101 midterm",
-            created_at: "2025-12-01 06:57:29.158687+00",
-            updated_at: "2025-12-01 06:57:29.158687+00",
-        },
-        {
-            flashcard_set_id: "eba63830-41a2-4396-ad40-23bf599a9b43",
-            icon: "🤖",
-            name: "CPSC 221 final",
-            created_at: "2025-12-01 06:57:29.158687+00",
-            updated_at: "2025-12-01 06:57:29.158687+00",
-        },
-        {
-            flashcard_set_id: "eba63830-41a2-4396-ad40-23bf599a9b43",
-            icon: "💀",
-            name: "Testing",
-            created_at: "2025-12-01 06:57:29.158687+00",
-            updated_at: "2025-12-01 06:57:29.158687+00",
-        },
-    ]);
+    const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
+    // Fetch all flashcard sets for user
+    useEffect(() => {
+        const fetchFlashcardSets = async () => {
+            setIsLoading(true);
+            const response = await getAllFlashcardSets();
+            if (response.success && response.data) {
+                console.log(response.data);
+                setFlashcardSets(response.data);
+            } else {
+                alert(response.error);
+            }
+            setIsLoading(false);
+        };
+
+        fetchFlashcardSets();
+    }, []);
+
+    // Format date to show on UI
     const formatDate = (dateString: string): string => {
         return new Date(dateString).toLocaleDateString("en-US", {
             month: "short",
@@ -61,6 +46,7 @@ const FlashcardSetsPage = () => {
         });
     };
 
+    // Filtered sets for search
     const filteredSets = useMemo(() => {
         if (!query.trim()) return flashcardSets;
 
@@ -91,62 +77,93 @@ const FlashcardSetsPage = () => {
 
                 {/* All flashcard sets */}
                 <div className="space-y-5 w-full">
-                    {filteredSets.map((set, i) => (
-                        <div
-                            key={i}
-                            className="flex flex-col items-start justify-center w-full shadow-xl rounded-xl bg-(--discord-gray-4) p-4 transform transition-transform duration-200 hover:scale-105"
-                        >
-                            {/* Title area */}
-                            <div className="flex flex-row items-center justify-center space-x-3 w-full">
-                                <label className="text-4xl">{set.icon}</label>
-                                <div className="flex flex-col">
-                                    <label className="text-md">
-                                        {set.name}
-                                    </label>
-                                    <label className="text-sm opacity-70">
-                                        Updated {formatDate(set.updated_at)}
-                                    </label>
-                                </div>
-                                <button className="ml-auto hover:text-(--discord-blurple)">
-                                    <EllipsisVertical className="w-5 h-5 opacity-80" />
-                                </button>
-                            </div>
-
-                            {/* Stats area */}
-                            <div className="mt-5 flex flex-row space-x-3">
-                                <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
-                                    <label className="text-sm">0 cards</label>
-                                </div>
-                                <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
-                                    <label className="text-sm">
-                                        0 reviewed
-                                    </label>
-                                </div>
-                                <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
-                                    <label className="text-sm">0 starred</label>
-                                </div>
-                            </div>
-
-                            {/* Divider */}
-                            <div className="h-0.5 w-full bg-(--discord-gray-1) my-5 rounded-2xl"></div>
-
-                            {/* Action buttons */}
-                            <div className="flex flex-row space-x-3 w-full">
-                                <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
-                                    <BookOpenText />
-                                    <label>Review</label>
-                                </button>
-                                <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
-                                    <Brain />
-                                    <label>Quiz</label>
-                                </button>
-                                <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
-                                    <ChartNoAxesCombined />
-                                    <label>Stats</label>
-                                </button>
-                            </div>
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center w-full py-20">
+                            <Loader className="w-10 h-10 animate-spin text-gray-400" />
+                            <p className="mt-4 text-gray-400">
+                                Loading flashcard sets...
+                            </p>
                         </div>
-                    ))}
+                    ) : filteredSets.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center w-full py-20">
+                            <p className="text-gray-400 text-lg">
+                                Nothing to show here...
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            {filteredSets.map((set, i) => (
+                                <div
+                                    key={i}
+                                    className="flex flex-col items-start justify-center w-full shadow-xl rounded-xl bg-(--discord-gray-4) p-4 transform transition-transform duration-200 hover:scale-105"
+                                >
+                                    {/* Title area */}
+                                    <div className="flex flex-row items-center justify-center space-x-3 w-full">
+                                        <label className="text-4xl">
+                                            {set.icon}
+                                        </label>
+                                        <div className="flex flex-col">
+                                            <label className="text-md">
+                                                {set.name}
+                                            </label>
+                                            <label className="text-sm opacity-70">
+                                                Updated{" "}
+                                                {formatDate(set.updatedAt)}
+                                            </label>
+                                        </div>
+                                        <button className="ml-auto hover:text-(--discord-blurple)">
+                                            <EllipsisVertical className="w-5 h-5 opacity-80" />
+                                        </button>
+                                    </div>
+
+                                    {/* Stats area */}
+                                    <div className="mt-5 flex flex-row space-x-3">
+                                        <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
+                                            <label className="text-sm">
+                                                {set.totalCards} cards
+                                            </label>
+                                        </div>
+                                        <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
+                                            <label className="text-sm">
+                                                0 reviewed
+                                            </label>
+                                        </div>
+                                        <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
+                                            <label className="text-sm">
+                                                0 starred
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div className="h-0.5 w-full bg-(--discord-gray-1) my-5 rounded-2xl"></div>
+
+                                    {/* Action buttons */}
+                                    <div className="flex flex-row space-x-3 w-full">
+                                        <button
+                                            onClick={() =>
+                                                router.push(
+                                                    `/app/flashcard-sets/${set.flashcardSetId}`
+                                                )
+                                            }
+                                            className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
+                                        >
+                                            <BookOpenText />
+                                            <label>Review</label>
+                                        </button>
+                                        <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
+                                            <Brain />
+                                            <label>Quiz</label>
+                                        </button>
+                                        <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
+                                            <ChartNoAxesCombined />
+                                            <label>Stats</label>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
 
                     <button
                         onClick={() =>
