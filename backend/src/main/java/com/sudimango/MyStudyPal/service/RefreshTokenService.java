@@ -60,7 +60,7 @@ public class RefreshTokenService {
                 .secure(false)
                 .sameSite("Lax")
                 .path("/")
-                .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION/1000)
+                .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION)
                 .build();
             
         return refreshTokenCookie;

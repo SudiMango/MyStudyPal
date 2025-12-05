@@ -7,6 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class ResendVerificationEmailRequest {
-    @NotBlank(message = "Username field in VerifyAccountRequest class cannot be null or blank.")
+    @NotBlank(message = "Username field in ResendVerificationEmailRequest class cannot be null or blank.")
     private String username;
 }
