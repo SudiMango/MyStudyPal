@@ -1,0 +1,66 @@
+package com.sudimango.MyStudyPal.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sudimango.MyStudyPal.component.GeminiClient;
+import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.entity.Flashcard;
+import com.sudimango.MyStudyPal.entity.FlashcardSet;
+import com.sudimango.MyStudyPal.repository.FlashcardRepository;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class FlashcardService {
+
+    @Autowired
+    private FlashcardRepository flashcardRepository;
+
+    @Autowired
+    private GeminiClient geminiClient;
+
+    private ObjectMapper mapper;
+
+    public FlashcardService() {
+        mapper = new ObjectMapper();
+    }
+
+    @Transactional
+    public void createFlashcardsForSet(CreateFlashcardSetRequest request, FlashcardSet set) throws JsonProcessingException, JsonMappingException {
+
+        String response = null;
+        if (!request.getUseFullDocument()) {
+            String context = geminiClient.getContext(request.getDocumentId(), request.getPrompt());
+            response = geminiClient.generateFlashcardsWithContext(context, request.getNumFlashcards(), request.getAdditionalInstructions());
+        } else {
+            response = geminiClient.generateFlashcardsFullDocument(request.getDocumentId(), request.getNumFlashcards(), request.getAdditionalInstructions());
+        }
+
+        if (response == null || response.trim().equals("")) {
+            throw new RuntimeException("AI response was null.");
+        }
+
+        String cleaned = response
+            .replace("```json", "")
+            .replace("```", "")
+            .trim();
+
+        List<Flashcard> flashcards = mapper.readValue(cleaned,
+            new TypeReference<List<Flashcard>>() {
+        });
+
+        for (Flashcard f : flashcards) {
+            f.setFlashcardSet(set);
+        }
+
+        flashcardRepository.saveAll(flashcards);
+    }
+
+}

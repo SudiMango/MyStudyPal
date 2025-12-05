@@ -136,7 +136,8 @@ const CreateFlashcardSetPage = () => {
          * Redirect to flashcard set page
          */
 
-        redirect(`/app/flashcard-sets/${createResult.data}`);
+        const { flashcardSetId } = createResult.data;
+        redirect(`/app/flashcard-sets/${flashcardSetId}`);
     };
 
     return (

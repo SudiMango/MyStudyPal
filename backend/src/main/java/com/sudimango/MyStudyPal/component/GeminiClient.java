@@ -13,6 +13,7 @@ import com.google.genai.types.ContentEmbedding;
 import com.google.genai.types.EmbedContentConfig;
 import com.google.genai.types.EmbedContentResponse;
 import com.google.genai.types.GenerateContentResponse;
+import com.sudimango.MyStudyPal.entity.DocumentChunk;
 import com.sudimango.MyStudyPal.repository.DocumentChunkRepository;
 
 @Component
@@ -29,6 +30,12 @@ public class GeminiClient {
         this.client = Client.builder().apiKey(apiKey).build();
     }
 
+    /*
+     * 
+     * PUBLIC FUNCTIONS
+     * 
+     */
+
     // Generates vector embedding for a string and returns a string value of the embedding, 
     // so that it can be saved properly in the database
     public String generateAndFormatEmbedding(String text) {
@@ -41,6 +48,28 @@ public class GeminiClient {
         return vectorStr;
     }
 
+    // TODO: enable retries when content generation fails to format as JSON
+
+    // Generate flashcards with context
+    public String generateFlashcardsWithContext(String context, int numFlashcards, String additionalInstructions) {
+        String prompt = generateFlashcardSetPrompt(context, numFlashcards, additionalInstructions);
+        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
+        return response.text();
+    }
+
+    // Generate flashcards on the whole document
+    // TODO: seperate document chunk stuff into DocumentChunkService
+    public String generateFlashcardsFullDocument(String documentId, int numFlashcards, String additionalInstructions) {
+        List<DocumentChunk> chunks = documentChunkRepository.findAllByDocument_DocumentId(documentId);
+        String fullDocumentText = chunks.stream()
+                .map(DocumentChunk::getChunkText)
+                .collect(Collectors.joining("\n\n"));
+
+        String prompt = generateFlashcardSetPrompt(fullDocumentText, numFlashcards, additionalInstructions);
+        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
+        return response.text();
+    }
+    
     // Generates a general response based on a user promp and the given context
     public String generateResponse(String userPrompt, String context) {
         String prompt = "Based on the following context:\n\n" + context + "\n\nAnswer this prompt: " + userPrompt;
@@ -63,6 +92,12 @@ public class GeminiClient {
         return context;
     }
 
+    /*
+     * 
+     * PRIVATE FUNCTIONS
+     * 
+     */
+
     // Generates vector embedding given a string
     private List<Float> generateEmbedding(String text) {
         EmbedContentConfig config = EmbedContentConfig.builder()
@@ -83,5 +118,40 @@ public class GeminiClient {
             }
         }
         return result;
+    }
+
+    private String generateFlashcardSetPrompt(String context, int numFlashcards, String additionalInstructions) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt.append("You are a flashcard generation assistant. Your task is to create exactly ")
+              .append(numFlashcards)
+              .append(" flashcards based on the following context:\n\n");
+        
+        prompt.append("CONTEXT:\n")
+              .append(context)
+              .append("\n\n");
+        
+        prompt.append("REQUIREMENTS:\n")
+              .append("1. Generate exactly ").append(numFlashcards).append(" flashcards.\n")
+              .append("2. Return ONLY a JSON array with no additional text or markdown.\n")
+              .append("3. Each flashcard must have exactly two fields: 'question' and 'answer'.\n")
+              .append("4. Make questions clear, concise, and focused on key concepts from the context.\n")
+              .append("5. Make answers accurate, concise, and directly address the question.\n");
+        
+        if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
+            prompt.append("\nADDITIONAL INSTRUCTIONS:\n")
+                  .append(additionalInstructions)
+                  .append("\n\nIMPORTANT: If the additional instructions conflict with the core requirement of generating ")
+                  .append(numFlashcards)
+                  .append(" flashcards in JSON format, ignore those conflicting parts of the additional instructions and prioritize maintaining the flashcard generation task.\n");
+        }
+        
+        prompt.append("\nJSON FORMAT (return ONLY this, no other text):\n")
+              .append("[\n")
+              .append("  {\"question\": \"...\", \"answer\": \"...\"},\n")
+              .append("  {\"question\": \"...\", \"answer\": \"...\"}\n")
+              .append("]\n");
+        
+        return prompt.toString();
     }
 }

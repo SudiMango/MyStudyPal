@@ -34,4 +34,6 @@ public interface DocumentChunkRepository extends JpaRepository<DocumentChunk, St
         @Param("chunkText") String chunkText,
         @Param("embedding") String embedding
     );
+
+    List<DocumentChunk> findAllByDocument_DocumentId(String documentId);
 }
