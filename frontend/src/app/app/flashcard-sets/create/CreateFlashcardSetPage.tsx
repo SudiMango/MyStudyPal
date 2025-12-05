@@ -189,7 +189,7 @@ const CreateFlashcardSetPage = () => {
                                     Name
                                 </label>
                                 <label className="text-xs opacity-60 ml-auto">
-                                    {30 - name.length} characters
+                                    {name.length}/30 characters
                                 </label>
                             </div>
                             <input
@@ -276,7 +276,7 @@ const CreateFlashcardSetPage = () => {
                                 rows={2}
                             />
                             <label className="text-xs opacity-60 ml-1 mt-1">
-                                {100 - additionalInstructions.length} characters
+                                {prompt.length}/100 characters
                             </label>
                         </div>
                     )}
@@ -299,7 +299,7 @@ const CreateFlashcardSetPage = () => {
                             rows={2}
                         />
                         <label className="text-xs opacity-60 ml-1 mt-1">
-                            {100 - additionalInstructions.length} characters
+                            {additionalInstructions.length}/100 characters
                         </label>
                     </div>
                 </div>
