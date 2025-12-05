@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sudimango.MyStudyPal.dto.response.DocumentUploadResponse;
 import com.sudimango.MyStudyPal.entity.Document;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.repository.DocumentChunkRepository;
@@ -38,17 +39,18 @@ public class DocumentProcessor {
     
     // Ingest PDF into database as chunks
     @Transactional
-    public void ingestPdfDocument(String userId, MultipartFile pdfFile) throws Exception {
+    public DocumentUploadResponse ingestPdfDocument(String userId, MultipartFile pdfFile) throws Exception {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
         String tempPath = System.getProperty("java.io.tmpdir") + "/" + System.nanoTime() + ".pdf";
         pdfFile.transferTo(new File(tempPath));
         
+        Document doc = null;
         try {
             List<String> chunks = extractAndChunkPdf(tempPath);
             
-            Document doc = Document.builder()
+            doc = Document.builder()
                 .title(pdfFile.getOriginalFilename())
                 .numChunks(chunks.size())
                 .user(user)
@@ -56,18 +58,25 @@ public class DocumentProcessor {
             Document savedDoc = documentRepository.save(doc);
             
             for (String content : chunks) {
-
                 String vectorStr = geminiClient.generateAndFormatEmbedding(content);
-                    
                 documentChunkRepository.saveChunkWithEmbedding(
                     savedDoc.getDocumentId(),
                     content,
                     vectorStr
                 );
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to ingest PDF: " + e.getMessage(), e);
         } finally {
             new File(tempPath).delete();
         }
+    
+        if (doc == null) {
+            throw new RuntimeException("Document could not be created");
+        }
+    
+        return new DocumentUploadResponse(doc.getDocumentId());
     }
 
     // Extract text page by page, merge small pages, and add overlap
