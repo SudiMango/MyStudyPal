@@ -47,6 +47,22 @@ const CreateFlashcardSetPage = () => {
         setShowEmojiPicker(false);
     };
 
+    /**
+     * file functions
+     */
+
+    const handleFilesChange = (newFiles: File[]) => {
+        const pdfFiles = newFiles.filter(
+            (file) => file.type === "application/pdf"
+        );
+
+        if (newFiles.length !== pdfFiles.length) {
+            alert("Only PDF files are allowed.");
+        }
+
+        setFiles(pdfFiles);
+    };
+
     // Create flashcard set
     const createFlashcardSet = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -135,7 +151,10 @@ const CreateFlashcardSetPage = () => {
                 </h1>
 
                 {/* Upload file area */}
-                <UploadFileSection files={files} onFilesChange={setFiles} />
+                <UploadFileSection
+                    files={files}
+                    onFilesChange={handleFilesChange}
+                />
 
                 {/* Name and icon */}
                 <div className="space-y-1 w-full my-2 flex">

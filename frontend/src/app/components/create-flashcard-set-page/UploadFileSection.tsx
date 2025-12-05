@@ -43,6 +43,7 @@ export default function UploadFileSection({
             <input
                 ref={fileInputRef}
                 type="file"
+                accept=".pdf,application/pdf"
                 onChange={handleChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
