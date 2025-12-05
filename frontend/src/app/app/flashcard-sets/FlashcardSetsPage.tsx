@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import SearchBar from "@/app/components/create-flashcard-set-page/SearchBar";
+import ConfirmationModal from "@/app/components/global/ConfirmationModal";
+import EditFlashcardSetModal from "@/app/components/create-flashcard-set-page/EditFlashcardSetModal";
+import {
+    FlashcardSet,
+    getAllFlashcardSets,
+    deleteFlashcardSet,
+    updateFlashcardSet,
+} from "@/lib/api/flashcard-set-api";
 import {
     BookOpenText,
     Brain,
@@ -11,7 +17,9 @@ import {
     Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FlashcardSet, getAllFlashcardSets } from "@/lib/api/flashcard-api";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import SearchBar from "@/app/components/create-flashcard-set-page/SearchBar";
+import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 
 const FlashcardSetsPage = () => {
     const router = useRouter();
@@ -19,23 +27,132 @@ const FlashcardSetsPage = () => {
     const [query, setQuery] = useState("");
     const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [showDropdown, setShowDropdown] = useState<number | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Fetch all flashcard sets for user
+    // Delete state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [setToDelete, setSetToDelete] = useState<FlashcardSet | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Edit state
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingSet, setEditingSet] = useState<FlashcardSet | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    /**
+     *
+     * Fetch all flashcard sets for user
+     *
+     */
+
+    const fetchFlashcardSets = async () => {
+        setIsLoading(true);
+        const response = await getAllFlashcardSets();
+        if (response.success && response.data) {
+            console.log(response.data);
+            setFlashcardSets(response.data);
+        } else {
+            alert(response.error);
+        }
+        setIsLoading(false);
+    };
+
     useEffect(() => {
-        const fetchFlashcardSets = async () => {
-            setIsLoading(true);
-            const response = await getAllFlashcardSets();
-            if (response.success && response.data) {
-                console.log(response.data);
-                setFlashcardSets(response.data);
-            } else {
-                alert(response.error);
-            }
-            setIsLoading(false);
-        };
-
         fetchFlashcardSets();
     }, []);
+
+    /**
+     *
+     * Settings dropdown
+     *
+     */
+
+    const handleDropdownToggle = (e: any, index: number) => {
+        e.stopPropagation();
+        setShowDropdown(showDropdown !== index ? index : null);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(e.target as Node)
+            ) {
+                setShowDropdown(null);
+            }
+        };
+
+        if (showDropdown !== null) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, [showDropdown]);
+
+    /**
+     *
+     * Handle flashcard set delete
+     *
+     */
+
+    const handleDeleteClick = (set: FlashcardSet) => {
+        setSetToDelete(set);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (setToDelete) {
+            setIsDeleting(true);
+            const response = await deleteFlashcardSet(
+                setToDelete.flashcardSetId
+            );
+            setIsDeleting(false);
+
+            if (response.success) {
+                fetchFlashcardSets();
+            } else {
+                alert(response.error || "Failed to delete flashcard set.");
+            }
+            setIsDeleteModalOpen(false);
+            setSetToDelete(null);
+            setShowDropdown(null);
+        }
+    };
+
+    /**
+     *
+     * Handle flashcard set edit
+     *
+     */
+
+    const handleEditClick = (set: FlashcardSet) => {
+        setEditingSet(set);
+        setIsEditModalOpen(true);
+    };
+
+    const handleConfirmUpdate = async (
+        flashcardSetId: string,
+        name: string,
+        icon: string
+    ) => {
+        setIsUpdating(true);
+        const response = await updateFlashcardSet(flashcardSetId, {
+            name,
+            icon,
+        });
+        setIsUpdating(false);
+
+        if (response.success) {
+            fetchFlashcardSets();
+            setIsEditModalOpen(false);
+            setEditingSet(null);
+            setShowDropdown(null);
+        } else {
+            alert(response.error || "Failed to update flashcard set.");
+        }
+    };
 
     // Format date to show on UI
     const formatDate = (dateString: string): string => {
@@ -57,6 +174,28 @@ const FlashcardSetsPage = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full p-5">
+            {/* Delete flashcard set modal */}
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onCancel={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                message={`Are you sure you want to delete the "${setToDelete?.name}" flashcard set?`}
+                confirmMessage="Deleting..."
+                isLoading={isDeleting}
+            />
+
+            {/* Edit flashcard set modal */}
+            <EditFlashcardSetModal
+                isOpen={isEditModalOpen}
+                flashcardSet={editingSet}
+                onConfirm={handleConfirmUpdate}
+                onCancel={() => {
+                    setIsEditModalOpen(false);
+                    setEditingSet(null);
+                }}
+                isLoading={isUpdating}
+            />
+
             <div className="flex flex-col justify-center items-center w-full h-full max-w-[600px]">
                 {/* Title */}
                 <h1 className="text-3xl font-bold mb-5">My Flashcard Sets</h1>
@@ -111,13 +250,42 @@ const FlashcardSetsPage = () => {
                                                 {formatDate(set.updatedAt)}
                                             </label>
                                         </div>
-                                        <button className="ml-auto hover:text-(--discord-blurple)">
-                                            <EllipsisVertical className="w-5 h-5 opacity-80" />
-                                        </button>
+
+                                        {/* More settings button */}
+                                        <div
+                                            className="relative flex justify-center items-center ml-auto"
+                                            ref={
+                                                showDropdown === i
+                                                    ? dropdownRef
+                                                    : null
+                                            }
+                                        >
+                                            <button
+                                                onClick={(e) =>
+                                                    handleDropdownToggle(e, i)
+                                                }
+                                                className="hover:text-(--discord-blurple)"
+                                            >
+                                                <EllipsisVertical className="w-5 h-5 opacity-80 mb-1" />
+                                            </button>
+
+                                            <SettingsDropdown
+                                                isOpen={showDropdown === i}
+                                                onClose={() =>
+                                                    setShowDropdown(null)
+                                                }
+                                                onEdit={() =>
+                                                    handleEditClick(set)
+                                                }
+                                                onDelete={() =>
+                                                    handleDeleteClick(set)
+                                                }
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Stats area */}
-                                    <div className="mt-5 flex flex-row space-x-3">
+                                    <div className="mt-6 flex flex-row space-x-3">
                                         <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
                                             <label className="text-sm">
                                                 {set.totalCards} cards

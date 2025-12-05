@@ -6,6 +6,8 @@ import apiClient from "./client";
  *
  */
 
+// Create
+
 export interface GenerateFlashcardsPayload {
     documentId: string;
     name: string;
@@ -24,6 +26,8 @@ interface GenerateFlashcardsResponse {
     error?: string;
 }
 
+// Get
+
 export interface FlashcardSet {
     flashcardSetId: string;
     name: string;
@@ -33,6 +37,13 @@ export interface FlashcardSet {
     totalCards: number;
     reviewedCards: number;
     starredCards: number;
+}
+
+// Update
+
+export interface UpdateFlashcardSetPayload {
+    name?: string;
+    icon?: string;
 }
 
 /**
@@ -79,6 +90,41 @@ export const getAllFlashcardSets = async (): Promise<{
             error.response?.data?.message ||
             error.message ||
             "Failed to fetch flashcard sets";
+        return { success: false, error: errorMessage };
+    }
+};
+
+// Delete a flashcard set
+export const deleteFlashcardSet = async (
+    flashcardSetId: string
+): Promise<{ success: boolean; error?: string }> => {
+    try {
+        await apiClient.delete(`/flashcard-set/${flashcardSetId}`);
+        return { success: true };
+    } catch (error: any) {
+        const errorMessage =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to delete flashcard set";
+        return { success: false, error: errorMessage };
+    }
+};
+
+// Update a flashcard set
+export const updateFlashcardSet = async (
+    flashcardSetId: string,
+    payload: UpdateFlashcardSetPayload
+): Promise<{ success: boolean; error?: string }> => {
+    try {
+        await apiClient.patch(`/flashcard-set/${flashcardSetId}`, payload);
+        return { success: true };
+    } catch (error: any) {
+        const errorMessage =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to update flashcard set";
         return { success: false, error: errorMessage };
     }
 };

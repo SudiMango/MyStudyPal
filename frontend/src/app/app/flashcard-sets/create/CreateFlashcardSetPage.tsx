@@ -2,7 +2,7 @@
 
 import UploadFileSection from "@/app/components/create-flashcard-set-page/UploadFileSection";
 import { uploadDocument } from "@/lib/api/document-api";
-import { generateFlashcardSet } from "@/lib/api/flashcard-api";
+import { generateFlashcardSet } from "@/lib/api/flashcard-set-api";
 import EmojiPicker from "emoji-picker-react";
 import { redirect } from "next/navigation";
 import React, { useState } from "react";
@@ -177,7 +177,10 @@ const CreateFlashcardSetPage = () => {
                                 {showEmojiPicker && (
                                     <div className="absolute top-12 left-0 z-50">
                                         <EmojiPicker
+                                            width={350}
+                                            height={400}
                                             onEmojiClick={handleEmojiClick}
+                                            className="mr-5 mb-5"
                                         />
                                     </div>
                                 )}

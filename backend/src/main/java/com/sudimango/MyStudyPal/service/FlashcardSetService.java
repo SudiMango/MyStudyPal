@@ -41,7 +41,7 @@ public class FlashcardSetService {
 
         FlashcardSet set = FlashcardSet.builder()
                 .name(request.getName())
-                .icon((!request.getIcon().isEmpty() && request.getIcon() != null) ? request.getIcon() : null)
+                .icon((request.getIcon() != null && !request.getIcon().isEmpty()) ? request.getIcon() : null)
                 .document(document)
                 .user(user)
                 .build();
@@ -77,11 +77,11 @@ public class FlashcardSetService {
                 .findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
 
-        if (!request.getName().isBlank() && request.getName() != null) {
+        if (request.getName() != null && !request.getName().isBlank()) {
             flashcardSet.setName(request.getName());
         }
 
-        if (!request.getIcon().isBlank() && request.getIcon() != null) {
+        if (request.getIcon() != null && !request.getIcon().isBlank()) {
             flashcardSet.setIcon(request.getIcon());
         }
 
