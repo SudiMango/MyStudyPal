@@ -15,6 +15,12 @@ export interface Flashcard {
     reviewed: boolean;
 }
 
+export interface UpdateFlashcardDTO {
+    question?: string;
+    answer?: string;
+    hint?: string;
+}
+
 /**
  *
  * API calls
@@ -91,6 +97,25 @@ export const changeStarStatus = async (
 // Regenerate flashcard with optional additional instructions
 
 // Edit flashcard
+export const updateFlashcard = async (
+    flashcardId: string,
+    data: UpdateFlashcardDTO
+): Promise<{
+    success: boolean;
+    error?: string;
+}> => {
+    try {
+        apiClient.patch(`/flashcard/${flashcardId}`, data);
+        return { success: true };
+    } catch (error: any) {
+        const errorMessage =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to update flashcard";
+        return { success: false, error: errorMessage };
+    }
+};
 
 // Delete flashcard
 export const deleteFlashcard = async (

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardRequest;
 import com.sudimango.MyStudyPal.entity.Flashcard;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.repository.FlashcardRepository;
@@ -85,6 +86,25 @@ public class FlashcardService {
 
     public void deleteFlashcard(String flashcardId) {
         flashcardRepository.deleteById(flashcardId);
+    }
+
+    public void updateFlashcard(String flashcardId, UpdateFlashcardRequest request) {
+        Flashcard flashcard = flashcardRepository.findById(flashcardId)
+            .orElseThrow(() -> new RuntimeException("Flashcard not found: " + flashcardId));
+
+        if (request.getQuestion() != null && !request.getQuestion().isBlank()) {
+            flashcard.setQuestion(request.getQuestion());
+        }
+
+        if (request.getAnswer() != null && !request.getAnswer().isBlank()) {
+            flashcard.setAnswer(request.getAnswer());
+        }
+
+        if (request.getHint() != null && !request.getHint().isBlank()) {
+            flashcard.setHint(request.getHint());
+        }
+
+        flashcardRepository.save(flashcard);
     }
 
 }

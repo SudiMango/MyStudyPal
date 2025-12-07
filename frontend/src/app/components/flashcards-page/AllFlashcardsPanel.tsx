@@ -7,8 +7,13 @@ import {
     SquareCheck,
     Star,
 } from "lucide-react";
-import { deleteFlashcard, Flashcard } from "@/lib/api/flashcard-api";
+import {
+    deleteFlashcard,
+    Flashcard,
+    updateFlashcard,
+} from "@/lib/api/flashcard-api";
 import ConfirmationModal from "../global/ConfirmationModal";
+import EditFlashcardModal from "./EditFlashcardModal";
 
 interface FlashcardListProps {
     flashcards: Flashcard[];
@@ -34,6 +39,13 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
     const [flashcardToDelete, setFlashcardToDelete] =
         useState<Flashcard | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Editing state
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(
+        null
+    );
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -98,9 +110,44 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
         }
     };
 
+    /**
+     *
+     * Handle flashcard edit
+     *
+     */
+
+    const handleEditClick = (flashcard: Flashcard) => {
+        setEditingFlashcard(flashcard);
+        setIsEditModalOpen(true);
+    };
+
+    const handleConfirmUpdate = async (
+        flashcardId: string,
+        question: string,
+        answer: string,
+        hint: string
+    ) => {
+        setIsUpdating(true);
+        const response = await updateFlashcard(flashcardId, {
+            question,
+            answer,
+            hint,
+        });
+        setIsUpdating(false);
+
+        if (response.success) {
+            fetchEverything();
+            setIsEditModalOpen(false);
+            setEditingFlashcard(null);
+            setShowDropdown(null);
+        } else {
+            alert(response.error);
+        }
+    };
+
     return (
         <div className="bg-(--discord-gray-3) w-full rounded-xl shadow-lg p-5 mt-5 outline outline-(--discord-blurple) flex flex-col">
-            {/* Delete flashcard set modal */}
+            {/* Delete flashcard modal */}
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onCancel={() => setIsDeleteModalOpen(false)}
@@ -108,6 +155,18 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
                 message={`Are you sure you want to delete this flashcard?`}
                 confirmMessage="Deleting..."
                 isLoading={isDeleting}
+            />
+
+            {/* Edit flashcard modal */}
+            <EditFlashcardModal
+                isOpen={isEditModalOpen}
+                flashcard={editingFlashcard}
+                onConfirm={handleConfirmUpdate}
+                onCancel={() => {
+                    setIsEditModalOpen(false);
+                    setEditingFlashcard(null);
+                }}
+                isLoading={isUpdating}
             />
 
             <div className="flex flex-row">
@@ -182,6 +241,7 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
                                     <FlashcardDropdown
                                         isOpen={showDropdown === i}
                                         onClose={() => setShowDropdown(null)}
+                                        onEdit={() => handleEditClick(f)}
                                         onDelete={() => handleDeleteClick(f)}
                                     />
                                 </div>

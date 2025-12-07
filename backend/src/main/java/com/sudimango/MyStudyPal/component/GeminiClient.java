@@ -135,7 +135,7 @@ public class GeminiClient {
               .append("1. Generate exactly ").append(numFlashcards).append(" flashcards.\n")
               .append("2. Return ONLY a JSON array with no additional text or markdown.\n")
               .append("3. Each flashcard must have exactly three fields: 'question', 'answer' and 'hint'.\n")
-              .append("4. For each flashcard, make a hint which is 1-5 words long max. Do not make the hint long, it should be short and precise.\n")
+              .append("4. For each flashcard, make a hint which is 25 characters long max. Do not make the hint long, it should be short and precise.\n")
               .append("5. Make questions clear, concise, and focused on key concepts from the context.\n")
               .append("6. Make answers accurate, concise, and directly address the question.\n");
         
