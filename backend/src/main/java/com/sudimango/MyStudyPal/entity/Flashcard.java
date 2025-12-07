@@ -1,5 +1,9 @@
 package com.sudimango.MyStudyPal.entity;
 
+import java.time.Instant;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,6 +35,9 @@ public class Flashcard {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
+    @Column(columnDefinition = "TEXT")
+    private String hint;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean isReviewed = false;
@@ -38,6 +45,10 @@ public class Flashcard {
     @Column(nullable = false)
     @Builder.Default
     private boolean isStarred = false;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "flashcard_set_id", nullable = false)

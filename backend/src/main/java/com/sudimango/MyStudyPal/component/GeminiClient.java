@@ -134,9 +134,10 @@ public class GeminiClient {
         prompt.append("REQUIREMENTS:\n")
               .append("1. Generate exactly ").append(numFlashcards).append(" flashcards.\n")
               .append("2. Return ONLY a JSON array with no additional text or markdown.\n")
-              .append("3. Each flashcard must have exactly two fields: 'question' and 'answer'.\n")
-              .append("4. Make questions clear, concise, and focused on key concepts from the context.\n")
-              .append("5. Make answers accurate, concise, and directly address the question.\n");
+              .append("3. Each flashcard must have exactly three fields: 'question', 'answer' and 'hint'.\n")
+              .append("4. For each flashcard, make a hint which is 1-5 words long max. Do not make the hint long, it should be short and precise.\n")
+              .append("5. Make questions clear, concise, and focused on key concepts from the context.\n")
+              .append("6. Make answers accurate, concise, and directly address the question.\n");
         
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
             prompt.append("\nADDITIONAL INSTRUCTIONS:\n")
@@ -148,8 +149,8 @@ public class GeminiClient {
         
         prompt.append("\nJSON FORMAT (return ONLY this, no other text):\n")
               .append("[\n")
-              .append("  {\"question\": \"...\", \"answer\": \"...\"},\n")
-              .append("  {\"question\": \"...\", \"answer\": \"...\"}\n")
+              .append("  {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n")
+              .append("  {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n")
               .append("]\n");
         
         return prompt.toString();

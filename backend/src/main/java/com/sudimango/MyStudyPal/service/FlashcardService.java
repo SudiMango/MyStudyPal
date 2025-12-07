@@ -63,4 +63,24 @@ public class FlashcardService {
         flashcardRepository.saveAll(flashcards);
     }
 
+    public List<Flashcard> getAllFlashcardsOfSet(String setId) {
+        return flashcardRepository.getByFlashcardSet_FlashcardSetIdOrderByCreatedAtAsc(setId);
+    }
+
+    public void changeReviewStatus(String flashcardId) {
+        Flashcard flashcard = flashcardRepository.findById(flashcardId)
+            .orElseThrow(() -> new RuntimeException("Flashcard not found: " + flashcardId));
+
+        flashcard.setReviewed(flashcard.isReviewed() ? false : true);
+        flashcardRepository.save(flashcard);
+    }
+
+    public void changeStarStatus(String flashcardId) {
+        Flashcard flashcard = flashcardRepository.findById(flashcardId)
+            .orElseThrow(() -> new RuntimeException("Flashcard not found: " + flashcardId));
+
+        flashcard.setStarred(flashcard.isStarred() ? false : true);
+        flashcardRepository.save(flashcard);
+    }
+
 }

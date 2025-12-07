@@ -293,12 +293,12 @@ const FlashcardSetsPage = () => {
                                         </div>
                                         <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
                                             <label className="text-sm">
-                                                0 reviewed
+                                                {set.reviewedCards} reviewed
                                             </label>
                                         </div>
                                         <div className="bg-(--discord-gray-2) py-0.5 px-1 rounded-lg">
                                             <label className="text-sm">
-                                                0 starred
+                                                {set.starredCards} starred
                                             </label>
                                         </div>
                                     </div>
