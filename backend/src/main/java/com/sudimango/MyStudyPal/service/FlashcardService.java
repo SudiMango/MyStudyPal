@@ -88,20 +88,53 @@ public class FlashcardService {
         flashcardRepository.deleteById(flashcardId);
     }
 
-    public void updateFlashcard(String flashcardId, UpdateFlashcardRequest request) {
+    public void updateFlashcard(String flashcardId, UpdateFlashcardRequest request) throws JsonProcessingException, JsonMappingException {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)
             .orElseThrow(() -> new RuntimeException("Flashcard not found: " + flashcardId));
 
-        if (request.getQuestion() != null && !request.getQuestion().isBlank()) {
-            flashcard.setQuestion(request.getQuestion());
-        }
+        if (request.getMode().equals("manual")) {
+            if (request.getQuestion() != null && !request.getQuestion().isBlank()) {
+                flashcard.setQuestion(request.getQuestion());
+            }
+    
+            if (request.getAnswer() != null && !request.getAnswer().isBlank()) {
+                flashcard.setAnswer(request.getAnswer());
+            }
+    
+            if (request.getHint() != null && !request.getHint().isBlank()) {
+                flashcard.setHint(request.getHint());
+            }
+        } else if (request.getMode().equals("AI")) {
+            StringBuilder currFlashcard = new StringBuilder();
+            currFlashcard
+                .append("Question: ")
+                .append(flashcard.getQuestion())
+                .append(", ")
+                .append("Answer: ")
+                .append(flashcard.getAnswer())
+                .append("m ")
+                .append("Hint: ")
+                .append(flashcard.getHint())
+                .append("\n\n")
+                .append(request.getInstructions());
 
-        if (request.getAnswer() != null && !request.getAnswer().isBlank()) {
-            flashcard.setAnswer(request.getAnswer());
-        }
+            String context = geminiClient.getContext(flashcard.getFlashcardSet().getDocument().getDocumentId(), currFlashcard.toString());
+            String response = geminiClient.editFlashcard(context, currFlashcard.toString(), request.getInstructions());
 
-        if (request.getHint() != null && !request.getHint().isBlank()) {
-            flashcard.setHint(request.getHint());
+            String cleaned = response
+                .replace("```json", "")
+                .replace("```", "")
+                .trim();
+
+            System.out.println(cleaned);
+
+            Flashcard newFlashcard = mapper.readValue(cleaned,
+                new TypeReference<Flashcard>() {
+            });
+
+            flashcard.setQuestion(newFlashcard.getQuestion());
+            flashcard.setAnswer(newFlashcard.getAnswer());
+            flashcard.setHint(newFlashcard.getHint());
         }
 
         flashcardRepository.save(flashcard);

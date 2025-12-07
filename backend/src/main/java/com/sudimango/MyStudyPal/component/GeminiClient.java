@@ -69,10 +69,10 @@ public class GeminiClient {
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
-    
-    // Generates a general response based on a user promp and the given context
-    public String generateResponse(String userPrompt, String context) {
-        String prompt = "Based on the following context:\n\n" + context + "\n\nAnswer this prompt: " + userPrompt;
+
+    // Edit flashcard with AI
+    public String editFlashcard(String context, String currentFlashcard, String instructions) {
+        String prompt = generateUpdateFlashcardPrompt(context, currentFlashcard, instructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
@@ -120,6 +120,7 @@ public class GeminiClient {
         return result;
     }
 
+    // Generate prompt string to create all the flashcards of a new set
     private String generateFlashcardSetPrompt(String context, int numFlashcards, String additionalInstructions) {
         StringBuilder prompt = new StringBuilder();
         
@@ -152,6 +153,45 @@ public class GeminiClient {
               .append("  {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n")
               .append("  {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n")
               .append("]\n");
+        
+        return prompt.toString();
+    }
+
+    // Generate prompt string to update an existing flashcard
+    private String generateUpdateFlashcardPrompt(String context, String currentFlashcard, String instructions) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt
+            .append("You are a flashcard generation assistant. Your task is to edit this already existing flashcard based on the following context:\n\n")
+            .append("Current flashcard:\n")
+            .append(currentFlashcard)
+            .append("\n")
+            .append("CONTEXT:\n")
+              .append(context)
+              .append("\n\n");
+        
+        prompt.append("REQUIREMENTS:\n")
+              .append("1. Return ONLY a JSON array with no additional text or markdown.\n")
+              .append("2. The flashcard have exactly three fields: 'question', 'answer' and 'hint'.\n")
+              .append("3. The hint for the flashcard can be 25 characters long max. Do not make the hint long, it should be short and precise.\n")
+              .append("4. Make questions clear, concise, and focused on key concepts from the context.\n")
+              .append("5. Make answers accurate, concise, and directly address the question.\n");
+        
+        if (instructions != null && !instructions.trim().isEmpty()) {
+            prompt.append("\nINSTRUCTIONS TO UPDATE THIS FLASHCARD:\n")
+                  .append(instructions)
+                  .append("\n")
+                  .append("IMPORTANT:\n")
+                  .append("1. Only edit the necessary fields. For example, if the instruction asks to only do something with the hint and answer, don't modify the question.\n")
+                  .append("2. If the additional instructions conflict with the core requirement of editing the in JSON format, ignore those conflicting parts of the additional instructions and prioritize maintaining the flashcard editing task. \n");
+        } else {
+            prompt
+                .append("\nINSTRUCTIONS TO UPDATE THIS FLASHCARD:\n")
+                .append("Use the given context to make the current flashcard better in all factors.");
+        }
+        
+        prompt.append("\nJSON FORMAT (return ONLY this, no other text, make sure its one json object and not a list):\n")
+              .append(" {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n");
         
         return prompt.toString();
     }

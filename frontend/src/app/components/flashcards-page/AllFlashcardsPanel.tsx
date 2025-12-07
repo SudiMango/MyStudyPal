@@ -125,13 +125,17 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
         flashcardId: string,
         question: string,
         answer: string,
-        hint: string
+        hint: string,
+        instructions: string,
+        mode: "manual" | "AI"
     ) => {
         setIsUpdating(true);
         const response = await updateFlashcard(flashcardId, {
             question,
             answer,
             hint,
+            instructions,
+            mode,
         });
         setIsUpdating(false);
 

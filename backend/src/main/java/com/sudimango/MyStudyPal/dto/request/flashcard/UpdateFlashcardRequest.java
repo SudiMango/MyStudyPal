@@ -7,4 +7,8 @@ public class UpdateFlashcardRequest {
     private String question;
     private String answer;
     private String hint;
+
+    private String instructions;
+
+    private String mode;
 }

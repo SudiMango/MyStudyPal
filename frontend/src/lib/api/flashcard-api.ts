@@ -19,6 +19,8 @@ export interface UpdateFlashcardDTO {
     question?: string;
     answer?: string;
     hint?: string;
+    instructions?: string;
+    mode: "manual" | "AI";
 }
 
 /**
@@ -78,7 +80,7 @@ export const changeStarStatus = async (
     error?: string;
 }> => {
     try {
-        apiClient.patch(`/flashcard/star/${flashcardId}`);
+        await apiClient.patch(`/flashcard/star/${flashcardId}`);
         return { success: true };
     } catch (error: any) {
         const errorMessage =
@@ -105,7 +107,7 @@ export const updateFlashcard = async (
     error?: string;
 }> => {
     try {
-        apiClient.patch(`/flashcard/${flashcardId}`, data);
+        await apiClient.patch(`/flashcard/${flashcardId}`, data);
         return { success: true };
     } catch (error: any) {
         const errorMessage =
@@ -125,7 +127,7 @@ export const deleteFlashcard = async (
     error?: string;
 }> => {
     try {
-        apiClient.delete(`/flashcard/${flashcardId}`);
+        await apiClient.delete(`/flashcard/${flashcardId}`);
         return { success: true };
     } catch (error: any) {
         const errorMessage =
