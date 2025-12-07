@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,4 +51,45 @@ public class FlashcardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @DeleteMapping("/{flashcardId}")
+    public ResponseEntity<?> deleteFlashcard(@PathVariable String flashcardId) {
+        try {
+            flashcardService.deleteFlashcard(flashcardId);
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    // @PostMapping("/generate")
+    // public ResponseEntity<?> generateFlashcards(@Valid @RequestBody GenerateFlashcardSetRequest request, @AuthenticationPrincipal User user) {
+    //     try {
+    //         flashcardService.generateFlashcards(request, user.getUserId());
+    //         return ResponseEntity.status(HttpStatus.CREATED).body(null);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    //     }
+    // }
+
+    // @PatchMapping("/{flashcardId}")
+    // public ResponseEntity<?> updateFlashcard(@PathVariable String flashcardId, 
+    //                                         @Valid @RequestBody UpdateFlashcardRequest request) {
+    //     try {
+    //         Flashcard flashcard = flashcardService.updateFlashcard(flashcardId, request);
+    //         return ResponseEntity.status(HttpStatus.OK).body(flashcard);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    //     }
+    // }
+
+    // @DeleteMapping("/{flashcardId}")
+    // public ResponseEntity<?> deleteFlashcard(@PathVariable String flashcardId) {
+    //     try {
+    //         flashcardService.deleteFlashcard(flashcardId);
+    //         return ResponseEntity.status(HttpStatus.OK).body(null);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    //     }
+    // }
 }

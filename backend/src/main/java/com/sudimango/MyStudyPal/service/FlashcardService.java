@@ -83,4 +83,8 @@ public class FlashcardService {
         flashcardRepository.save(flashcard);
     }
 
+    public void deleteFlashcard(String flashcardId) {
+        flashcardRepository.deleteById(flashcardId);
+    }
+
 }

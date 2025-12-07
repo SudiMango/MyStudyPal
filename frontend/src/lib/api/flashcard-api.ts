@@ -59,7 +59,7 @@ export const changeReviewStatus = async (
             error.response?.data?.error ||
             error.response?.data?.message ||
             error.message ||
-            "Failed to fetch flashcards";
+            "Failed to update flashcard";
         return { success: false, error: errorMessage };
     }
 };
@@ -79,7 +79,7 @@ export const changeStarStatus = async (
             error.response?.data?.error ||
             error.response?.data?.message ||
             error.message ||
-            "Failed to fetch flashcards";
+            "Failed to update flashcard";
         return { success: false, error: errorMessage };
     }
 };
@@ -93,3 +93,21 @@ export const changeStarStatus = async (
 // Edit flashcard
 
 // Delete flashcard
+export const deleteFlashcard = async (
+    flashcardId: string
+): Promise<{
+    success: boolean;
+    error?: string;
+}> => {
+    try {
+        apiClient.delete(`/flashcard/${flashcardId}`);
+        return { success: true };
+    } catch (error: any) {
+        const errorMessage =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to delete flashcard";
+        return { success: false, error: errorMessage };
+    }
+};

@@ -113,7 +113,7 @@ const FlashcardSetsPage = () => {
             if (response.success) {
                 fetchFlashcardSets();
             } else {
-                alert(response.error || "Failed to delete flashcard set.");
+                alert(response.error);
             }
             setIsDeleteModalOpen(false);
             setSetToDelete(null);
@@ -150,7 +150,7 @@ const FlashcardSetsPage = () => {
             setEditingSet(null);
             setShowDropdown(null);
         } else {
-            alert(response.error || "Failed to update flashcard set.");
+            alert(response.error);
         }
     };
 
