@@ -31,6 +31,7 @@ const FlashcardsPage = () => {
         handleShowHint,
         handleShowAnswer,
         shuffleFlashcards,
+        fetchEverything,
     } = useFlashcards(setId);
 
     if (isLoading) {
@@ -117,10 +118,10 @@ const FlashcardsPage = () => {
                 {/* All flashcards panel */}
                 <AllFlashcardsPanel
                     flashcards={flashcards}
-                    currIndex={currIndex}
                     onStarFlashcard={handleStarFlashcard}
                     onReviewFlashcard={handleReviewFlashcard}
                     isReviewing={isReviewing}
+                    fetchEverything={fetchEverything}
                 />
             </div>
         </div>

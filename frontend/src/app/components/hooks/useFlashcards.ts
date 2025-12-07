@@ -37,6 +37,25 @@ export const useFlashcards = (setId: string) => {
      *
      */
 
+    const fetchEverything = async () => {
+        setIsLoading(true);
+
+        const setResponse = await getOneFlashcardSet(setId);
+        if (setResponse.success && setResponse.data) {
+            setFlashcardSet(setResponse.data);
+        } else {
+            alert(setResponse.error);
+        }
+
+        const response = await getAllFlashcardsInSet(setId);
+        if (response.success && response.data) {
+            setFlashcards(response.data);
+        } else {
+            alert(response.error);
+        }
+        setIsLoading(false);
+    };
+
     useEffect(() => {
         if (!setId) {
             setIsLoading(false);
@@ -44,26 +63,7 @@ export const useFlashcards = (setId: string) => {
             return;
         }
 
-        const fetch = async () => {
-            setIsLoading(true);
-
-            const setResponse = await getOneFlashcardSet(setId);
-            if (setResponse.success && setResponse.data) {
-                setFlashcardSet(setResponse.data);
-            } else {
-                alert(setResponse.error);
-            }
-
-            const response = await getAllFlashcardsInSet(setId);
-            if (response.success && response.data) {
-                setFlashcards(response.data);
-            } else {
-                alert(response.error);
-            }
-            setIsLoading(false);
-        };
-
-        fetch();
+        fetchEverything();
     }, [setId]);
 
     /**
@@ -224,5 +224,6 @@ export const useFlashcards = (setId: string) => {
         handleShowHint,
         handleShowAnswer,
         shuffleFlashcards,
+        fetchEverything,
     };
 };
