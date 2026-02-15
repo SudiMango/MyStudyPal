@@ -3,7 +3,7 @@ package com.sudimango.MyStudyPal.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Random;
 
@@ -60,7 +60,7 @@ public class VerificationCodeService {
         System.out.println(verifyAccountRequest.getVerificationCode().equals(verificationCode.getCode()));
         return verifyAccountRequest.getUsername().equals(verificationCode.getUser().getUsername()) &&
                  verifyAccountRequest.getVerificationCode().equals(verificationCode.getCode()) && 
-                 LocalDateTime.now().isBefore(verificationCode.getExpiryDate());
+                 Instant.now().isBefore(verificationCode.getExpiryDate());
     }
 
     public void deleteVerificationCode(VerificationCode verificationCode) {
@@ -77,7 +77,7 @@ public class VerificationCodeService {
         String code = generateVerificationCode();
         VerificationCode verificationCode = VerificationCode.builder()
                                                             .code(code)
-                                                            .expiryDate(LocalDateTime.now().plusMinutes(15))
+                                                            .expiryDate(Instant.now().plusSeconds(15 * 60))
                                                             .user(user)
                                                             .build();
 

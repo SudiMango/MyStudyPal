@@ -1,6 +1,6 @@
 package com.sudimango.MyStudyPal.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -47,11 +47,11 @@ public class User implements UserDetails {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Override
     public String getUsername() {

@@ -1,6 +1,6 @@
 package com.sudimango.MyStudyPal.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +33,7 @@ public class VerificationCode {
     private String code;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime expiryDate;
+    private Instant expiryDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
