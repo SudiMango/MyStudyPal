@@ -94,6 +94,29 @@ export const getAllFlashcardSets = async (): Promise<{
     }
 };
 
+// Get all flashcard sets
+export const getOneFlashcardSet = async (
+    flashcardSetId: string
+): Promise<{
+    success: boolean;
+    data?: FlashcardSet;
+    error?: string;
+}> => {
+    try {
+        const response = await apiClient.get<FlashcardSet>(
+            `/flashcard-set/${flashcardSetId}`
+        );
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        const errorMessage =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch flashcard set";
+        return { success: false, error: errorMessage };
+    }
+};
+
 // Delete a flashcard set
 export const deleteFlashcardSet = async (
     flashcardSetId: string
