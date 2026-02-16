@@ -39,9 +39,6 @@ public class Document {
     private String title;
     
     @Column(nullable = false)
-    private String fileUrl;
-    
-    @Column(nullable = false)
     private int numChunks;
     
     @CreationTimestamp
@@ -55,4 +52,8 @@ public class Document {
     @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<DocumentChunk> documentChunks;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

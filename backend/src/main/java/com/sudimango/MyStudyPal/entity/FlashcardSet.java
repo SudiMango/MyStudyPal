@@ -40,9 +40,6 @@ public class FlashcardSet {
     @Column(nullable = false)
     private String name;
     
-    @Column(columnDefinition = "TEXT")
-    private String description;
-    
     @Column(nullable = false)
     @Builder.Default
     private String icon = "📖";

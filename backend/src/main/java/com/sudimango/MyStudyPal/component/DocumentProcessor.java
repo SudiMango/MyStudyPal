@@ -12,11 +12,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sudimango.MyStudyPal.dto.response.DocumentUploadResponse;
 import com.sudimango.MyStudyPal.entity.Document;
+import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.repository.DocumentChunkRepository;
 import com.sudimango.MyStudyPal.repository.DocumentRepository;
+import com.sudimango.MyStudyPal.repository.StudySetRepository;
 import com.sudimango.MyStudyPal.repository.UserRepository;
 
 @Component
@@ -30,6 +31,9 @@ public class DocumentProcessor {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private StudySetRepository studySetRepository;
     
     @Autowired
     private GeminiClient geminiClient;
@@ -39,9 +43,12 @@ public class DocumentProcessor {
     
     // Ingest PDF into database as chunks
     @Transactional
-    public DocumentUploadResponse ingestPdfDocument(String userId, MultipartFile pdfFile) throws Exception {
+    public void ingestPdfDocument(String userId, String studySetId, MultipartFile pdfFile, int chunkIndex) throws Exception {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+        StudySet studySet = studySetRepository.findById(studySetId)
+            .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));
         
         String tempPath = System.getProperty("java.io.tmpdir") + "/" + System.nanoTime() + ".pdf";
         pdfFile.transferTo(new File(tempPath));
@@ -53,6 +60,7 @@ public class DocumentProcessor {
             doc = Document.builder()
                 .title(pdfFile.getOriginalFilename())
                 .numChunks(chunks.size())
+                .studySet(studySet)
                 .user(user)
                 .build();
             Document savedDoc = documentRepository.save(doc);
@@ -62,7 +70,8 @@ public class DocumentProcessor {
                 documentChunkRepository.saveChunkWithEmbedding(
                     savedDoc.getDocumentId(),
                     content,
-                    vectorStr
+                    vectorStr,
+                    chunkIndex
                 );
             }
         } catch (Exception e) {
@@ -75,8 +84,6 @@ public class DocumentProcessor {
         if (doc == null) {
             throw new RuntimeException("Document could not be created");
         }
-    
-        return new DocumentUploadResponse(doc.getDocumentId());
     }
 
     // Extract text page by page, merge small pages, and add overlap

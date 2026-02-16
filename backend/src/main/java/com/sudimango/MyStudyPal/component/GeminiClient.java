@@ -57,8 +57,36 @@ public class GeminiClient {
         return response.text();
     }
 
+    // Generate flashcards for entire study set using RAG
+    public String generateFlashcardsForStudySet(String studySetId, String userPrompt, int numFlashcards, String additionalInstructions) {
+        // Get relevant context from all documents in the study set using RAG
+        String context = getContextFromStudySet(studySetId, userPrompt);
+        
+        // Generate flashcards using the retrieved context
+        String prompt = generateFlashcardSetPrompt(context, numFlashcards, additionalInstructions);
+        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
+        return response.text();
+    }
+
+    // Retrieves context from all documents in a study set, based on the user prompt
+    public String getContextFromStudySet(String studySetId, String userPrompt) {
+        List<Float> queryEmbedding = generateEmbedding(userPrompt);
+        String vectorStr = queryEmbedding.toString();
+        
+        // Find similar chunks across ALL documents in the study set
+        List<String> relevantChunks = documentChunkRepository.findSimilarChunksInStudySet(studySetId, vectorStr, 10);
+        
+        if (relevantChunks.isEmpty()) {
+            return "No matching content found in the study set.";
+        }
+        
+        String context = String.join("\n\n", relevantChunks);
+        return context;
+    }
+
     // Generate flashcards on the whole document
     // TODO: seperate document chunk stuff into DocumentChunkService
+    @Deprecated
     public String generateFlashcardsFullDocument(String documentId, int numFlashcards, String additionalInstructions) {
         List<DocumentChunk> chunks = documentChunkRepository.findAllByDocument_DocumentId(documentId);
         String fullDocumentText = chunks.stream()
@@ -78,6 +106,7 @@ public class GeminiClient {
     }
 
     // Retrieves context from a given document, based on the user prompt
+    @Deprecated
     public String getContext(String documentId, String userPrompt) {
         List<Float> queryEmbedding = generateEmbedding(userPrompt);
         String vectorStr = queryEmbedding.toString();

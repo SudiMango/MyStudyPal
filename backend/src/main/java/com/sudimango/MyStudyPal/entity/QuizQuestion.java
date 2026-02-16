@@ -1,9 +1,7 @@
 package com.sudimango.MyStudyPal.entity;
 
-import java.time.Instant;
 import java.util.List;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -53,6 +51,9 @@ public class QuizQuestion {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> correctAnswers;
+
+    @Column(columnDefinition = "TEXT")
+    private String hint;
     
     @Column(nullable = false)
     @Builder.Default
@@ -60,10 +61,6 @@ public class QuizQuestion {
     
     @Column(nullable = false)
     private int orderIndex;
-    
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)

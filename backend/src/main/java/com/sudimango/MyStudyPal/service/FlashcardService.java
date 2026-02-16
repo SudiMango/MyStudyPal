@@ -35,32 +35,32 @@ public class FlashcardService {
 
     @Transactional
     public void createFlashcardsForSet(CreateFlashcardSetRequest request, FlashcardSet set) throws JsonProcessingException, JsonMappingException {
-
-        String response = null;
-        if (!request.getUseFullDocument()) {
-            String context = geminiClient.getContext(request.getDocumentId(), request.getPrompt());
-            response = geminiClient.generateFlashcardsWithContext(context, request.getNumFlashcards(), request.getAdditionalInstructions());
-        } else {
-            response = geminiClient.generateFlashcardsFullDocument(request.getDocumentId(), request.getNumFlashcards(), request.getAdditionalInstructions());
-        }
-
+        String studySetId = set.getStudySet().getStudySetId();
+        
+        String response = geminiClient.generateFlashcardsForStudySet(
+            studySetId, 
+            request.getPrompt(), 
+            request.getNumFlashcards(), 
+            request.getAdditionalInstructions()
+        );
+        
         if (response == null || response.trim().equals("")) {
             throw new RuntimeException("AI response was null.");
         }
-
+        
         String cleaned = response
             .replace("```json", "")
             .replace("```", "")
             .trim();
-
+        
         List<Flashcard> flashcards = mapper.readValue(cleaned,
             new TypeReference<List<Flashcard>>() {
         });
-
+        
         for (Flashcard f : flashcards) {
             f.setFlashcardSet(set);
         }
-
+        
         flashcardRepository.saveAll(flashcards);
     }
 
@@ -112,21 +112,22 @@ public class FlashcardService {
                 .append(", ")
                 .append("Answer: ")
                 .append(flashcard.getAnswer())
-                .append("m ")
+                .append(", ")
                 .append("Hint: ")
                 .append(flashcard.getHint())
                 .append("\n\n")
                 .append(request.getInstructions());
 
-            String context = geminiClient.getContext(flashcard.getFlashcardSet().getDocument().getDocumentId(), currFlashcard.toString());
+            String studySetId = flashcard.getFlashcardSet().getStudySet().getStudySetId();
+            String query = currFlashcard.toString() + "\n\n" + request.getInstructions();
+
+            String context = geminiClient.getContextFromStudySet(studySetId, query);
             String response = geminiClient.editFlashcard(context, currFlashcard.toString(), request.getInstructions());
 
             String cleaned = response
                 .replace("```json", "")
                 .replace("```", "")
                 .trim();
-
-            System.out.println(cleaned);
 
             Flashcard newFlashcard = mapper.readValue(cleaned,
                 new TypeReference<Flashcard>() {

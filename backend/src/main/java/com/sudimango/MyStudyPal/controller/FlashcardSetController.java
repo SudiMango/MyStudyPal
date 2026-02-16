@@ -48,11 +48,12 @@ public class FlashcardSetController {
      * 
      * @see CreateFlashcardSetResponse CreateFlashcardSetResponse class for response body structure
      */
-    @PostMapping("/create")
-    public ResponseEntity<?> createFlashcardSet(@Valid @RequestBody CreateFlashcardSetRequest flashcardSetRequest,
+    @PostMapping("/create/{studySetId}")
+    public ResponseEntity<?> createFlashcardSet(@PathVariable String studySetId,
+                                                @Valid @RequestBody CreateFlashcardSetRequest flashcardSetRequest,
                                                 @AuthenticationPrincipal User user) {
         try {
-            CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, user);
+            CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, studySetId, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

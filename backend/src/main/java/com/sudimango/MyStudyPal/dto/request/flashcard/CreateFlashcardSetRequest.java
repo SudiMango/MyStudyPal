@@ -8,21 +8,16 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class CreateFlashcardSetRequest {
-    @NotBlank(message = "Name field in CreateFlashcardSetWithFlashcards class cannot be null or blank.")
+    @NotBlank(message = "Name field in CreateFlashcardSetRequest class cannot be null or blank.")
     private String name;
     
     private String icon;
 
-    @NotBlank(message = "DocumentId field in CreateFlashcardSetWithFlashcards class cannot be null or blank.")
-    private String documentId;
-
-    @NotNull(message = "NumFlashcards field in CreateFlashcardSetWithFlashcards class cannot be null.")
+    @NotNull(message = "NumFlashcards field in CreateFlashcardSetRequest class cannot be null.")
     private Integer numFlashcards;
 
-    @NotNull(message = "UseFullDocument field in CreateFlashcardSetWithFlashcards class cannot be null.")
-    private Boolean useFullDocument;
-
-
+    @NotBlank(message = "Promot for flashcard set generation cannot be null or blank.")
     private String prompt;
+
     private String additionalInstructions;
 }

@@ -28,7 +28,6 @@ public class VerificationCode {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String codeId;
 
-    @Id
     @Column(nullable = false, updatable = false)
     private String code;
 

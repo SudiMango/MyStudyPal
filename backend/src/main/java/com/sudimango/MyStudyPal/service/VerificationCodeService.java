@@ -1,6 +1,8 @@
 package com.sudimango.MyStudyPal.service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -8,6 +10,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.sudimango.MyStudyPal.dto.request.VerifyAccountRequest;
@@ -41,9 +44,9 @@ public class VerificationCodeService {
 
             emailService.sendVerificationEmail(user.getUsername(), subject, htmlContent);
         } catch (MessagingException e) {
-            throw new RuntimeException("Error sending verification email. Please try again.");
+            throw new RuntimeException("Error sending verification email: " + e.getMessage());
         } catch (IOException e) {
-            throw new RuntimeException("Error sending verification email. Please try again.");
+            throw new RuntimeException("Error sending verification email: " + e.getMessage());
         }
     }
 
@@ -68,9 +71,14 @@ public class VerificationCodeService {
     }
 
     private String loadHtmlTemplate(String verificationCode) throws IOException {
-        String path = "src/main/resources/templates/verification_email.html";
-        String htmlContent = Files.readString(Paths.get(path));
-        return String.format(htmlContent, verificationCode);
+        ClassPathResource resource = new ClassPathResource("templates/verification_email.html");
+        
+        try (InputStream inputStream = resource.getInputStream()) {
+            byte[] bytes = inputStream.readAllBytes();
+            String htmlContent = new String(bytes, StandardCharsets.UTF_8);
+            
+            return String.format(htmlContent, verificationCode);
+        }
     }
 
     private String generateNewCodeForUser(User user) {

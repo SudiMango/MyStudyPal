@@ -12,11 +12,11 @@ import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.dto.response.CreateFlashcardSetResponse;
 import com.sudimango.MyStudyPal.dto.response.FlashcardSetResponse;
-import com.sudimango.MyStudyPal.entity.Document;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
+import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
-import com.sudimango.MyStudyPal.repository.DocumentRepository;
 import com.sudimango.MyStudyPal.repository.FlashcardSetRepository;
+import com.sudimango.MyStudyPal.repository.StudySetRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -27,22 +27,22 @@ public class FlashcardSetService {
     private FlashcardSetRepository flashcardSetRepository;
 
     @Autowired
-    private DocumentRepository documentRepository;
-
-    @Autowired
     private FlashcardService flashcardService;
 
+    @Autowired
+    private StudySetRepository studySetRepository;
+
     @Transactional
-    public CreateFlashcardSetResponse createFlashcardSet(CreateFlashcardSetRequest request, User user)
+    public CreateFlashcardSetResponse createFlashcardSet(CreateFlashcardSetRequest request, String studySetId, User user)
             throws JsonProcessingException, JsonMappingException {
-        Document document = documentRepository
-                .findById(request.getDocumentId())
-                .orElseThrow(() -> new RuntimeException("Document with given ID not found."));
+
+        StudySet studySet = studySetRepository.findById(studySetId)
+            .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));
 
         FlashcardSet set = FlashcardSet.builder()
                 .name(request.getName())
-                .icon((request.getIcon() != null && !request.getIcon().isEmpty()) ? request.getIcon() : null)
-                .document(document)
+                .icon((request.getIcon() != null && !request.getIcon().isEmpty()) ? request.getIcon() : "📖")
+                .studySet(studySet)
                 .user(user)
                 .build();
         flashcardSetRepository.save(set);

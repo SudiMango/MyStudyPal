@@ -42,6 +42,10 @@ public class StudySet {
     
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String icon = "📖";
     
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
