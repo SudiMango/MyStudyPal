@@ -50,20 +50,20 @@ public class GeminiClient {
 
     // TODO: enable retries when content generation fails to format as JSON
 
-    // Generate flashcards with context
-    public String generateFlashcardsWithContext(String context, int numFlashcards, String additionalInstructions) {
+    // Generate flashcards for entire study set using RAG
+    public String generateFlashcardsForStudySet(String studySetId, String userPrompt, int numFlashcards, String additionalInstructions) {
+        String context = getContextFromStudySet(studySetId, userPrompt);
+        
         String prompt = generateFlashcardSetPrompt(context, numFlashcards, additionalInstructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
 
-    // Generate flashcards for entire study set using RAG
-    public String generateFlashcardsForStudySet(String studySetId, String userPrompt, int numFlashcards, String additionalInstructions) {
-        // Get relevant context from all documents in the study set using RAG
+    // Generate quiz questions for entire study set using RAG
+    public String generateQuizQuestionsForStudySet(String studySetId, String userPrompt, int timeLimitMinutes, String additionalInstructions) {
         String context = getContextFromStudySet(studySetId, userPrompt);
         
-        // Generate flashcards using the retrieved context
-        String prompt = generateFlashcardSetPrompt(context, numFlashcards, additionalInstructions);
+        String prompt = generateQuizSetPrompt(context, timeLimitMinutes, additionalInstructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
@@ -84,20 +84,6 @@ public class GeminiClient {
         return context;
     }
 
-    // Generate flashcards on the whole document
-    // TODO: seperate document chunk stuff into DocumentChunkService
-    @Deprecated
-    public String generateFlashcardsFullDocument(String documentId, int numFlashcards, String additionalInstructions) {
-        List<DocumentChunk> chunks = documentChunkRepository.findAllByDocument_DocumentId(documentId);
-        String fullDocumentText = chunks.stream()
-                .map(DocumentChunk::getChunkText)
-                .collect(Collectors.joining("\n\n"));
-
-        String prompt = generateFlashcardSetPrompt(fullDocumentText, numFlashcards, additionalInstructions);
-        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
-        return response.text();
-    }
-
     // Edit flashcard with AI
     public String editFlashcard(String context, String currentFlashcard, String instructions) {
         String prompt = generateUpdateFlashcardPrompt(context, currentFlashcard, instructions);
@@ -105,21 +91,7 @@ public class GeminiClient {
         return response.text();
     }
 
-    // Retrieves context from a given document, based on the user prompt
-    @Deprecated
-    public String getContext(String documentId, String userPrompt) {
-        List<Float> queryEmbedding = generateEmbedding(userPrompt);
-        String vectorStr = queryEmbedding.toString();
-    
-        List<String> relevantChunks = documentChunkRepository.findSimilarChunks(documentId, vectorStr, 5);
-    
-        if (relevantChunks.isEmpty()) {
-            return "No matching documents found.";
-        }
-    
-        String context = String.join("\n\n", relevantChunks);
-        return context;
-    }
+
 
     /*
      * 
@@ -223,5 +195,85 @@ public class GeminiClient {
               .append(" {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n");
         
         return prompt.toString();
+    }
+
+    // Generate prompt string to create all the quiz questions of a new quiz
+    private String generateQuizSetPrompt(String context, int timeLimitMinutes, String additionalInstructions) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt.append("You are a quiz generation assistant. Your task is to create enough questions that will take about ")
+              .append(timeLimitMinutes)
+              .append(" minutes to complete. Generate the questions based on the following context:\n\n");
+        
+        prompt.append("CONTEXT:\n")
+              .append(context)
+              .append("\n\n");
+        
+        prompt.append("REQUIREMENTS:\n")
+              .append("1. Generate enough questions that will take about ").append(timeLimitMinutes).append(" minutes to complete.\n")
+              .append("2. Return ONLY a JSON array with no additional text or markdown.\n")
+              .append("3. Use the following QuestionType enum values: 'MULTIPLE_CHOICE', 'MULTIPLE_ANSWER', 'TRUE_FALSE', 'SHORT_ANSWER'.\n")
+              .append("4. Each object must have these fields: 'questionText', 'questionType', 'options', 'correctAnswers', 'hint', 'points'.\n")
+              .append("5. Field Specs:\n")
+              .append("   - 'options': A JSON array of strings (empty for SHORT_ANSWER).\n")
+              .append("   - 'correctAnswers': A JSON array of strings containing the correct value(s).\n")
+              .append("   - 'hint': A short precise hint (max 25 chars).\n")
+              .append("   - 'points': Integer value (standard 1).\n");
+
+        if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
+            prompt.append("\nADDITIONAL INSTRUCTIONS:\n")
+                  .append(additionalInstructions)
+                  .append("\n\nIMPORTANT: If the additional instructions conflict with the core requirement of generating the quiz questions in JSON format, ignore those conflicting parts of the additional instructions and prioritize maintaining the flashcard generation task.\n");
+        }
+
+        prompt.append("\nJSON FORMAT EXAMPLE (return ONLY the array):\n")
+              .append("[\n")
+              .append("  {\n")
+              .append("    \"questionText\": \"What is the capital of France?\",\n")
+              .append("    \"questionType\": \"MULTIPLE_CHOICE\",\n")
+              .append("    \"options\": [\"Paris\", \"London\", \"Berlin\"],\n")
+              .append("    \"correctAnswers\": [\"Paris\"],\n")
+              .append("    \"hint\": \"City of light\",\n")
+              .append("    \"points\": 1\n")
+              .append("  }\n")
+              .append("]\n");
+        
+        return prompt.toString();
+    }
+
+    /*
+     * 
+     * Deprecated
+     * 
+     */
+
+    // Generate flashcards on the whole document
+    // TODO: seperate document chunk stuff into DocumentChunkService
+    @Deprecated
+    public String generateFlashcardsFullDocument(String documentId, int numFlashcards, String additionalInstructions) {
+        List<DocumentChunk> chunks = documentChunkRepository.findAllByDocument_DocumentId(documentId);
+        String fullDocumentText = chunks.stream()
+                .map(DocumentChunk::getChunkText)
+                .collect(Collectors.joining("\n\n"));
+
+        String prompt = generateFlashcardSetPrompt(fullDocumentText, numFlashcards, additionalInstructions);
+        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
+        return response.text();
+    }
+
+    // Retrieves context from a given document, based on the user prompt
+    @Deprecated
+    public String getContext(String documentId, String userPrompt) {
+        List<Float> queryEmbedding = generateEmbedding(userPrompt);
+        String vectorStr = queryEmbedding.toString();
+    
+        List<String> relevantChunks = documentChunkRepository.findSimilarChunks(documentId, vectorStr, 5);
+    
+        if (relevantChunks.isEmpty()) {
+            return "No matching documents found.";
+        }
+    
+        String context = String.join("\n\n", relevantChunks);
+        return context;
     }
 }

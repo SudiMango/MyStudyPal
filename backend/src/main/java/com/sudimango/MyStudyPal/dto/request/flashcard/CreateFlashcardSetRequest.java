@@ -16,7 +16,7 @@ public class CreateFlashcardSetRequest {
     @NotNull(message = "NumFlashcards field in CreateFlashcardSetRequest class cannot be null.")
     private Integer numFlashcards;
 
-    @NotBlank(message = "Promot for flashcard set generation cannot be null or blank.")
+    @NotBlank(message = "Prompt for flashcard set generation cannot be null or blank.")
     private String prompt;
 
     private String additionalInstructions;
