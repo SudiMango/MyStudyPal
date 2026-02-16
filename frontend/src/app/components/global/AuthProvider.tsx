@@ -22,7 +22,7 @@ interface AuthContextType {
     user: User | null;
     login: (
         email: string,
-        password: string
+        password: string,
     ) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
 }
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         checkAuthStatus();
-    }, []);
+    }, [pathname]);
 
     useEffect(() => {
         if (isLoading) return;

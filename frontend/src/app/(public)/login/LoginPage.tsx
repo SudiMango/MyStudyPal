@@ -38,7 +38,7 @@ const LoginPage = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            redirect("/app/flashcard-sets");
+            redirect("/app/study-sets");
         }
         if (result.error) {
             alert(result.error);

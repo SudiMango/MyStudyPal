@@ -1,4 +1,3 @@
-// SearchBar.tsx
 "use client";
 
 import { Search, X } from "lucide-react";
@@ -12,7 +11,7 @@ interface SearchBarProps {
 export default function SearchBar({
     query,
     onQueryChange,
-    placeholder = "Search sets...",
+    placeholder = "Search...",
 }: SearchBarProps) {
     const handleClear = () => {
         onQueryChange("");

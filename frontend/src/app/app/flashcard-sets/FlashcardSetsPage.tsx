@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import SearchBar from "@/app/components/create-flashcard-set-page/SearchBar";
+import SearchBar from "@/app/components/global/SearchBar";
 import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 
 const FlashcardSetsPage = () => {
@@ -106,7 +106,7 @@ const FlashcardSetsPage = () => {
         if (setToDelete) {
             setIsDeleting(true);
             const response = await deleteFlashcardSet(
-                setToDelete.flashcardSetId
+                setToDelete.flashcardSetId,
             );
             setIsDeleting(false);
 
@@ -135,7 +135,7 @@ const FlashcardSetsPage = () => {
     const handleConfirmUpdate = async (
         flashcardSetId: string,
         name: string,
-        icon: string
+        icon: string,
     ) => {
         setIsUpdating(true);
         const response = await updateFlashcardSet(flashcardSetId, {
@@ -168,7 +168,7 @@ const FlashcardSetsPage = () => {
         if (!query.trim()) return flashcardSets;
 
         return flashcardSets.filter((set) =>
-            set.name.toLowerCase().includes(query.toLowerCase())
+            set.name.toLowerCase().includes(query.toLowerCase()),
         );
     }, [query, flashcardSets]);
 
@@ -202,7 +202,11 @@ const FlashcardSetsPage = () => {
 
                 {/* Search bar */}
                 <div className="flex flex-row w-full mb-5 space-x-3">
-                    <SearchBar query={query} onQueryChange={setQuery} />
+                    <SearchBar
+                        query={query}
+                        onQueryChange={setQuery}
+                        placeholder="Search flashcard sets..."
+                    />
                     <button
                         onClick={() =>
                             router.push("/app/flashcard-sets/create")
@@ -311,7 +315,7 @@ const FlashcardSetsPage = () => {
                                         <button
                                             onClick={() =>
                                                 router.push(
-                                                    `/app/flashcard-sets/${set.flashcardSetId}`
+                                                    `/app/flashcard-sets/${set.flashcardSetId}`,
                                                 )
                                             }
                                             className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
