@@ -50,7 +50,7 @@ public class RefreshTokenService {
     }
 
     public boolean isRefreshTokenFoundInDatabase(String refreshToken) {
-        Optional<RefreshToken> refreshTokenObj = refreshTokenRepository.findById(refreshToken);
+        Optional<RefreshToken> refreshTokenObj = refreshTokenRepository.findByToken(refreshToken);
         return refreshTokenObj.isPresent();
     }
 

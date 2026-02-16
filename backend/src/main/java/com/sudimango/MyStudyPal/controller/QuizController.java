@@ -43,10 +43,10 @@ public class QuizController {
      * Get all quizzes for the logged in user
      * @apiNote {@code GET /api/quiz/get-all}
      */
-    @GetMapping("/get-all")
-    public ResponseEntity<?> getQuizzes(@AuthenticationPrincipal User user) {
+    @GetMapping("/get-all/{studySetId}")
+    public ResponseEntity<?> getQuizzes(@PathVariable String studySetId) {
         try {
-            List<QuizResponse> responses = quizService.getQuizzes(user.getUserId());
+            List<QuizResponse> responses = quizService.getQuizzesForStudySet(studySetId);
             return ResponseEntity.status(HttpStatus.OK).body(responses);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

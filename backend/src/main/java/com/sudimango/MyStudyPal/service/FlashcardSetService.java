@@ -52,8 +52,8 @@ public class FlashcardSetService {
         return new CreateFlashcardSetResponse(set.getFlashcardSetId());
     }
 
-    public List<FlashcardSetResponse> getFlashcardSets(String userId) {
-        List<FlashcardSet> flashcardSets = flashcardSetRepository.findAllByUser_UserId(userId);
+    public List<FlashcardSetResponse> getFlashcardSetsForStudySet(String studySetId) {
+        List<FlashcardSet> flashcardSets = flashcardSetRepository.findAllByStudySet_StudySetId(studySetId);
 
         List<FlashcardSetResponse> responses = new ArrayList<>();
         for (FlashcardSet f : flashcardSets) {

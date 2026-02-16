@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.sudimango.MyStudyPal.dto.request.studyset.CreateStudySetRequest;
 import com.sudimango.MyStudyPal.dto.request.studyset.UpdateStudySetRequest;
+import com.sudimango.MyStudyPal.dto.response.studyset.CreateStudySetResponse;
 import com.sudimango.MyStudyPal.dto.response.studyset.StudySetResponse;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.service.StudySetService;
@@ -28,7 +29,7 @@ public class StudySetController {
      * @apiNote {@code POST /api/study-set/create}
      * @param studySetRequest - request body
      * @return
-     * {@code HTTP 201} - Study set created successfully {StudySetResponse}
+     * {@code HTTP 201} - Study set created successfully {CreateStudySetResponse}
      * {@code HTTP 400} - Validation errors
      * {@code HTTP 500} - Internal server error
      */
@@ -36,7 +37,7 @@ public class StudySetController {
     public ResponseEntity<?> createStudySet(@Valid @RequestBody CreateStudySetRequest studySetRequest,
                                             @AuthenticationPrincipal User user) {
         try {
-            StudySetResponse response = studySetService.createStudySet(studySetRequest, user);
+            CreateStudySetResponse response = studySetService.createStudySet(studySetRequest, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

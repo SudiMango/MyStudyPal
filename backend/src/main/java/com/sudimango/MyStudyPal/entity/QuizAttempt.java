@@ -47,7 +47,8 @@ public class QuizAttempt {
     private Instant startedAt;
     
     @Column
-    private Instant completedAt;
+    @Builder.Default
+    private Instant completedAt = null;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)

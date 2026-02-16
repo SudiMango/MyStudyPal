@@ -72,10 +72,10 @@ public class FlashcardSetController {
      * 
      * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
      */
-    @GetMapping("/get-all")
-    public ResponseEntity<?> getFlashcardSets(@AuthenticationPrincipal User user) {
+    @GetMapping("/get-all/{studySetId}")
+    public ResponseEntity<?> getFlashcardSets(@PathVariable String studySetId) {
         try {
-            List<FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSets(user.getUserId());
+            List<FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSetsForStudySet(studySetId);
             return ResponseEntity.status(HttpStatus.OK).body(flashcardSets);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

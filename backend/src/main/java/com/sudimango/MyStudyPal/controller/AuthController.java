@@ -91,8 +91,6 @@ public class AuthController {
     /**
      * Refresh access token for user
      * 
-     * @param verifyAccountRequest - request body
-     * @see VerifyAccountRequest VerifyAccountRequest class for request body structure
      * 
      * @return
      * {@code HTTP 200} - Account verified successfully {null}
@@ -105,7 +103,7 @@ public class AuthController {
             LoginResponse accessToken = authService.refreshAccessToken(request, response);
             return ResponseEntity.status(HttpStatus.CREATED).body(accessToken);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
 

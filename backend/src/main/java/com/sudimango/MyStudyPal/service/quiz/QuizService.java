@@ -52,9 +52,8 @@ public class QuizService {
         return new CreateQuizResponse(quiz.getQuizId());
     }
 
-    public List<QuizResponse> getQuizzes(String userId) {
-        // Assuming your repository has this method via the StudySet -> User relationship
-        List<Quiz> quizzes = quizRepository.findAllByStudySet_User_UserId(userId);
+    public List<QuizResponse> getQuizzesForStudySet(String studySetId) {
+        List<Quiz> quizzes = quizRepository.findAllByStudySet_StudySetId(studySetId);
 
         List<QuizResponse> responses = new ArrayList<>();
         for (Quiz q : quizzes) {
@@ -77,10 +76,6 @@ public class QuizService {
 
         if (request.getName() != null && !request.getName().isBlank()) {
             quiz.setName(request.getName());
-        }
-        
-        if (request.getTimeLimitMinutes() != null) {
-            quiz.setTimeLimitMinutes(request.getTimeLimitMinutes());
         }
 
         quizRepository.save(quiz);

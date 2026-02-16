@@ -6,5 +6,4 @@ import lombok.Setter;
 @Getter @Setter
 public class UpdateQuizRequest {
     private String name;
-    private Integer timeLimitMinutes;
 }

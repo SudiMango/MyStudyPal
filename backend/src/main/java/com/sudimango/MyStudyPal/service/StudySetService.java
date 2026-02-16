@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.sudimango.MyStudyPal.dto.request.studyset.CreateStudySetRequest;
 import com.sudimango.MyStudyPal.dto.request.studyset.UpdateStudySetRequest;
+import com.sudimango.MyStudyPal.dto.response.studyset.CreateStudySetResponse;
 import com.sudimango.MyStudyPal.dto.response.studyset.StudySetResponse;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
@@ -25,7 +26,7 @@ public class StudySetService {
      * Creates a new study set linked to the authenticated user.
      */
     @Transactional
-    public StudySetResponse createStudySet(CreateStudySetRequest request, User user) {
+    public CreateStudySetResponse createStudySet(CreateStudySetRequest request, User user) {
         StudySet studySet = StudySet.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -36,7 +37,7 @@ public class StudySetService {
         StudySet savedSet = studySetRepository.save(studySet);
         
         // Return the full response including generated ID and timestamps
-        return new StudySetResponse(savedSet);
+        return new CreateStudySetResponse(savedSet.getStudySetId());
     }
 
     /**

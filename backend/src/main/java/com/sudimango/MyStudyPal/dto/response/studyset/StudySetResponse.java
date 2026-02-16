@@ -1,10 +1,7 @@
 package com.sudimango.MyStudyPal.dto.response.studyset;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import com.sudimango.MyStudyPal.dto.response.FlashcardSetResponse;
 import com.sudimango.MyStudyPal.entity.StudySet;
 
 import lombok.Getter;
@@ -23,10 +20,6 @@ public class StudySetResponse {
     private int totalDocuments;
     private int totalQuizzes;
 
-    // Optional: Include the actual list of flashcard sets 
-    // using the response DTO you already created
-    private List<FlashcardSetResponse> flashcardSets;
-
     public StudySetResponse(StudySet studySet) {
         this.studySetId = studySet.getStudySetId();
         this.name = studySet.getName();
@@ -39,12 +32,5 @@ public class StudySetResponse {
         this.totalFlashcardSets = studySet.getFlashcardSets() != null ? studySet.getFlashcardSets().size() : 0;
         this.totalDocuments = studySet.getDocuments() != null ? studySet.getDocuments().size() : 0;
         this.totalQuizzes = studySet.getQuizzes() != null ? studySet.getQuizzes().size() : 0;
-
-        // Map the internal entities to your existing FlashcardSetResponse DTO
-        if (studySet.getFlashcardSets() != null) {
-            this.flashcardSets = studySet.getFlashcardSets().stream()
-                .map(FlashcardSetResponse::new)
-                .collect(Collectors.toList());
-        }
     }
 }
