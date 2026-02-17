@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
     getAllFlashcardsInSet,
     changeReviewStatus,
@@ -41,7 +40,7 @@ export const useFlashcards = (setId: string) => {
         setIsLoading(true);
 
         const setResponse = await getOneFlashcardSet(setId);
-        if (setResponse.success && setResponse.data) {
+        if (setResponse.data) {
             setFlashcardSet(setResponse.data);
         } else {
             alert(setResponse.error);
@@ -125,15 +124,15 @@ export const useFlashcards = (setId: string) => {
         if (isStarring.has(flashcardToUpdate.flashcardId)) return;
 
         setIsStarring((prev) =>
-            new Set(prev).add(flashcardToUpdate.flashcardId)
+            new Set(prev).add(flashcardToUpdate.flashcardId),
         );
 
         const originalFlashcards = [...flashcards];
 
         setFlashcards(
             flashcards.map((card, idx) =>
-                idx === index ? { ...card, starred: !card.starred } : card
-            )
+                idx === index ? { ...card, starred: !card.starred } : card,
+            ),
         );
 
         const response = await changeStarStatus(flashcardToUpdate.flashcardId);
@@ -161,19 +160,19 @@ export const useFlashcards = (setId: string) => {
         if (isReviewing.has(flashcardToUpdate.flashcardId)) return;
 
         setIsReviewing((prev) =>
-            new Set(prev).add(flashcardToUpdate.flashcardId)
+            new Set(prev).add(flashcardToUpdate.flashcardId),
         );
 
         const originalFlashcards = [...flashcards];
 
         setFlashcards(
             flashcards.map((card, idx) =>
-                idx === index ? { ...card, reviewed: !card.reviewed } : card
-            )
+                idx === index ? { ...card, reviewed: !card.reviewed } : card,
+            ),
         );
 
         const response = await changeReviewStatus(
-            flashcardToUpdate.flashcardId
+            flashcardToUpdate.flashcardId,
         );
         if (!response.success) {
             setFlashcards(originalFlashcards);

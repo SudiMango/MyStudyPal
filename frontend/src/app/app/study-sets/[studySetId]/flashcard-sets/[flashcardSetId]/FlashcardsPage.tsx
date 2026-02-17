@@ -11,8 +11,7 @@ import { useParams, useRouter } from "next/navigation";
 const FlashcardsPage = () => {
     const router = useRouter();
 
-    const params = useParams();
-    const setId = params.setId as string;
+    const { flashcardSetId } = useParams();
 
     const {
         isLoading,
@@ -32,7 +31,7 @@ const FlashcardsPage = () => {
         handleShowAnswer,
         shuffleFlashcards,
         fetchEverything,
-    } = useFlashcards(setId);
+    } = useFlashcards(flashcardSetId as string);
 
     if (isLoading) {
         return (

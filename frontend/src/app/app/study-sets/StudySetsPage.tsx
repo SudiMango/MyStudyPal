@@ -1,18 +1,18 @@
 "use client";
 
 import ConfirmationModal from "@/app/components/global/ConfirmationModal";
-import EditStudySetModal from "@/app/components/study-set-page/EditStudySetModal"; // Updated path/name
+import EditStudySetModal from "@/app/components/study-set-page/EditStudySetModal";
 import {
-    StudySet, // Renamed from FlashcardSet
+    StudySet,
     getAllStudySets,
     deleteStudySet,
     updateStudySet,
-} from "@/lib/api/study-set-api"; // Assuming API file is renamed
+} from "@/lib/api/study-set-api";
 import {
-    BookOpenText,
     Brain,
     ChartNoAxesCombined,
     EllipsisVertical,
+    Layers,
     Loader,
     Plus,
 } from "lucide-react";
@@ -289,19 +289,33 @@ const StudySetsPage = () => {
                                         <button
                                             onClick={() =>
                                                 router.push(
-                                                    `/app/study-sets/${set.studySetId}`,
+                                                    `/app/study-sets/${set.studySetId}#flashcards`,
                                                 )
                                             }
                                             className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
                                         >
-                                            <BookOpenText className="w-5 h-5" />
-                                            <span>Review</span>
+                                            <Layers className="w-5 h-5" />
+                                            <span>Flashcards</span>
                                         </button>
-                                        <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
+                                        <button
+                                            onClick={() =>
+                                                router.push(
+                                                    `/app/study-sets/${set.studySetId}#quizzes`,
+                                                )
+                                            }
+                                            className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
+                                        >
                                             <Brain className="w-5 h-5" />
-                                            <span>Quiz</span>
+                                            <span>Quizzes</span>
                                         </button>
-                                        <button className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
+                                        <button
+                                            onClick={() =>
+                                                router.push(
+                                                    `/app/study-sets/${set.studySetId}#stats`,
+                                                )
+                                            }
+                                            className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
+                                        >
                                             <ChartNoAxesCombined className="w-5 h-5" />
                                             <span>Stats</span>
                                         </button>

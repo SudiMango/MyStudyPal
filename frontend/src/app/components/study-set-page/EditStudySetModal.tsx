@@ -108,13 +108,18 @@ const EditStudySetModal: React.FC<EditStudySetModalProps> = ({
                                     {description.length}/100 characters
                                 </label>
                             </div>
-                            <input
-                                value={description}
-                                maxLength={100}
-                                placeholder="e.g., Midterm 2 content"
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="w-full px-4 py-2 bg-(--discord-gray-1) border border-(--discord-gray-2) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--discord-blurple)"
-                            />
+                            <div className="w-full flex flex-col">
+                                <textarea
+                                    value={description}
+                                    maxLength={100}
+                                    onChange={(e) =>
+                                        setDescription(e.target.value)
+                                    }
+                                    placeholder="e.g., Midterm 2 content for Scie 113"
+                                    className="w-full px-4 py-2 bg-(--discord-gray-1) border border-(--discord-gray-2) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--discord-blurple) resize-none"
+                                    rows={3}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -2,12 +2,15 @@
 
 import UploadFileSection from "@/app/components/create-flashcard-set-page/UploadFileSection";
 import { uploadDocument } from "@/lib/api/document-api";
-import { generateFlashcardSet } from "@/lib/api/flashcard-set-api";
+import { createFlashcardSet } from "@/lib/api/flashcard-set-api";
 import EmojiPicker from "emoji-picker-react";
-import { redirect } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 const CreateFlashcardSetPage = () => {
+    const { studySetId } = useParams();
+    const router = useRouter();
+
     const [name, setName] = useState<string>("");
     const [icon, setIcon] = useState<string>("📚");
     const [numFlashcards, setNumFlashcards] = useState<string>("5");
@@ -24,7 +27,7 @@ const CreateFlashcardSetPage = () => {
      */
 
     const handleNumFlashcardChange = (
-        e: React.ChangeEvent<HTMLInputElement>
+        e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         setNumFlashcards(e.target.value);
     };
@@ -53,7 +56,7 @@ const CreateFlashcardSetPage = () => {
 
     const handleFilesChange = (newFiles: File[]) => {
         const pdfFiles = newFiles.filter(
-            (file) => file.type === "application/pdf"
+            (file) => file.type === "application/pdf",
         );
 
         if (newFiles.length !== pdfFiles.length) {
@@ -64,7 +67,7 @@ const CreateFlashcardSetPage = () => {
     };
 
     // Create flashcard set
-    const createFlashcardSet = async (e: React.FormEvent) => {
+    const _createFlashcardSet = async (e: React.FormEvent) => {
         e.preventDefault();
 
         /**
@@ -110,22 +113,22 @@ const CreateFlashcardSetPage = () => {
          * Generate flashcard set
          */
 
-        const { documentId } = uploadResult.data;
         setCurrStep("Generating flashcards...");
         const createPayload = {
-            documentId,
             name,
             icon: icon,
             numFlashcards: parseInt(numFlashcards),
-            ...(mode === "prompt" && { prompt }),
+            prompt,
             ...(additionalInstructions.trim() && {
                 additionalInstructions,
             }),
-            useFullDocument: mode === "full" ? true : false,
         };
 
-        const createResult = await generateFlashcardSet(createPayload);
-        if (!createResult.success || !createResult.data) {
+        const createResult = await createFlashcardSet(
+            studySetId as string,
+            createPayload,
+        );
+        if (!createResult.data) {
             alert(createResult.error);
             setLoading(false);
             setCurrStep("");
@@ -137,13 +140,15 @@ const CreateFlashcardSetPage = () => {
          */
 
         const { flashcardSetId } = createResult.data;
-        redirect(`/app/flashcard-sets/${flashcardSetId}`);
+        router.push(
+            `/app/study-sets/${studySetId}/flashcard-sets/${flashcardSetId}`,
+        );
     };
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full p-5">
             <form
-                onSubmit={createFlashcardSet}
+                onSubmit={_createFlashcardSet}
                 className="flex flex-col justify-center items-center w-full h-full max-w-[600px]"
             >
                 {/* Title */}
