@@ -3,36 +3,35 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    FlashcardSet,
-    getAllFlashcardSetsForStudySet,
-    deleteFlashcardSet,
-    updateFlashcardSet,
-} from "@/lib/api/flashcard-set-api";
+    Quiz,
+    getAllQuizzesForStudySet,
+    deleteQuiz,
+    updateQuiz,
+} from "@/lib/api/quiz-api";
 import {
-    Layers,
     Brain,
     ChartNoAxesCombined,
-    BookOpenText,
     EllipsisVertical,
     Plus,
     Loader,
+    Clock,
 } from "lucide-react";
 import ConfirmationModal from "@/app/components/global/ConfirmationModal";
-import EditFlashcardSetModal from "@/app/components/create-flashcard-set-page/EditFlashcardSetModal";
 import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 import SearchBar from "@/app/components/global/SearchBar";
+import EditQuizModal from "../quiz-page/EditQuizModal";
 import { formatDate } from "@/lib/util";
-import CreateFlashcardSetModal from "../create-flashcard-set-page/CreateFlashcardSetModal";
+import CreateQuizModal from "../CreateQuizModal";
 
-interface FlashcardsTabProps {
+interface QuizzesTabProps {
     studySetId: string;
 }
 
-const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
+const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
     const router = useRouter();
 
     const [query, setQuery] = useState("");
-    const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
+    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState<number | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -40,22 +39,22 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
 
     // Delete state
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [setToDelete, setSetToDelete] = useState<FlashcardSet | null>(null);
+    const [quizToDelete, setQuizToDelete] = useState<Quiz | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Edit state
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editingSet, setEditingSet] = useState<FlashcardSet | null>(null);
+    const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
 
     /**
-     * Fetch flashcard sets for this study set
+     * Fetch quizzes for this study set
      */
-    const fetchFlashcardSets = async () => {
+    const fetchQuizzes = async () => {
         setIsLoading(true);
-        const response = await getAllFlashcardSetsForStudySet(studySetId);
+        const response = await getAllQuizzesForStudySet(studySetId);
         if (response.data) {
-            setFlashcardSets(response.data);
+            setQuizzes(response.data);
         } else {
             alert(response.error);
         }
@@ -63,7 +62,7 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
     };
 
     useEffect(() => {
-        fetchFlashcardSets();
+        fetchQuizzes();
     }, [studySetId]);
 
     /**
@@ -93,96 +92,90 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
     }, [showDropdown]);
 
     /**
-     * Handle flashcard set delete
+     * Handle quiz delete
      */
-    const handleDeleteClick = (set: FlashcardSet) => {
-        setSetToDelete(set);
+    const handleDeleteClick = (quiz: Quiz) => {
+        setQuizToDelete(quiz);
         setIsDeleteModalOpen(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (setToDelete) {
+        if (quizToDelete) {
             setIsDeleting(true);
-            const response = await deleteFlashcardSet(
-                setToDelete.flashcardSetId,
-            );
+            const response = await deleteQuiz(quizToDelete.quizId);
             setIsDeleting(false);
 
             if (!response.error) {
-                fetchFlashcardSets();
+                fetchQuizzes();
             } else {
                 alert(response.error);
             }
             setIsDeleteModalOpen(false);
-            setSetToDelete(null);
+            setQuizToDelete(null);
             setShowDropdown(null);
         }
     };
 
     /**
-     * Handle flashcard set edit
+     * Handle quiz edit
      */
-    const handleEditClick = (set: FlashcardSet) => {
-        setEditingSet(set);
+    const handleEditClick = (quiz: Quiz) => {
+        setEditingQuiz(quiz);
         setIsEditModalOpen(true);
     };
 
-    const handleConfirmUpdate = async (
-        flashcardSetId: string,
-        name: string,
-        icon: string,
-    ) => {
+    const handleConfirmUpdate = async (quizId: string, name: string) => {
         setIsUpdating(true);
-        const response = await updateFlashcardSet(flashcardSetId, {
-            name,
-            icon,
+        const response = await updateQuiz(quizId, {
+            name: name,
         });
         setIsUpdating(false);
 
         if (!response.error) {
-            fetchFlashcardSets();
+            fetchQuizzes();
             setIsEditModalOpen(false);
-            setEditingSet(null);
+            setEditingQuiz(null);
             setShowDropdown(null);
         } else {
             alert(response.error);
         }
     };
 
-    // Filtered sets for search
-    const filteredSets = useMemo(() => {
-        if (!query.trim()) return flashcardSets;
-        return flashcardSets.filter((set) =>
-            set.name.toLowerCase().includes(query.toLowerCase()),
+    // Filtered quizzes for search
+    const filteredQuizzes = useMemo(() => {
+        if (!query.trim()) return quizzes;
+        return quizzes.filter((quiz) =>
+            quiz.name.toLowerCase().includes(query.toLowerCase()),
         );
-    }, [query, flashcardSets]);
+    }, [query, quizzes]);
 
     return (
         <>
-            {/* Delete flashcard set modal */}
+            {/* Delete quiz modal */}
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onCancel={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
-                message={`Are you sure you want to delete the "${setToDelete?.name}" flashcard set?`}
+                message={`Are you sure you want to delete the "${quizToDelete?.name}" quiz?`}
                 confirmMessage="Deleting..."
                 isLoading={isDeleting}
             />
 
-            <CreateFlashcardSetModal
+            {/* Create quiz modal */}
+            <CreateQuizModal
                 isOpen={isCreateModalOpen}
                 studySetId={studySetId}
                 onCancel={() => setIsCreateModalOpen(false)}
             />
 
-            {/* Edit flashcard set modal */}
-            <EditFlashcardSetModal
+            {/* Edit quiz modal */}
+            <EditQuizModal
                 isOpen={isEditModalOpen}
-                flashcardSet={editingSet}
+                quiz={editingQuiz}
                 onConfirm={handleConfirmUpdate}
                 onCancel={() => {
                     setIsEditModalOpen(false);
-                    setEditingSet(null);
+                    setEditingQuiz(null);
                 }}
                 isLoading={isUpdating}
             />
@@ -192,14 +185,14 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                 <SearchBar
                     query={query}
                     onQueryChange={setQuery}
-                    placeholder="Search flashcard sets..."
+                    placeholder="Search quizzes..."
                 />
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
                     className="flex flex-row justify-center items-center bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) cursor-pointer rounded-xl w-40 text-white font-medium"
                 >
                     <Plus className="mr-1" />
-                    New set
+                    New quiz
                 </button>
             </div>
 
@@ -207,44 +200,40 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20">
                         <Loader className="w-10 h-10 animate-spin text-gray-400" />
-                        <p className="mt-4 text-gray-400">
-                            Loading flashcard sets...
-                        </p>
+                        <p className="mt-4 text-gray-400">Loading quizzes...</p>
                     </div>
-                ) : filteredSets.length === 0 ? (
+                ) : filteredQuizzes.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20">
-                        <Layers className="w-16 h-16 text-gray-400 mb-4" />
+                        <Brain className="w-16 h-16 text-gray-400 mb-4" />
                         <p className="text-gray-400 text-lg">
                             {query.trim()
-                                ? "No flashcard sets match your search"
-                                : "No flashcard sets yet"}
+                                ? "No quizzes match your search"
+                                : "No quizzes yet"}
                         </p>
                         {!query.trim() && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
                                 className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium"
                             >
-                                Create flashcard set
+                                Create quiz
                             </button>
                         )}
                     </div>
                 ) : (
                     <>
-                        {filteredSets.map((set, i) => (
+                        {filteredQuizzes.map((quiz, i) => (
                             <div
                                 key={i}
                                 className="flex flex-col items-start justify-center w-full shadow-xl rounded-xl bg-(--discord-gray-4) p-4 transform transition-transform duration-200 hover:scale-105"
                             >
                                 <div className="flex flex-row items-center justify-center space-x-3 w-full">
-                                    <label className="text-4xl">
-                                        {set.icon}
-                                    </label>
+                                    <Brain className="w-10 h-10 text-(--discord-blurple)" />
                                     <div className="flex flex-col">
                                         <label className="text-md font-semibold">
-                                            {set.name}
+                                            {quiz.name}
                                         </label>
                                         <label className="text-sm opacity-70">
-                                            Updated {formatDate(set.updatedAt)}
+                                            Created {formatDate(quiz.createdAt)}
                                         </label>
                                     </div>
 
@@ -270,9 +259,9 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                                             onClose={() =>
                                                 setShowDropdown(null)
                                             }
-                                            onEdit={() => handleEditClick(set)}
+                                            onEdit={() => handleEditClick(quiz)}
                                             onDelete={() =>
-                                                handleDeleteClick(set)
+                                                handleDeleteClick(quiz)
                                             }
                                         />
                                     </div>
@@ -281,17 +270,18 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                                 <div className="mt-6 flex flex-row space-x-3">
                                     <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg">
                                         <label className="text-sm">
-                                            {set.totalCards} cards
+                                            {quiz.totalQuestions} questions
                                         </label>
                                     </div>
                                     <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg">
                                         <label className="text-sm">
-                                            {set.reviewedCards} reviewed
+                                            {quiz.totalPoints} points
                                         </label>
                                     </div>
-                                    <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg">
+                                    <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg flex flex-row items-center space-x-1">
+                                        <Clock className="w-3 h-3" />
                                         <label className="text-sm">
-                                            {set.starredCards} starred
+                                            {quiz.timeLimitMinutes} min
                                         </label>
                                     </div>
                                 </div>
@@ -302,13 +292,17 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                                     <button
                                         onClick={() =>
                                             router.push(
-                                                `/app/study-sets/${studySetId}/flashcard-sets/${set.flashcardSetId}`,
+                                                `/app/study-sets/${studySetId}/quizzes/${quiz.quizId}`,
                                             )
                                         }
-                                        className="w-full bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
+                                        className="w-1/2 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
                                     >
-                                        <BookOpenText className="w-5 h-5" />
-                                        <span>Review</span>
+                                        <Brain className="w-5 h-5" />
+                                        <span>Take Quiz</span>
+                                    </button>
+                                    <button className="w-1/2 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)">
+                                        <ChartNoAxesCombined className="w-5 h-5" />
+                                        <span>Stats</span>
                                     </button>
                                 </div>
                             </div>
@@ -322,7 +316,7 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                 >
                     <Plus className="h-8 w-8 text-(--discord-blurple)" />
                     <label className="text-lg font-medium cursor-pointer">
-                        Create new flashcard set
+                        Create new quiz
                     </label>
                 </button>
             </div>
@@ -330,4 +324,4 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
     );
 };
 
-export default FlashcardsTab;
+export default QuizzesTab;

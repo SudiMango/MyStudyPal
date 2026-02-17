@@ -21,7 +21,7 @@ export interface CreateStudySetResponse {
 // Get
 
 export interface StudySet {
-    createdAt: Date;
+    createdAt: string;
     description: string;
     icon: string;
     name: string;
@@ -29,7 +29,7 @@ export interface StudySet {
     totalDocuments: number;
     totalFlashcardSets: number;
     totalQuizzes: number;
-    updatedAt: Date;
+    updatedAt: string;
 }
 
 // Update

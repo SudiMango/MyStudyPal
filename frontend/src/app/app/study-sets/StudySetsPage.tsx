@@ -2,11 +2,13 @@
 
 import ConfirmationModal from "@/app/components/global/ConfirmationModal";
 import EditStudySetModal from "@/app/components/study-set-page/EditStudySetModal";
+import CreateStudySetModal from "@/app/components/study-set-page/CreateStudySetModal";
 import {
     StudySet,
     getAllStudySets,
     deleteStudySet,
     updateStudySet,
+    createStudySet,
 } from "@/lib/api/study-set-api";
 import {
     Brain,
@@ -20,6 +22,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/app/components/global/SearchBar";
 import SettingsDropdown from "@/app/components/global/SettingsDropdown";
+import { formatDate } from "@/lib/util";
 
 const StudySetsPage = () => {
     const router = useRouter();
@@ -39,6 +42,10 @@ const StudySetsPage = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingSet, setEditingSet] = useState<StudySet | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // Create state (New)
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     /**
      * Fetch all study sets for user
@@ -83,6 +90,26 @@ const StudySetsPage = () => {
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, [showDropdown]);
+
+    /**
+     * Handle study set create (New)
+     */
+    const handleConfirmCreate = async (
+        name: string,
+        icon: string,
+        description: string,
+    ) => {
+        setIsCreating(true);
+        const response = await createStudySet({ name, icon, description });
+        setIsCreating(false);
+
+        if (!response.error) {
+            fetchStudySets();
+            setIsCreateModalOpen(false);
+        } else {
+            alert(response.error);
+        }
+    };
 
     /**
      * Handle study set delete
@@ -141,14 +168,6 @@ const StudySetsPage = () => {
         }
     };
 
-    const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        });
-    };
-
     const filteredSets = useMemo(() => {
         if (!query.trim()) return studySets;
         return studySets.filter((set) =>
@@ -158,6 +177,14 @@ const StudySetsPage = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full p-5">
+            {/* Create study set modal (New) */}
+            <CreateStudySetModal
+                isOpen={isCreateModalOpen}
+                onConfirm={handleConfirmCreate}
+                onCancel={() => setIsCreateModalOpen(false)}
+                isLoading={isCreating}
+            />
+
             {/* Delete study set modal */}
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
@@ -191,7 +218,7 @@ const StudySetsPage = () => {
                         placeholder="Search study sets..."
                     />
                     <button
-                        onClick={() => router.push("/app/study-sets/create")}
+                        onClick={() => setIsCreateModalOpen(true)} // Updated
                         className="flex flex-row justify-center items-center bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) cursor-pointer rounded-xl w-40 text-white font-medium"
                     >
                         <Plus className="mr-1" />
@@ -218,7 +245,7 @@ const StudySetsPage = () => {
                         <>
                             {filteredSets.map((set, i) => (
                                 <div
-                                    key={i}
+                                    key={set.studySetId}
                                     className="flex flex-col items-start justify-center w-full shadow-xl rounded-xl bg-(--discord-gray-4) p-4 transform transition-transform duration-200 hover:scale-105"
                                 >
                                     <div className="flex flex-row items-center justify-center space-x-3 w-full">
@@ -226,12 +253,19 @@ const StudySetsPage = () => {
                                             {set.icon}
                                         </label>
                                         <div className="flex flex-col">
-                                            <label className="text-md font-semibold">
+                                            <label
+                                                className="text-md font-semibold cursor-pointer"
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/app/study-sets/${set.studySetId}`,
+                                                    )
+                                                }
+                                            >
                                                 {set.name}
                                             </label>
                                             <label className="text-sm opacity-70">
                                                 Updated{" "}
-                                                {set.updatedAt.toLocaleString()}
+                                                {formatDate(set.updatedAt)}
                                             </label>
                                         </div>
 
@@ -294,7 +328,7 @@ const StudySetsPage = () => {
                                             }
                                             className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
                                         >
-                                            <Layers className="w-5 h-5" />
+                                            <Layers className="w-5 h-5 text-(--discord-blurple)" />
                                             <span>Flashcards</span>
                                         </button>
                                         <button
@@ -305,7 +339,7 @@ const StudySetsPage = () => {
                                             }
                                             className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
                                         >
-                                            <Brain className="w-5 h-5" />
+                                            <Brain className="w-5 h-5 text-(--discord-blurple)" />
                                             <span>Quizzes</span>
                                         </button>
                                         <button
@@ -316,7 +350,7 @@ const StudySetsPage = () => {
                                             }
                                             className="w-1/3 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
                                         >
-                                            <ChartNoAxesCombined className="w-5 h-5" />
+                                            <ChartNoAxesCombined className="w-5 h-5 text-(--discord-blurple)" />
                                             <span>Stats</span>
                                         </button>
                                     </div>
@@ -326,11 +360,11 @@ const StudySetsPage = () => {
                     )}
 
                     <button
-                        onClick={() => router.push("/app/study-sets/create")}
+                        onClick={() => setIsCreateModalOpen(true)} // Updated
                         className="flex flex-row w-full items-center justify-center space-x-3 outline-dashed rounded-lg p-3 outline-2 outline-(--discord-blurple-hover) bg-(--discord-gray-1) hover:bg-(--discord-gray-2)"
                     >
                         <Plus className="h-8 w-8 text-(--discord-blurple)" />
-                        <label className="text-lg font-medium">
+                        <label className="text-lg font-medium cursor-pointer">
                             Create new set
                         </label>
                     </button>

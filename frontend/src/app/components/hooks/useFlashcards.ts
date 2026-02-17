@@ -6,8 +6,9 @@ import {
     changeStarStatus,
 } from "@/lib/api/flashcard-api";
 import { FlashcardSet, getOneFlashcardSet } from "@/lib/api/flashcard-set-api";
+import { getOneStudySet, StudySet } from "@/lib/api/study-set-api";
 
-export const useFlashcards = (setId: string) => {
+export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
     /**
      *
      * Variables
@@ -16,6 +17,7 @@ export const useFlashcards = (setId: string) => {
 
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [flashcardSet, setFlashcardSet] = useState<FlashcardSet>();
+    const [studySet, setStudySet] = useState<StudySet>();
     const [currIndex, setCurrIndex] = useState<number>(0);
 
     const [showHint, setShowHint] = useState<boolean>(false);
@@ -39,14 +41,21 @@ export const useFlashcards = (setId: string) => {
     const fetchEverything = async () => {
         setIsLoading(true);
 
-        const setResponse = await getOneFlashcardSet(setId);
+        const setResponse = await getOneFlashcardSet(flashcardSetId);
         if (setResponse.data) {
             setFlashcardSet(setResponse.data);
         } else {
             alert(setResponse.error);
         }
 
-        const response = await getAllFlashcardsInSet(setId);
+        const studySetResponse = await getOneStudySet(studySetId);
+        if (studySetResponse.data) {
+            setStudySet(studySetResponse.data);
+        } else {
+            alert(studySetResponse.error);
+        }
+
+        const response = await getAllFlashcardsInSet(flashcardSetId);
         if (response.success && response.data) {
             setFlashcards(response.data);
         } else {
@@ -56,14 +65,14 @@ export const useFlashcards = (setId: string) => {
     };
 
     useEffect(() => {
-        if (!setId) {
+        if (!flashcardSetId) {
             setIsLoading(false);
             alert("Flashcard set ID is missing.");
             return;
         }
 
         fetchEverything();
-    }, [setId]);
+    }, [flashcardSetId]);
 
     /**
      *
@@ -209,6 +218,7 @@ export const useFlashcards = (setId: string) => {
     return {
         flashcards,
         flashcardSet,
+        studySet,
         currIndex,
         showHint,
         showAnswer,

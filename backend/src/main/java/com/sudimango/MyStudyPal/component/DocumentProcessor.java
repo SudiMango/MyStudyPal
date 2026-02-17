@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sudimango.MyStudyPal.dto.response.document.DocumentResponse;
 import com.sudimango.MyStudyPal.entity.Document;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
@@ -85,6 +86,27 @@ public class DocumentProcessor {
             throw new RuntimeException("Document could not be created");
         }
     }
+
+    public List<DocumentResponse> getAllDocumentsForStudySet(String studySetId) {
+        List<Document> documents = documentRepository.findByStudySet_StudySetId(studySetId);
+
+        List<DocumentResponse> responses = new ArrayList<>();
+        for (Document d : documents) {
+            responses.add(new DocumentResponse(d));
+        }
+
+        return responses;
+    }
+
+    public void deleteDocument(String documentId) {
+        documentRepository.deleteById(documentId);
+    }
+
+    /**
+     * 
+     * Private functions
+     * 
+     */
 
     // Extract text page by page, merge small pages, and add overlap
     private List<String> extractAndChunkPdf(String pdfPath) throws Exception {

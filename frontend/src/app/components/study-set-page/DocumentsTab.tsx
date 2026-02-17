@@ -3,59 +3,51 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    FlashcardSet,
-    getAllFlashcardSetsForStudySet,
-    deleteFlashcardSet,
-    updateFlashcardSet,
-} from "@/lib/api/flashcard-set-api";
-import {
-    Layers,
-    Brain,
-    ChartNoAxesCombined,
-    BookOpenText,
-    EllipsisVertical,
-    Plus,
-    Loader,
-} from "lucide-react";
+    Document,
+    getAllDocumentsForStudySet,
+    deleteDocument,
+    uploadDocuments,
+} from "@/lib/api/document-api";
+import { FileText, EllipsisVertical, Plus, Loader, Upload } from "lucide-react";
 import ConfirmationModal from "@/app/components/global/ConfirmationModal";
-import EditFlashcardSetModal from "@/app/components/create-flashcard-set-page/EditFlashcardSetModal";
 import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 import SearchBar from "@/app/components/global/SearchBar";
+import UploadFileSection from "@/app/components/create-flashcard-set-page/UploadFileSection";
 import { formatDate } from "@/lib/util";
-import CreateFlashcardSetModal from "../create-flashcard-set-page/CreateFlashcardSetModal";
 
-interface FlashcardsTabProps {
+interface DocumentsTabProps {
     studySetId: string;
 }
 
-const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
+const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
     const router = useRouter();
 
     const [query, setQuery] = useState("");
-    const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
+    const [documents, setDocuments] = useState<Document[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState<number | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // Delete state
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [setToDelete, setSetToDelete] = useState<FlashcardSet | null>(null);
+    const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
+        null,
+    );
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Edit state
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editingSet, setEditingSet] = useState<FlashcardSet | null>(null);
-    const [isUpdating, setIsUpdating] = useState(false);
+    // Upload state
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [files, setFiles] = useState<File[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
     /**
-     * Fetch flashcard sets for this study set
+     * Fetch documents for this study set
      */
-    const fetchFlashcardSets = async () => {
+    const fetchDocuments = async () => {
         setIsLoading(true);
-        const response = await getAllFlashcardSetsForStudySet(studySetId);
+        const response = await getAllDocumentsForStudySet(studySetId);
         if (response.data) {
-            setFlashcardSets(response.data);
+            setDocuments(response.data);
         } else {
             alert(response.error);
         }
@@ -63,7 +55,7 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
     };
 
     useEffect(() => {
-        fetchFlashcardSets();
+        fetchDocuments();
     }, [studySetId]);
 
     /**
@@ -93,113 +85,125 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
     }, [showDropdown]);
 
     /**
-     * Handle flashcard set delete
+     * Handle document delete
      */
-    const handleDeleteClick = (set: FlashcardSet) => {
-        setSetToDelete(set);
+    const handleDeleteClick = (document: Document) => {
+        setDocumentToDelete(document);
         setIsDeleteModalOpen(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (setToDelete) {
+        if (documentToDelete) {
             setIsDeleting(true);
-            const response = await deleteFlashcardSet(
-                setToDelete.flashcardSetId,
-            );
+            const response = await deleteDocument(documentToDelete.documentId);
             setIsDeleting(false);
 
             if (!response.error) {
-                fetchFlashcardSets();
+                fetchDocuments();
             } else {
                 alert(response.error);
             }
             setIsDeleteModalOpen(false);
-            setSetToDelete(null);
+            setDocumentToDelete(null);
             setShowDropdown(null);
         }
     };
 
     /**
-     * Handle flashcard set edit
+     * Handle document upload
      */
-    const handleEditClick = (set: FlashcardSet) => {
-        setEditingSet(set);
-        setIsEditModalOpen(true);
+    const handleUploadClick = () => {
+        setIsUploadModalOpen(true);
     };
 
-    const handleConfirmUpdate = async (
-        flashcardSetId: string,
-        name: string,
-        icon: string,
-    ) => {
-        setIsUpdating(true);
-        const response = await updateFlashcardSet(flashcardSetId, {
-            name,
-            icon,
-        });
-        setIsUpdating(false);
+    const handleConfirmUpload = async () => {
+        if (files.length === 0) {
+            alert("Please select at least one file to upload.");
+            return;
+        }
+
+        setIsUploading(true);
+        const response = await uploadDocuments(studySetId, files);
+        setIsUploading(false);
 
         if (!response.error) {
-            fetchFlashcardSets();
-            setIsEditModalOpen(false);
-            setEditingSet(null);
-            setShowDropdown(null);
+            fetchDocuments();
+            setIsUploadModalOpen(false);
+            setFiles([]);
         } else {
             alert(response.error);
         }
     };
 
-    // Filtered sets for search
-    const filteredSets = useMemo(() => {
-        if (!query.trim()) return flashcardSets;
-        return flashcardSets.filter((set) =>
-            set.name.toLowerCase().includes(query.toLowerCase()),
+    // Filtered documents for search
+    const filteredDocuments = useMemo(() => {
+        if (!query.trim()) return documents;
+        return documents.filter((doc) =>
+            doc.title.toLowerCase().includes(query.toLowerCase()),
         );
-    }, [query, flashcardSets]);
+    }, [query, documents]);
 
     return (
         <>
-            {/* Delete flashcard set modal */}
+            {/* Delete document modal */}
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onCancel={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
-                message={`Are you sure you want to delete the "${setToDelete?.name}" flashcard set?`}
+                message={`Are you sure you want to delete "${documentToDelete?.title}"?`}
                 confirmMessage="Deleting..."
                 isLoading={isDeleting}
             />
 
-            <CreateFlashcardSetModal
-                isOpen={isCreateModalOpen}
-                studySetId={studySetId}
-                onCancel={() => setIsCreateModalOpen(false)}
-            />
+            {/* Upload document modal */}
+            {isUploadModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-5 overflow-auto">
+                    <div className="bg-(--discord-gray-2) p-6 rounded-lg shadow-xl max-w-2xl w-full">
+                        <h2 className="text-white text-lg mb-4">
+                            Upload Documents
+                        </h2>
 
-            {/* Edit flashcard set modal */}
-            <EditFlashcardSetModal
-                isOpen={isEditModalOpen}
-                flashcardSet={editingSet}
-                onConfirm={handleConfirmUpdate}
-                onCancel={() => {
-                    setIsEditModalOpen(false);
-                    setEditingSet(null);
-                }}
-                isLoading={isUpdating}
-            />
+                        <UploadFileSection
+                            files={files}
+                            onFilesChange={setFiles}
+                        />
 
-            {/* Search bar and create button */}
+                        <div className="flex justify-end gap-4 mt-6">
+                            <button
+                                onClick={() => {
+                                    setIsUploadModalOpen(false);
+                                    setFiles([]);
+                                }}
+                                disabled={isUploading}
+                                className="px-4 py-2 bg-(--discord-gray-1) text-white rounded hover:bg-(--discord-gray-3) disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmUpload}
+                                disabled={isUploading || files.length === 0}
+                                className="px-4 py-2 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) text-white rounded disabled:opacity-50"
+                            >
+                                {isUploading ? "Uploading..." : "Upload"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Search bar and upload button */}
             <div className="flex flex-row w-full mb-5 space-x-3">
                 <SearchBar
                     query={query}
                     onQueryChange={setQuery}
-                    placeholder="Search flashcard sets..."
+                    placeholder="Search documents..."
                 />
                 <button
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={handleUploadClick}
                     className="flex flex-row justify-center items-center bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) cursor-pointer rounded-xl w-40 text-white font-medium"
                 >
                     <Plus className="mr-1" />
-                    New set
+                    Upload
                 </button>
             </div>
 
@@ -208,43 +212,41 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                     <div className="flex flex-col items-center justify-center py-20">
                         <Loader className="w-10 h-10 animate-spin text-gray-400" />
                         <p className="mt-4 text-gray-400">
-                            Loading flashcard sets...
+                            Loading documents...
                         </p>
                     </div>
-                ) : filteredSets.length === 0 ? (
+                ) : filteredDocuments.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20">
-                        <Layers className="w-16 h-16 text-gray-400 mb-4" />
+                        <FileText className="w-16 h-16 text-gray-400 mb-4" />
                         <p className="text-gray-400 text-lg">
                             {query.trim()
-                                ? "No flashcard sets match your search"
-                                : "No flashcard sets yet"}
+                                ? "No documents match your search"
+                                : "No documents yet"}
                         </p>
                         {!query.trim() && (
                             <button
-                                onClick={() => setIsCreateModalOpen(true)}
+                                onClick={handleUploadClick}
                                 className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium"
                             >
-                                Create flashcard set
+                                Upload document
                             </button>
                         )}
                     </div>
                 ) : (
                     <>
-                        {filteredSets.map((set, i) => (
+                        {filteredDocuments.map((doc, i) => (
                             <div
                                 key={i}
                                 className="flex flex-col items-start justify-center w-full shadow-xl rounded-xl bg-(--discord-gray-4) p-4 transform transition-transform duration-200 hover:scale-105"
                             >
                                 <div className="flex flex-row items-center justify-center space-x-3 w-full">
-                                    <label className="text-4xl">
-                                        {set.icon}
-                                    </label>
+                                    <FileText className="w-10 h-10 text-(--discord-blurple)" />
                                     <div className="flex flex-col">
                                         <label className="text-md font-semibold">
-                                            {set.name}
+                                            {doc.title}
                                         </label>
                                         <label className="text-sm opacity-70">
-                                            Updated {formatDate(set.updatedAt)}
+                                            Uploaded {formatDate(doc.createdAt)}
                                         </label>
                                     </div>
 
@@ -270,9 +272,9 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                                             onClose={() =>
                                                 setShowDropdown(null)
                                             }
-                                            onEdit={() => handleEditClick(set)}
+                                            onEdit={undefined}
                                             onDelete={() =>
-                                                handleDeleteClick(set)
+                                                handleDeleteClick(doc)
                                             }
                                         />
                                     </div>
@@ -281,35 +283,9 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                                 <div className="mt-6 flex flex-row space-x-3">
                                     <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg">
                                         <label className="text-sm">
-                                            {set.totalCards} cards
+                                            {doc.numChunks} chunks
                                         </label>
                                     </div>
-                                    <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg">
-                                        <label className="text-sm">
-                                            {set.reviewedCards} reviewed
-                                        </label>
-                                    </div>
-                                    <div className="bg-(--discord-gray-2) py-0.5 px-2 rounded-lg">
-                                        <label className="text-sm">
-                                            {set.starredCards} starred
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="h-0.5 w-full bg-(--discord-gray-1) my-5 rounded-2xl"></div>
-
-                                <div className="flex flex-row space-x-3 w-full">
-                                    <button
-                                        onClick={() =>
-                                            router.push(
-                                                `/app/study-sets/${studySetId}/flashcard-sets/${set.flashcardSetId}`,
-                                            )
-                                        }
-                                        className="w-full bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2)"
-                                    >
-                                        <BookOpenText className="w-5 h-5" />
-                                        <span>Review</span>
-                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -317,12 +293,12 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
                 )}
 
                 <button
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={handleUploadClick}
                     className="flex flex-row w-full items-center justify-center space-x-3 outline-dashed rounded-lg p-3 outline-2 outline-(--discord-blurple-hover) bg-(--discord-gray-1) hover:bg-(--discord-gray-2)"
                 >
                     <Plus className="h-8 w-8 text-(--discord-blurple)" />
                     <label className="text-lg font-medium cursor-pointer">
-                        Create new flashcard set
+                        Upload new document
                     </label>
                 </button>
             </div>
@@ -330,4 +306,4 @@ const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ studySetId }) => {
     );
 };
 
-export default FlashcardsTab;
+export default DocumentsTab;

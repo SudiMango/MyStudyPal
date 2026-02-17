@@ -1,9 +1,13 @@
 package com.sudimango.MyStudyPal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sudimango.MyStudyPal.component.DocumentProcessor;
+import com.sudimango.MyStudyPal.dto.response.document.DocumentResponse;
 import com.sudimango.MyStudyPal.entity.User;
 
 import jakarta.validation.constraints.NotNull;
@@ -55,6 +60,34 @@ public class DocumentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Failed to upload documents: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get all documents for a specific study set
+     */
+    @GetMapping("/get-all/{studySetId}")
+    public ResponseEntity<?> getAllDocumentsForStudySet(@PathVariable String studySetId) {
+        try {
+            List<DocumentResponse> documents = documentProcessor.getAllDocumentsForStudySet(studySetId);
+            return ResponseEntity.ok(documents);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch documents: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Delete a specific document
+     */
+    @DeleteMapping("/{documentId}")
+    public ResponseEntity<?> deleteDocument(@PathVariable String documentId) {
+        try {
+            documentProcessor.deleteDocument(documentId);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to delete document: " + e.getMessage());
         }
     }
 

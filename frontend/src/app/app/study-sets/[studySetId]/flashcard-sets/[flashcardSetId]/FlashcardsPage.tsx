@@ -11,12 +11,13 @@ import { useParams, useRouter } from "next/navigation";
 const FlashcardsPage = () => {
     const router = useRouter();
 
-    const { flashcardSetId } = useParams();
+    const { studySetId, flashcardSetId } = useParams();
 
     const {
         isLoading,
         flashcards,
         flashcardSet,
+        studySet,
         currIndex,
         showHint,
         showAnswer,
@@ -31,7 +32,7 @@ const FlashcardsPage = () => {
         handleShowAnswer,
         shuffleFlashcards,
         fetchEverything,
-    } = useFlashcards(flashcardSetId as string);
+    } = useFlashcards(studySetId as string, flashcardSetId as string);
 
     if (isLoading) {
         return (
@@ -44,13 +45,24 @@ const FlashcardsPage = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full p-5 mt-5 overflow-x-hidden">
-            <div className="flex flex-col justify-center items-center w-full h-full max-w-[600px]">
+            <div className="flex flex-col justify-center items-center w-full h-full max-w-150">
                 <div className="mr-auto mb-2 opacity-70 text-sm">
                     <button
                         className="underline hover:opacity-85 cursor-pointer"
-                        onClick={() => router.push("/app/flashcard-sets")}
+                        onClick={() =>
+                            router.push("/app/study-sets#flashcards")
+                        }
                     >
-                        flashcard-sets
+                        study-sets
+                    </button>
+                    <label> / </label>
+                    <button
+                        className="underline hover:opacity-85 cursor-pointer"
+                        onClick={() =>
+                            router.push(`/app/study-sets/${studySetId}`)
+                        }
+                    >
+                        {studySet?.name}
                     </button>
                     <label> / </label>
                     <button
@@ -112,7 +124,7 @@ const FlashcardsPage = () => {
                 )}
 
                 {/* Interact */}
-                <InteractPanel />
+                {/* <InteractPanel /> */}
 
                 {/* All flashcards panel */}
                 <AllFlashcardsPanel

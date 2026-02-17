@@ -1,46 +1,43 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
-import { StudySet } from "@/lib/api/study-set-api";
 
-interface EditStudySetModalProps {
+interface CreateStudySetModalProps {
     isOpen: boolean;
-    studySet: StudySet | null;
-    onConfirm: (
-        studySetId: string,
-        name: string,
-        description: string,
-        icon: string,
-    ) => void;
+    onConfirm: (title: string, icon: string, description: string) => void;
     onCancel: () => void;
     isLoading: boolean;
 }
 
-const EditStudySetModal: React.FC<EditStudySetModalProps> = ({
+const CreateStudySetModal: React.FC<CreateStudySetModalProps> = ({
     isOpen,
-    studySet,
     onConfirm,
     onCancel,
     isLoading,
 }) => {
-    const [name, setName] = useState("");
+    const [title, setTitle] = useState("");
+    const [icon, setIcon] = useState("📚");
     const [description, setDescription] = useState("");
-    const [icon, setIcon] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
-        if (studySet && isOpen) {
-            setName(studySet.name);
-            setDescription(studySet.description);
-            setIcon(studySet.icon);
+        if (!isOpen) {
+            setTitle("");
+            setIcon("📚");
+            setDescription("");
+            setShowEmojiPicker(false);
         }
-    }, [studySet, isOpen]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
     const handleConfirm = () => {
-        if (studySet && name.trim()) {
-            onConfirm(studySet.studySetId, name, description, icon);
+        if (!title.trim()) {
+            alert("Please enter a title for your study set.");
+            return;
         }
+        onConfirm(title, icon, description);
     };
 
     const handleEmojiClick = (emojiObject: any) => {
@@ -52,10 +49,10 @@ const EditStudySetModal: React.FC<EditStudySetModalProps> = ({
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-5 overflow-auto">
             <div className="bg-(--discord-gray-2) p-6 rounded-lg shadow-xl max-w-md w-full">
                 <h2 className="text-white text-xl font-bold mb-4">
-                    Edit Study Set
+                    Create Study Set
                 </h2>
 
-                {/* Title and icon - Horizontal Row */}
+                {/* Title and icon */}
                 <div className="space-y-1 w-full my-4 flex">
                     <div className="flex flex-row w-full space-x-2">
                         <div className="flex flex-col w-12">
@@ -86,24 +83,24 @@ const EditStudySetModal: React.FC<EditStudySetModalProps> = ({
                         <div className="flex flex-col w-full">
                             <div className="flex flex-row items-baseline">
                                 <label className="text-sm font-semibold mb-1">
-                                    Name
+                                    Title
                                 </label>
                                 <label className="text-xs opacity-60 ml-auto">
-                                    {name.length}/30
+                                    {title.length}/30
                                 </label>
                             </div>
                             <input
-                                value={name}
+                                value={title}
                                 maxLength={30}
-                                placeholder="e.g., Bio 101 Midterm"
-                                onChange={(e) => setName(e.target.value)}
+                                placeholder="e.g., Computer Science Year 1"
+                                onChange={(e) => setTitle(e.target.value)}
                                 className="w-full px-4 py-2 bg-(--discord-gray-1) border border-(--discord-gray-2) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--discord-blurple) text-white"
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Description - Full Width */}
+                {/* Description */}
                 <div className="flex flex-col w-full my-4">
                     <div className="flex flex-row items-baseline">
                         <label className="text-sm font-semibold mb-1">
@@ -134,10 +131,10 @@ const EditStudySetModal: React.FC<EditStudySetModalProps> = ({
                     </button>
                     <button
                         onClick={handleConfirm}
-                        disabled={isLoading || !name.trim()}
+                        disabled={isLoading || !title.trim()}
                         className="px-6 py-2 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) text-white font-semibold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isLoading ? "Saving..." : "Save Changes"}
+                        {isLoading ? "Creating..." : "Create Set"}
                     </button>
                 </div>
             </div>
@@ -145,4 +142,4 @@ const EditStudySetModal: React.FC<EditStudySetModalProps> = ({
     );
 };
 
-export default EditStudySetModal;
+export default CreateStudySetModal;

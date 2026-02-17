@@ -12,6 +12,9 @@ import {
     Calendar,
 } from "lucide-react";
 import FlashcardsTab from "@/app/components/study-set-page/FlashcardsTab";
+import QuizzesTab from "@/app/components/study-set-page/QuizzesTab";
+import DocumentsTab from "@/app/components/study-set-page/DocumentsTab";
+import { formatDate } from "@/lib/util";
 
 const CurrentStudySetPage = () => {
     const { studySetId } = useParams();
@@ -49,14 +52,6 @@ const CurrentStudySetPage = () => {
         }
     }, []);
 
-    const formatDate = (dateString: Date): string => {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        });
-    };
-
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center w-full py-20">
@@ -77,7 +72,7 @@ const CurrentStudySetPage = () => {
     return (
         <div className="flex flex-col items-center min-h-screen w-full">
             {/* Header Section */}
-            <div className="w-full bg-gradient-to-br from-(--discord-gray-1) to-(--discord-gray-2) border-b border-(--discord-gray-3) py-8 px-5">
+            <div className="w-full bg-linear-to-br from-(--discord-gray-1) to-(--discord-gray-2) border-b border-(--discord-gray-3) py-8 px-5">
                 <div className="max-w-150 mx-auto">
                     <div className="flex flex-row items-center space-x-4">
                         <div className="text-6xl">{studySet.icon}</div>
@@ -196,13 +191,7 @@ const CurrentStudySetPage = () => {
                 )}
 
                 {activeTab === "quizzes" && (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <Brain className="w-16 h-16 text-gray-400 mb-4" />
-                        <p className="text-gray-400 text-lg">No quizzes yet</p>
-                        <button className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium">
-                            Create quiz
-                        </button>
-                    </div>
+                    <QuizzesTab studySetId={studySetId as string} />
                 )}
 
                 {activeTab === "stats" && (
@@ -215,15 +204,7 @@ const CurrentStudySetPage = () => {
                 )}
 
                 {activeTab === "documents" && (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <FileText className="w-16 h-16 text-gray-400 mb-4" />
-                        <p className="text-gray-400 text-lg">
-                            No documents yet
-                        </p>
-                        <button className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium">
-                            Upload document
-                        </button>
-                    </div>
+                    <DocumentsTab studySetId={studySetId as string} />
                 )}
             </div>
         </div>

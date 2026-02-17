@@ -10,7 +10,7 @@ interface EditFlashcardModalProps {
         answer: string,
         hint: string,
         instructions: string,
-        mode: "manual" | "AI"
+        mode: "manual" | "AI",
     ) => void;
     onCancel: () => void;
     isLoading: boolean;
@@ -51,14 +51,14 @@ const EditFlashcardModal: React.FC<EditFlashcardModalProps> = ({
                 answer,
                 hint,
                 instructions,
-                mode
+                mode,
             );
         }
     };
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-5 overflow-auto">
-            <div className="bg-(--discord-gray-2) p-6 rounded-lg shadow-xl max-w-[600px] w-full">
+            <div className="bg-(--discord-gray-2) p-6 rounded-lg shadow-xl max-w-150 w-full">
                 <h2 className="text-white text-lg mb-4">Edit Flashcard</h2>
 
                 {/* Choose mode between manual and AI */}
