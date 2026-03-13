@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.study;
 
 import java.util.List;
 import java.util.stream.Collectors;

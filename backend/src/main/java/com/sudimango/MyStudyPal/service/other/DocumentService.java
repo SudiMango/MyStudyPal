@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.component;
+package com.sudimango.MyStudyPal.service.other;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.response.document.DocumentResponse;
 import com.sudimango.MyStudyPal.entity.Document;
 import com.sudimango.MyStudyPal.entity.StudySet;
@@ -22,7 +23,7 @@ import com.sudimango.MyStudyPal.repository.StudySetRepository;
 import com.sudimango.MyStudyPal.repository.UserRepository;
 
 @Component
-public class DocumentProcessor {
+public class DocumentService {
     
     @Autowired
     private DocumentRepository documentRepository;
@@ -61,6 +62,7 @@ public class DocumentProcessor {
             doc = Document.builder()
                 .title(pdfFile.getOriginalFilename())
                 .numChunks(chunks.size())
+                .size(pdfFile.getSize())
                 .studySet(studySet)
                 .user(user)
                 .build();

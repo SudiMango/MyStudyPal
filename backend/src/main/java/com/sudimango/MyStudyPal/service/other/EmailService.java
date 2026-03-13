@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.other;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;

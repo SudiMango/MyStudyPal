@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.study.flashcard;
 
 import java.util.List;
 

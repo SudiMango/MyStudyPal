@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.auth;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,11 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import com.sudimango.MyStudyPal.dto.request.VerifyAccountRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.VerifyAccountRequest;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.entity.VerificationCode;
 import com.sudimango.MyStudyPal.exception.InvalidVerificationCodeException;
 import com.sudimango.MyStudyPal.repository.VerificationCodeRepository;
+import com.sudimango.MyStudyPal.service.other.EmailService;
 
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;

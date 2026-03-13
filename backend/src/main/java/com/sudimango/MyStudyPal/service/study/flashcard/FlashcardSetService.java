@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.study.flashcard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +10,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.response.CreateFlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.response.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.response.flashcard.CreateFlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.response.flashcard.FlashcardSetResponse;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;

@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.auth;
 
 import java.util.Optional;
 
@@ -11,11 +11,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.sudimango.MyStudyPal.dto.request.LoginRequest;
-import com.sudimango.MyStudyPal.dto.request.ResendVerificationEmailRequest;
-import com.sudimango.MyStudyPal.dto.request.SignUpRequest;
-import com.sudimango.MyStudyPal.dto.request.VerifyAccountRequest;
-import com.sudimango.MyStudyPal.dto.response.LoginResponse;
+import com.sudimango.MyStudyPal.dto.request.auth.LoginRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.ResendVerificationEmailRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.SignUpRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.VerifyAccountRequest;
+import com.sudimango.MyStudyPal.dto.response.auth.LoginResponse;
 import com.sudimango.MyStudyPal.entity.AuthProvider;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.entity.VerificationCode;
@@ -25,8 +25,6 @@ import com.sudimango.MyStudyPal.exception.InvalidVerificationCodeException;
 import com.sudimango.MyStudyPal.exception.UserAccountNotEnabledException;
 import com.sudimango.MyStudyPal.exception.WrongAuthProviderException;
 import com.sudimango.MyStudyPal.repository.UserRepository;
-import com.sudimango.MyStudyPal.service.auth.CustomUserDetailsService;
-import com.sudimango.MyStudyPal.service.auth.JwtService;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -92,7 +90,7 @@ public class AuthService {
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
             refreshTokenService.saveRefreshTokenForUser(savedUser, refreshToken);
 
-            return new LoginResponse(accessToken);
+            return new LoginResponse(accessToken, savedUser.getUsername());
         } else {
             throw new InvalidCredentialsException("Invalid credentials.");
         }
@@ -130,7 +128,7 @@ public class AuthService {
         String username = jwtService.extractClaim(refreshToken, Claims::getSubject);
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
         if (jwtService.isTokenValid(refreshToken, userDetails)) {
-            return new LoginResponse(jwtService.generateAccessToken(username));
+            return new LoginResponse(jwtService.generateAccessToken(username), username);
         }
 
         throw new InvalidRefreshTokenException("Invalid refresh token.");

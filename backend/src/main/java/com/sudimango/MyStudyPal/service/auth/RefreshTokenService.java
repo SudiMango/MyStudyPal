@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.auth;
 
 import java.util.Optional;
 
@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.sudimango.MyStudyPal.entity.RefreshToken;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.repository.RefreshTokenRepository;
-import com.sudimango.MyStudyPal.service.auth.JwtService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

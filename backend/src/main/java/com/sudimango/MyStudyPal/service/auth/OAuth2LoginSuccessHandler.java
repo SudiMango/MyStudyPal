@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.service;
+package com.sudimango.MyStudyPal.service.auth;
 
 import java.io.IOException;
 
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.repository.UserRepository;
-import com.sudimango.MyStudyPal.service.auth.JwtService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
