@@ -57,13 +57,14 @@ public class QuizQuestion {
     
     @Column(nullable = false)
     @Builder.Default
-    private int points = 1;
+    private double points = 1.0;
     
     @Column(nullable = false)
     private int orderIndex;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
+    @JsonIgnore
     private Quiz quiz;
     
     @OneToMany(mappedBy = "quizQuestion", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

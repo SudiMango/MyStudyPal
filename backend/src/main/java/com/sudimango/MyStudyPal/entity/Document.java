@@ -40,6 +40,9 @@ public class Document {
     
     @Column(nullable = false)
     private int numChunks;
+
+    @Column(nullable = false)
+    private long size;
     
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

@@ -1,9 +1,11 @@
 package com.sudimango.MyStudyPal.entity;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,19 +35,21 @@ public class QuizAttemptAnswer {
     
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
-    private Object userAnswer;
+    private List<String> userAnswer;
     
     @Column(nullable = false)
-    private boolean isCorrect;
+    private Boolean isCorrect;
     
     @Column(nullable = false)
-    private BigDecimal pointsEarned;
+    private double pointsEarned;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attempt_id", nullable = false)
+    @JsonIgnore
     private QuizAttempt quizAttempt;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = false)
+    @JsonIgnore
     private QuizQuestion quizQuestion;
 }

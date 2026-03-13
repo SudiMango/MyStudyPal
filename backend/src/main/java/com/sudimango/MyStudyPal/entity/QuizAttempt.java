@@ -1,6 +1,5 @@
 package com.sudimango.MyStudyPal.entity;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -35,23 +34,20 @@ public class QuizAttempt {
     private String attemptId;
     
     @Column(nullable = false)
-    private BigDecimal score;
+    private double score;
     
     @Column(nullable = false)
-    private BigDecimal maxScore;
-    
-    @Column
-    private Integer timeSpentSeconds;
+    private double maxScore;
     
     @Column(nullable = false)
     private Instant startedAt;
     
-    @Column
-    @Builder.Default
-    private Instant completedAt = null;
+    @Column(nullable = false)
+    private Instant completedAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
+    @JsonIgnore
     private Quiz quiz;
     
     @OneToMany(mappedBy = "quizAttempt", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -38,12 +39,16 @@ public class Quiz {
     @Column(nullable = false)
     private String name;
     
-    @Column
+    @Column(nullable = false)
     private Integer timeLimitMinutes;
     
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_set_id", nullable = false)
