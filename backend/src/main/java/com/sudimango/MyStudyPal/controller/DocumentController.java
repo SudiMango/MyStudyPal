@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sudimango.MyStudyPal.component.DocumentProcessor;
 import com.sudimango.MyStudyPal.dto.response.document.DocumentResponse;
 import com.sudimango.MyStudyPal.entity.User;
+import com.sudimango.MyStudyPal.service.other.DocumentService;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -26,7 +26,7 @@ import jakarta.validation.constraints.NotNull;
 public class DocumentController {
 
     @Autowired
-    private DocumentProcessor documentProcessor;
+    private DocumentService documentProcessor;
 
     /**
      * Upload a document with its chunks into the database

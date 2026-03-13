@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.request.LoginRequest;
-import com.sudimango.MyStudyPal.dto.request.ResendVerificationEmailRequest;
-import com.sudimango.MyStudyPal.dto.request.SignUpRequest;
-import com.sudimango.MyStudyPal.dto.request.VerifyAccountRequest;
-import com.sudimango.MyStudyPal.dto.response.LoginResponse;
-import com.sudimango.MyStudyPal.service.AuthService;
+import com.sudimango.MyStudyPal.dto.request.auth.LoginRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.ResendVerificationEmailRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.SignUpRequest;
+import com.sudimango.MyStudyPal.dto.request.auth.VerifyAccountRequest;
+import com.sudimango.MyStudyPal.dto.response.auth.LoginResponse;
+import com.sudimango.MyStudyPal.service.auth.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

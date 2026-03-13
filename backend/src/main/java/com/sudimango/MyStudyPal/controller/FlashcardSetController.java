@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.response.CreateFlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.response.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.response.flashcard.CreateFlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.response.flashcard.FlashcardSetResponse;
 import com.sudimango.MyStudyPal.entity.User;
-import com.sudimango.MyStudyPal.service.FlashcardSetService;
+import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardSetService;
 
 import jakarta.validation.Valid;
 

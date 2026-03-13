@@ -13,7 +13,7 @@ import com.sudimango.MyStudyPal.dto.request.studyset.UpdateStudySetRequest;
 import com.sudimango.MyStudyPal.dto.response.studyset.CreateStudySetResponse;
 import com.sudimango.MyStudyPal.dto.response.studyset.StudySetResponse;
 import com.sudimango.MyStudyPal.entity.User;
-import com.sudimango.MyStudyPal.service.StudySetService;
+import com.sudimango.MyStudyPal.service.study.StudySetService;
 
 import jakarta.validation.Valid;
 
