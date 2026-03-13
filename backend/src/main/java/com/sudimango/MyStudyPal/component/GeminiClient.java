@@ -91,7 +91,11 @@ public class GeminiClient {
         return response.text();
     }
 
-
+    public String markShortAnswerQuestions(List<String> questions, List<String> correctAnswer, List<String> userAnswer, List<Double> maxPoints) {
+        String prompt = generateMarkShortAnswersPrompt(questions, correctAnswer, userAnswer, maxPoints);
+        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
+        return response.text();
+    }
 
     /*
      * 
@@ -238,6 +242,41 @@ public class GeminiClient {
               .append("  }\n")
               .append("]\n");
         
+        return prompt.toString();
+    }
+
+    private String generateMarkShortAnswersPrompt(List<String> questions, List<String> correctAnswer, List<String> userAnswer, List<Double> maxPoints) {
+        StringBuilder prompt = new StringBuilder();
+
+        prompt.append("You are an expert academic grading assistant. ");
+        prompt.append("Your task is to grade a series of short-answer questions.\n\n");
+
+        prompt.append("### Grading Instructions:\n");
+        prompt.append("- Compare the 'User Answer' against the 'Correct Answer' within the context of the 'Question'.\n");
+        prompt.append("- Award points based on conceptual accuracy and understanding.\n");
+        prompt.append("- Be lenient with minor typos but strict with factual errors.\n");
+        prompt.append("- **ORDERING**: You must return the scores in the exact same order as the questions provided below.\n\n");
+
+        prompt.append("### Questions to Grade:\n");
+        for (int i = 0; i < questions.size(); i++) {
+            prompt.append(String.format("--- ITEM %d ---\n", i));
+            prompt.append(String.format("Question: %s\n", questions.get(i)));
+            prompt.append(String.format("Correct Answer: %s\n", correctAnswer.get(i)));
+            prompt.append(String.format("User Answer: %s\n", userAnswer.get(i)));
+            prompt.append(String.format("Max Points: %.2f\n\n", maxPoints.get(i)));
+        }
+
+        prompt.append("### Output Requirements:\n");
+        prompt.append("Return ONLY a valid JSON array of objects. Do not include any text before or after the JSON.\n");
+        prompt.append("Each object must contain only the 'score' key with the numeric value.\n\n");
+
+        prompt.append("### Example Response:\n");
+        prompt.append("[\n");
+        prompt.append("  {\"score\": 1.0},\n");
+        prompt.append("  {\"score\": 0.8},\n");
+        prompt.append("  {\"score\": 2.5}\n");
+        prompt.append("]");
+
         return prompt.toString();
     }
 
