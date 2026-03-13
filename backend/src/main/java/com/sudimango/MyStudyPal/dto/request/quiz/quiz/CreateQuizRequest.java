@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.dto.request.quiz;
+package com.sudimango.MyStudyPal.dto.request.quiz.quiz;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

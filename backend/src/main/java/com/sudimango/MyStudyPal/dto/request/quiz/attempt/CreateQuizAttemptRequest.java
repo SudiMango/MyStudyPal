@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class SubmitAttemptRequest {
+public class CreateQuizAttemptRequest {
     @NotNull(message = "timeSpentSeconds field in SubmitAttemptRequest cannot be null.")
     private int timeSpentSeconds;
     

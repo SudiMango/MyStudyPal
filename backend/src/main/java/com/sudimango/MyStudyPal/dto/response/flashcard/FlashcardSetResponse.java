@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.dto.response;
+package com.sudimango.MyStudyPal.dto.response.flashcard;
 
 import java.time.Instant;
 

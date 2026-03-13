@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.dto.response.quiz;
+package com.sudimango.MyStudyPal.dto.response.quiz.quiz;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

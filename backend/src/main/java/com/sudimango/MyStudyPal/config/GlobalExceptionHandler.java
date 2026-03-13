@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.sudimango.MyStudyPal.dto.response.ErrorResponse;
+import com.sudimango.MyStudyPal.dto.response.other.ErrorResponse;
 import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
 

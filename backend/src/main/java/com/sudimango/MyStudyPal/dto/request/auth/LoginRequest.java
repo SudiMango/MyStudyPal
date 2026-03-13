@@ -1,4 +1,4 @@
-package com.sudimango.MyStudyPal.dto.request;
+package com.sudimango.MyStudyPal.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
