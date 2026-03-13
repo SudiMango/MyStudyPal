@@ -23,8 +23,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.sudimango.MyStudyPal.service.OAuth2LoginSuccessHandler;
 import com.sudimango.MyStudyPal.service.auth.CustomOAuth2UserService;
+import com.sudimango.MyStudyPal.service.auth.OAuth2LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -48,7 +48,7 @@ public class WebSecurityConfig {
             request
                 .requestMatchers("/api/public/**", "/api/auth/**", "/error").permitAll()
                 .anyRequest().authenticated())
-        .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+        .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .oauth2Login(customizer -> customizer
                                         .loginPage("/oauth2/authorization/google")
                                         .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
