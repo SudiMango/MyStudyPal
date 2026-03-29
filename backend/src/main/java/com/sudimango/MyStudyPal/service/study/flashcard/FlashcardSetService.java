@@ -33,17 +33,14 @@ public class FlashcardSetService {
     private StudySetRepository studySetRepository;
 
     @Transactional
-    public FlashcardDto.CreateFlashcardSetResponse createFlashcardSet(FlashcardDto.CreateFlashcardSetRequest request, String studySetId, User user)
-            throws JsonProcessingException, JsonMappingException {
+    public FlashcardDto.CreateFlashcardSetResponse createFlashcardSet(FlashcardDto.CreateFlashcardSetRequest request,
+            String studySetId) throws JsonProcessingException, JsonMappingException {
 
         StudySet studySet = studySetRepository.findById(studySetId)
-            .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));
+                .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));
 
-        FlashcardSet set = FlashcardSet.builder()
-                .name(request.name())
-                .icon((request.icon() != null && !request.icon().isEmpty()) ? request.icon() : "📖")
-                .studySet(studySet)
-                .user(user)
+        FlashcardSet set = FlashcardSet.builder().name(request.name())
+                .icon((request.icon() != null && !request.icon().isEmpty()) ? request.icon() : "📖").studySet(studySet)
                 .build();
         flashcardSetRepository.save(set);
 
@@ -65,16 +62,14 @@ public class FlashcardSetService {
     }
 
     public FlashcardSetResponse getOneFlashcardSet(String setId) {
-        FlashcardSet flashcardSet = flashcardSetRepository
-                .findById(setId)
+        FlashcardSet flashcardSet = flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
 
         return new FlashcardSetResponse(flashcardSet);
     }
 
     public void updateFlashcardSet(String setId, UpdateFlashcardSetRequest request) {
-        FlashcardSet flashcardSet = flashcardSetRepository
-                .findById(setId)
+        FlashcardSet flashcardSet = flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
 
         if (request.name() != null && !request.name().isBlank()) {

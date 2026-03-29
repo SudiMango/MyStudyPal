@@ -32,54 +32,46 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class FlashcardSet {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String flashcardSetId;
-    
+
     @Column(nullable = false)
     private String name;
-    
+
     @Column(nullable = false)
     @Builder.Default
     private String icon = "📖";
-    
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
-    
+
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_set_id", nullable = false)
     private StudySet studySet;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-    
+
     @OneToMany(mappedBy = "flashcardSet", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Flashcard> flashcards;
-    
+
     @Transient
     public int getTotalCards() {
         return flashcards != null ? flashcards.size() : 0;
     }
-    
+
     @Transient
     public int getReviewedCards() {
-        return flashcards != null ? (int) flashcards.stream()
-                .filter(Flashcard::isReviewed)
-                .count() : 0;
+        return flashcards != null ? (int) flashcards.stream().filter(Flashcard::isReviewed).count() : 0;
     }
-    
+
     @Transient
     public int getStarredCards() {
-        return flashcards != null ? (int) flashcards.stream()
-                .filter(Flashcard::isStarred)
-                .count() : 0;
+        return flashcards != null ? (int) flashcards.stream().filter(Flashcard::isStarred).count() : 0;
     }
 }
