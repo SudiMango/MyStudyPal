@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import com.sudimango.MyStudyPal.dto.AuthDto;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.entity.VerificationCode;
-import com.sudimango.MyStudyPal.exception.InvalidVerificationCodeException;
+import com.sudimango.MyStudyPal.exception.EmailDeliveryFailedException;
+import com.sudimango.MyStudyPal.exception.UnauthorizedException;
 import com.sudimango.MyStudyPal.repository.VerificationCodeRepository;
 import com.sudimango.MyStudyPal.service.other.EmailService;
 
@@ -32,27 +33,23 @@ public class VerificationCodeService {
 
     @Transactional
     public void sendVerificationEmail(User user) {
-        if (user.isEnabled()) {
-            throw new RuntimeException("User is already verified.");
-        }
-
         try {
             String verificationCode = generateNewCodeForUser(user);
             String subject = "MyStudyPal — Email Verification Code";
             String htmlContent = loadHtmlTemplate(verificationCode);
 
-            emailService.sendVerificationEmail(user.getUsername(), subject, htmlContent);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Error sending verification email: " + e.getMessage());
-        } catch (IOException e) {
-            throw new RuntimeException("Error sending verification email: " + e.getMessage());
+            emailService.sendEmail(user.getUsername(), subject, htmlContent);
+        } catch (MessagingException | IOException e) {
+            throw new EmailDeliveryFailedException(
+                    "We encountered an issue sending your verification email. Please try again in a few minutes.");
         }
     }
 
     public VerificationCode getVerificationCode(AuthDto.VerifyAccountRequest verifyAccountRequest) {
-        Optional<VerificationCode> savedVerificationCode = verificationCodeRepository.findByCodeAndUser_Username(verifyAccountRequest.verificationCode(), verifyAccountRequest.username());
+        Optional<VerificationCode> savedVerificationCode = verificationCodeRepository
+                .findByCodeAndUser_Username(verifyAccountRequest.verificationCode(), verifyAccountRequest.username());
         if (savedVerificationCode.isEmpty()) {
-            throw new InvalidVerificationCodeException("Invalid verification code.");
+            throw new UnauthorizedException("Invalid verification code.");
         }
         return savedVerificationCode.get();
     }
@@ -60,9 +57,9 @@ public class VerificationCodeService {
     public boolean isCodeValid(AuthDto.VerifyAccountRequest verifyAccountRequest, VerificationCode verificationCode) {
         System.out.println(verifyAccountRequest.username().equals(verificationCode.getUser().getUsername()));
         System.out.println(verifyAccountRequest.verificationCode().equals(verificationCode.getCode()));
-        return verifyAccountRequest.username().equals(verificationCode.getUser().getUsername()) &&
-                 verifyAccountRequest.verificationCode().equals(verificationCode.getCode()) && 
-                 Instant.now().isBefore(verificationCode.getExpiryDate());
+        return verifyAccountRequest.username().equals(verificationCode.getUser().getUsername())
+                && verifyAccountRequest.verificationCode().equals(verificationCode.getCode())
+                && Instant.now().isBefore(verificationCode.getExpiryDate());
     }
 
     public void deleteVerificationCode(VerificationCode verificationCode) {
@@ -71,22 +68,19 @@ public class VerificationCodeService {
 
     private String loadHtmlTemplate(String verificationCode) throws IOException {
         ClassPathResource resource = new ClassPathResource("templates/verification_email.html");
-        
+
         try (InputStream inputStream = resource.getInputStream()) {
             byte[] bytes = inputStream.readAllBytes();
             String htmlContent = new String(bytes, StandardCharsets.UTF_8);
-            
+
             return String.format(htmlContent, verificationCode);
         }
     }
 
     private String generateNewCodeForUser(User user) {
         String code = generateVerificationCode();
-        VerificationCode verificationCode = VerificationCode.builder()
-                                                            .code(code)
-                                                            .expiryDate(Instant.now().plusSeconds(15 * 60))
-                                                            .user(user)
-                                                            .build();
+        VerificationCode verificationCode = VerificationCode.builder().code(code)
+                .expiryDate(Instant.now().plusSeconds(15 * 60)).user(user).build();
 
         if (!verificationCodeRepository.findByUser_Username(user.getUsername()).isEmpty()) {
             verificationCodeRepository.deleteByUser_Username(user.getUsername());

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sudimango.MyStudyPal.dto.AuthDto;
+import com.sudimango.MyStudyPal.dto.AuthDto.ResendVerificationEmailRequest;
+import com.sudimango.MyStudyPal.dto.AuthDto.VerifyAccountRequest;
 import com.sudimango.MyStudyPal.service.auth.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,64 +20,68 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
     private AuthService authService;
-    
+
     /**
      * Sign up a new user to the system
      * 
+     * Endpoint: {@code POST /auth/signup}
+     * 
      * @param signUpRequest - request body
-     * @see SignUpRequest SignUpRequest class for request body structure
+     * @see AuthDto.SignupRequest SignupRequest for request body structure
      * 
      * @return
-     * {@code HTTP 201} - User created successfully
-     * {@code HTTP 409} - User with this email already exists {error: ""}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
+     * {@code HTTP 201}: User created successfully
+     * 
+     * @throws
+     * {@code HTTP 422}: Validation errors with request body
      */
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@Valid @RequestBody AuthDto.SignupRequest signUpRequest) {
-        try {
-            authService.signUp(signUpRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).body(null);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
-        }
+        authService.signUp(signUpRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
 
     /**
      * Log in existing user to the system
      * 
+     * Endpoint: {@code POST /auth/login}
+     * 
      * @param loginRequest - request body
      * @param request - HttpRequest
      * @param response - HttpResponse
-     * @see LoginRequest LoginRequest class for request body structure
+     * @see AuthDto.LoginRequest LoginRequest for request body structure
+     * @see AuthDto.LoginResponse LoginResponse for response body structure
      * 
      * @return
-     * {@code HTTP 200} - User logged in successfully {accessToken: ""}
-     * {@code HTTP 401} - Error occured with user logging in {error: ""}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
+     * {@code LoginResponse HTTP 200} - User logged in successfully
+     * 
+     * @throws
+     * {@code HTTP 401} - Invalid credentials
+     * {@code HTTP 403} - User account not enabled
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthDto.LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
-        try {
-            AuthDto.LoginResponse loginResponse = authService.login(loginRequest, request, response);
-            return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<?> login(@Valid @RequestBody AuthDto.LoginRequest loginRequest, HttpServletRequest request,
+            HttpServletResponse response) {
+        AuthDto.LoginResponse loginResponse = authService.login(loginRequest, request, response);
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     /**
      * Logs user out of the current device
      * 
+     * Endpoint: {@code POST /auth/logout}
+     * 
      * @param request - HttpRequest
      * @param response - HttpResponse
      * 
      * @return
-     * {@code HTTP 200} - User logged off successfully {null}
+     * {@code HTTP 200} - User logged off successfully
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -83,66 +89,67 @@ public class AuthController {
         return ResponseEntity.ok(null);
     }
 
-
     /**
      * Refresh access token for user
      * 
+     * Endpoint: {@code POST /auth/refresh}
+     * 
+     * @param request - HttpRequest
+     * @param response - HttpResponse
      * 
      * @return
-     * {@code HTTP 200} - Account verified successfully {null}
-     * {@code HTTP 401} - Error occured while verifying account {error: ""}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
+     * {@code HTTP 200} - Account verified successfully
+     * 
+     * @throws
+     * {@code HTTP 401} - Invalid credentials
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            AuthDto.LoginResponse accessToken = authService.refreshAccessToken(request, response);
-            return ResponseEntity.status(HttpStatus.CREATED).body(accessToken);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
-        }
+        AuthDto.LoginResponse accessToken = authService.refreshAccessToken(request, response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(accessToken);
     }
 
     /**
      * Verify sign up email
      * 
+     * Endpoint: {@code POST /auth/verify-account}
+     * 
      * @param verifyAccountRequest - request body
-     * @see VerifyAccountRequest VerifyAccountRequest class for request body structure
+     * @see AuthDto.VerifyAccountRequest VerifyAccountRequest for request body structure
      * 
      * @return
-     * {@code HTTP 200} - Account verified successfully {null}
-     * {@code HTTP 401} - Error occured while verifying account {error: ""}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
+     * {@code HTTP 200} - Account verified successfully
+     * 
+     * @throws
+     * {@code HTTP 401} - Invalid credentials
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/verify-account")
     public ResponseEntity<?> verify(@Valid @RequestBody AuthDto.VerifyAccountRequest verifyAccountRequest) {
-        try {
-            authService.verifyAccountWithCode(verifyAccountRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
-        }
+        authService.verifyAccountWithCode(verifyAccountRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     /**
      * Resend account verification code
      * 
+     * Endpoint: {@code POST /auth/resend-verification}
+     * 
      * @param resendVerificationEmailRequest - request body
-     * @see ResendVerificationEmailRequest ResendVerificationEmailRequest class for request body structure
+     * @see AuthDto.ResendVerificationEmailRequest ResendVerificationEmailRequest for request body structure
      * 
      * @return
-     * {@code HTTP 200} - Resent email successfully {null}
-     * {@code HTTP 500} - Error occured while resending email {error: ""}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
+     * {@code HTTP 200} - Resent email successfully
+     * 
+     * @throws
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerificationEmail(@Valid @RequestBody AuthDto.ResendVerificationEmailRequest resendVerificationEmailRequest) {
-        try {
-            authService.resendVerificationEmail(resendVerificationEmailRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<?> resendVerificationEmail(
+            @Valid @RequestBody AuthDto.ResendVerificationEmailRequest resendVerificationEmailRequest) {
+        authService.resendVerificationEmail(resendVerificationEmailRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
 }
