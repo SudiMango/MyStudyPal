@@ -7,11 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sudimango.MyStudyPal.dto.request.quiz.quiz.CreateQuizRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.quiz.UpdateQuizRequest;
-import com.sudimango.MyStudyPal.dto.response.quiz.quiz.CreateQuizResponse;
-import com.sudimango.MyStudyPal.dto.response.quiz.quiz.QuizDetailsResponse;
-import com.sudimango.MyStudyPal.dto.response.quiz.quiz.QuizResponse;
+import com.sudimango.MyStudyPal.dto.QuizDto;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
@@ -33,52 +29,52 @@ public class QuizService {
     private StudySetRepository studySetRepository;
 
     @Transactional
-    public CreateQuizResponse createQuiz(CreateQuizRequest request, String studySetId)
+    public QuizDto.CreateQuizResponse createQuiz(QuizDto.CreateQuizRequest request, String studySetId)
             throws JsonProcessingException {
 
         StudySet studySet = studySetRepository.findById(studySetId)
             .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id: " + studySetId));
 
         Quiz quiz = Quiz.builder()
-                .name(request.getName())
-                .timeLimitMinutes(request.getTimeLimitMinutes())
+                .name(request.name())
+                .timeLimitMinutes(request.timeLimitMinutes())
                 .studySet(studySet)
                 .build();
         quizRepository.save(quiz);
 
         quizQuestionService.createQuestionsForQuiz(request, quiz);
 
-        return new CreateQuizResponse(quiz.getQuizId());
+        return new QuizDto.CreateQuizResponse(quiz.getQuizId());
     }
 
-    public List<QuizResponse> getQuizzesForStudySet(String studySetId) {
+    public List<QuizDto.QuizDetailsResponse> getQuizzesForStudySet(String studySetId) {
         List<Quiz> quizzes = quizRepository.findAllByStudySet_StudySetId(studySetId);
 
-        List<QuizResponse> responses = new ArrayList<>();
+        List<QuizDto.QuizDetailsResponse> responses = new ArrayList<>();
         for (Quiz q : quizzes) {
-            responses.add(new QuizResponse(q));
+            responses.add(new QuizDto.QuizDetailsResponse(q));
         }
 
         return responses;
     }
 
-    public QuizDetailsResponse getOneQuizDetails(String quizId) {
+    public QuizDto.QuizDetailsResponse getOneQuizDetails(String quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
-        return new QuizDetailsResponse(quiz);
+        return new QuizDto.QuizDetailsResponse(quiz);
     }
 
-    public QuizResponse updateQuiz(String quizId, UpdateQuizRequest request) {
+    public QuizDto.QuizDetailsResponse updateQuiz(String quizId, QuizDto.UpdateQuizRequest request) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
-        if (request.getName() != null && !request.getName().isBlank()) {
-            quiz.setName(request.getName());
+        if (request.name() != null && !request.name().isBlank()) {
+            quiz.setName(request.name());
         }
 
         quizRepository.save(quiz);
-        return new QuizResponse(quiz);
+        return new QuizDto.QuizDetailsResponse(quiz);
     }
 
     public void deleteQuiz(String quizId) {

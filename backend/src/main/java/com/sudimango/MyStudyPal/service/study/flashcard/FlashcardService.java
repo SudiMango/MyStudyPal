@@ -10,8 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
-import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardDto;
 import com.sudimango.MyStudyPal.entity.Flashcard;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.repository.FlashcardRepository;
@@ -34,14 +33,14 @@ public class FlashcardService {
     }
 
     @Transactional
-    public void createFlashcardsForSet(CreateFlashcardSetRequest request, FlashcardSet set) throws JsonProcessingException, JsonMappingException {
+    public void createFlashcardsForSet(FlashcardDto.CreateFlashcardSetRequest request, FlashcardSet set) throws JsonProcessingException, JsonMappingException {
         String studySetId = set.getStudySet().getStudySetId();
         
         String response = geminiClient.generateFlashcardsForStudySet(
             studySetId, 
-            request.getPrompt(), 
-            request.getNumFlashcards(), 
-            request.getAdditionalInstructions()
+            request.prompt(), 
+            request.numFlashcards(), 
+            request.additionalInstructions()
         );
         
         if (response == null || response.trim().equals("")) {
@@ -88,23 +87,23 @@ public class FlashcardService {
         flashcardRepository.deleteById(flashcardId);
     }
 
-    public void updateFlashcard(String flashcardId, UpdateFlashcardRequest request) throws JsonProcessingException, JsonMappingException {
+    public void updateFlashcard(String flashcardId, FlashcardDto.UpdateFlashcardRequest request) throws JsonProcessingException, JsonMappingException {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)
             .orElseThrow(() -> new RuntimeException("Flashcard not found: " + flashcardId));
 
-        if (request.getMode().equals("manual")) {
-            if (request.getQuestion() != null && !request.getQuestion().isBlank()) {
-                flashcard.setQuestion(request.getQuestion());
+        if (request.mode().equals("manual")) {
+            if (request.question() != null && !request.question().isBlank()) {
+                flashcard.setQuestion(request.question());
             }
     
-            if (request.getAnswer() != null && !request.getAnswer().isBlank()) {
-                flashcard.setAnswer(request.getAnswer());
+            if (request.answer() != null && !request.answer().isBlank()) {
+                flashcard.setAnswer(request.answer());
             }
     
-            if (request.getHint() != null && !request.getHint().isBlank()) {
-                flashcard.setHint(request.getHint());
+            if (request.hint() != null && !request.hint().isBlank()) {
+                flashcard.setHint(request.hint());
             }
-        } else if (request.getMode().equals("AI")) {
+        } else if (request.mode().equals("AI")) {
             StringBuilder currFlashcard = new StringBuilder();
             currFlashcard
                 .append("Question: ")
@@ -116,13 +115,13 @@ public class FlashcardService {
                 .append("Hint: ")
                 .append(flashcard.getHint())
                 .append("\n\n")
-                .append(request.getInstructions());
+                .append(request.instructions());
 
             String studySetId = flashcard.getFlashcardSet().getStudySet().getStudySetId();
-            String query = currFlashcard.toString() + "\n\n" + request.getInstructions();
+            String query = currFlashcard.toString() + "\n\n" + request.instructions();
 
             String context = geminiClient.getContextFromStudySet(studySetId, query);
-            String response = geminiClient.editFlashcard(context, currFlashcard.toString(), request.getInstructions());
+            String response = geminiClient.editFlashcard(context, currFlashcard.toString(), request.instructions());
 
             String cleaned = response
                 .replace("```json", "")

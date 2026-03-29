@@ -7,11 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sudimango.MyStudyPal.dto.request.quiz.quiz.CreateQuizRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.quiz.UpdateQuizRequest;
-import com.sudimango.MyStudyPal.dto.response.quiz.quiz.CreateQuizResponse;
-import com.sudimango.MyStudyPal.dto.response.quiz.quiz.QuizDetailsResponse;
-import com.sudimango.MyStudyPal.dto.response.quiz.quiz.QuizResponse;
+import com.sudimango.MyStudyPal.dto.QuizDto;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizService;
 
 import jakarta.validation.Valid;
@@ -40,8 +36,8 @@ public class QuizController {
      */
     @PostMapping("/{studySetId}")
     public ResponseEntity<?> createQuiz(@PathVariable String studySetId,
-                                        @Valid @RequestBody CreateQuizRequest request) throws JsonProcessingException {
-        CreateQuizResponse response = quizService.createQuiz(request, studySetId);
+                                        @Valid @RequestBody QuizDto.CreateQuizRequest request) throws JsonProcessingException {
+        QuizDto.CreateQuizResponse response = quizService.createQuiz(request, studySetId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -60,7 +56,7 @@ public class QuizController {
      */
     @GetMapping("/get-all/{studySetId}")
     public ResponseEntity<?> getQuizzes(@PathVariable String studySetId) {
-        List<QuizResponse> responses = quizService.getQuizzesForStudySet(studySetId);
+        List<QuizDto.QuizDetailsResponse> responses = quizService.getQuizzesForStudySet(studySetId);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
@@ -79,7 +75,7 @@ public class QuizController {
      */
     @GetMapping("/{quizId}")
     public ResponseEntity<?> getOneQuizDetails(@PathVariable String quizId) {
-        QuizDetailsResponse response = quizService.getOneQuizDetails(quizId);
+        QuizDto.QuizDetailsResponse response = quizService.getOneQuizDetails(quizId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -100,8 +96,8 @@ public class QuizController {
      */
     @PatchMapping("/{quizId}")
     public ResponseEntity<?> updateQuiz(@PathVariable String quizId, 
-                                        @Valid @RequestBody UpdateQuizRequest request) {
-        QuizResponse response = quizService.updateQuiz(quizId, request);
+                                        @Valid @RequestBody QuizDto.UpdateQuizRequest request) {
+        QuizDto.QuizDetailsResponse response = quizService.updateQuiz(quizId, request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

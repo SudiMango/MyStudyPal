@@ -15,11 +15,10 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
-import com.sudimango.MyStudyPal.dto.request.quiz.attempt.AnswerSubmission;
-import com.sudimango.MyStudyPal.dto.request.quiz.attempt.CreateQuizAttemptRequest;
-import com.sudimango.MyStudyPal.dto.response.quiz.attempt.CreateQuizAttemptResponse;
-import com.sudimango.MyStudyPal.dto.response.quiz.attempt.QuizAttemptDetails;
-import com.sudimango.MyStudyPal.dto.response.quiz.attempt.ShortAnswerGradingResponse;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.AnswerSubmission;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptResponse;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.ShortAnswerGradingResponse;
 import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizAttempt;
@@ -52,7 +51,7 @@ public class QuizAttemptService {
     }
 
     @Transactional
-    public CreateQuizAttemptResponse submitAttempt(String quizId, CreateQuizAttemptRequest request) throws JsonProcessingException, JsonMappingException {
+    public QuizAttemptDto.CreateQuizAttemptResponse submitAttempt(String quizId, QuizAttemptDto.CreateQuizAttemptRequest request) throws JsonProcessingException, JsonMappingException {
 
         // Find quiz to grade
         Quiz quiz = quizRepository.findById(quizId)
@@ -61,7 +60,7 @@ public class QuizAttemptService {
         // Create quiz attempt
         QuizAttempt attempt = QuizAttempt.builder()
                 .quiz(quiz)
-                .startedAt(Instant.now().minusSeconds(request.getTimeSpentSeconds()))
+                .startedAt(Instant.now().minusSeconds(request.timeSpentSeconds()))
                 .completedAt(Instant.now())
                 .score(0.0)
                 .maxScore(0.0)
@@ -74,22 +73,22 @@ public class QuizAttemptService {
 
         double totalEarned = 0.0;
         double totalPossible = 0.0;
-        Map<QuizQuestion, AnswerSubmission> qtoa = new HashMap<>(); 
+        Map<QuizQuestion, QuizAttemptDto.AnswerSubmission> qtoa = new HashMap<>(); 
 
         // Handle submitted answers
-        for (AnswerSubmission submission : request.getAnswers()) {
-            QuizQuestion question = questionMap.get(submission.getQuestionId());
+        for (QuizAttemptDto.AnswerSubmission submission : request.answers()) {
+            QuizQuestion question = questionMap.get(submission.questionId());
             if (question == null) continue;
 
             if (question.getQuestionType() == QuestionType.SHORT_ANSWER) {
                 qtoa.put(question, submission);
             } else {
-                double pointsToGive = getPointsForAnswer(question, submission.getUserAnswer());
+                double pointsToGive = getPointsForAnswer(question, submission.userAnswer());
 
                 QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder()
                         .quizAttempt(attempt)
                         .quizQuestion(question)
-                        .userAnswer(submission.getUserAnswer())
+                        .userAnswer(submission.userAnswer())
                         .isCorrect(pointsToGive > 0.0 ? true : false)
                         .pointsEarned(pointsToGive)
                         .build();
@@ -101,8 +100,8 @@ public class QuizAttemptService {
         }
 
         // Save unanswered questions as 0-point records
-        Set<String> submittedIds = request.getAnswers().stream()
-            .map(AnswerSubmission::getQuestionId)
+        Set<String> submittedIds = request.answers().stream()
+            .map(QuizAttemptDto.AnswerSubmission::questionId)
             .collect(Collectors.toSet());
 
         for (QuizQuestion question : quiz.getQuizQuestions()) {
@@ -128,11 +127,11 @@ public class QuizAttemptService {
         return new CreateQuizAttemptResponse(saved.getAttemptId());
     }
 
-    public QuizAttemptDetails getOneAttempt(String attemptId) {
+    public QuizAttemptDto.QuizAttemptDetailsResponse getOneAttempt(String attemptId) {
         QuizAttempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz attempt not found with id: " + attemptId));
 
-        return new QuizAttemptDetails(attempt);
+        return new QuizAttemptDto.QuizAttemptDetailsResponse(attempt);
     }
 
 
@@ -232,13 +231,13 @@ public class QuizAttemptService {
         List<String> correctAnswers = new ArrayList<>();
         List<String> userAnswers = new ArrayList<>();
         List<Double> maxPoints = new ArrayList<>();
-        for (Map.Entry<QuizQuestion, AnswerSubmission> entry : qtoa.entrySet()) {
+        for (Map.Entry<QuizQuestion, QuizAttemptDto.AnswerSubmission> entry : qtoa.entrySet()) {
             QuizQuestion key = entry.getKey();
-            AnswerSubmission value = entry.getValue();
+            QuizAttemptDto.AnswerSubmission value = entry.getValue();
 
             questions.add(key.getQuestionText());
             correctAnswers.add(key.getCorrectAnswers().get(0));
-            userAnswers.add(convertUserAnswerToList(value.getUserAnswer()).get(0));
+            userAnswers.add(convertUserAnswerToList(value.userAnswer()).get(0));
             maxPoints.add(key.getPoints());
             totalPossible += key.getPoints();
         }
@@ -268,13 +267,13 @@ public class QuizAttemptService {
             QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder()
                         .quizAttempt(attempt)
                         .quizQuestion(key)
-                        .userAnswer(value.getUserAnswer())
-                        .isCorrect(grades.get(gradeIndex).getScore() > 0.0 ? true : false)
-                        .pointsEarned(grades.get(gradeIndex).getScore())
+                        .userAnswer(value.userAnswer())
+                        .isCorrect(grades.get(gradeIndex).score() > 0.0 ? true : false)
+                        .pointsEarned(grades.get(gradeIndex).score())
                         .build();
 
             attempt.getQuizAttemptAnswers().add(answerRecord);
-            totalEarned += grades.get(gradeIndex).getScore();
+            totalEarned += grades.get(gradeIndex).score();
             gradeIndex++;
         }
 

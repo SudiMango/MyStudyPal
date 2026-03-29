@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.response.flashcard.CreateFlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.response.flashcard.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardDto;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardSetService;
 
@@ -50,10 +47,10 @@ public class FlashcardSetController {
      */
     @PostMapping("/create/{studySetId}")
     public ResponseEntity<?> createFlashcardSet(@PathVariable String studySetId,
-                                                @Valid @RequestBody CreateFlashcardSetRequest flashcardSetRequest,
+                                                @Valid @RequestBody FlashcardDto.CreateFlashcardSetRequest flashcardSetRequest,
                                                 @AuthenticationPrincipal User user) {
         try {
-            CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, studySetId, user);
+            FlashcardDto.CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, studySetId, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -75,7 +72,7 @@ public class FlashcardSetController {
     @GetMapping("/get-all/{studySetId}")
     public ResponseEntity<?> getFlashcardSets(@PathVariable String studySetId) {
         try {
-            List<FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSetsForStudySet(studySetId);
+            List<FlashcardDto.FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSetsForStudySet(studySetId);
             return ResponseEntity.status(HttpStatus.OK).body(flashcardSets);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -97,7 +94,7 @@ public class FlashcardSetController {
     @GetMapping("/{setId}")
     public ResponseEntity<?> getOneFlashcardSet(@PathVariable String setId) {
         try {
-            FlashcardSetResponse flashcardSet = flashcardSetService.getOneFlashcardSet(setId);
+            FlashcardDto.FlashcardSetResponse flashcardSet = flashcardSetService.getOneFlashcardSet(setId);
             return ResponseEntity.status(HttpStatus.OK).body(flashcardSet);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -116,7 +113,7 @@ public class FlashcardSetController {
      */
     @PatchMapping("/{setId}")
     public ResponseEntity<?> updateFlashcardSet(@PathVariable String setId, 
-                                                @Valid @RequestBody UpdateFlashcardSetRequest request) {
+                                                @Valid @RequestBody FlashcardDto.UpdateFlashcardSetRequest request) {
         try {
             flashcardSetService.updateFlashcardSet(setId, request);
             return ResponseEntity.status(HttpStatus.OK).body(null);

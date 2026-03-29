@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.sudimango.MyStudyPal.dto.request.quiz.attempt.CreateQuizAttemptRequest;
-import com.sudimango.MyStudyPal.dto.response.quiz.attempt.CreateQuizAttemptResponse;
-import com.sudimango.MyStudyPal.dto.response.quiz.attempt.QuizAttemptDetails;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizAttemptService;
 
 import jakarta.validation.Valid;
@@ -43,8 +41,8 @@ public class QuizAttemptController {
      */
     @PostMapping("/{quizId}")
     public ResponseEntity<?> submitAttempt(@PathVariable String quizId, 
-                                           @Valid @RequestBody CreateQuizAttemptRequest request) throws JsonProcessingException, JsonMappingException  {
-        CreateQuizAttemptResponse response = attemptService.submitAttempt(quizId, request);
+                                           @Valid @RequestBody QuizAttemptDto.CreateQuizAttemptRequest request) throws JsonProcessingException, JsonMappingException  {
+        QuizAttemptDto.CreateQuizAttemptResponse response = attemptService.submitAttempt(quizId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -62,7 +60,7 @@ public class QuizAttemptController {
      */
     @GetMapping("/{attemptId}")
     public ResponseEntity<?> getOneAttempt(@PathVariable String attemptId) {
-        QuizAttemptDetails response = attemptService.getOneAttempt(attemptId);
+        QuizAttemptDto.QuizAttemptDetailsResponse response = attemptService.getOneAttempt(attemptId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

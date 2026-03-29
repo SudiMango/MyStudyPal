@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sudimango.MyStudyPal.component.GeminiClient;
-import com.sudimango.MyStudyPal.dto.response.document.DocumentResponse;
+import com.sudimango.MyStudyPal.dto.DocumentDto;
 import com.sudimango.MyStudyPal.entity.Document;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
@@ -89,12 +89,12 @@ public class DocumentService {
         }
     }
 
-    public List<DocumentResponse> getAllDocumentsForStudySet(String studySetId) {
+    public List<DocumentDto.DocumentResponse> getAllDocumentsForStudySet(String studySetId) {
         List<Document> documents = documentRepository.findByStudySet_StudySetId(studySetId);
 
-        List<DocumentResponse> responses = new ArrayList<>();
+        List<DocumentDto.DocumentResponse> responses = new ArrayList<>();
         for (Document d : documents) {
-            responses.add(new DocumentResponse(d));
+            responses.add(new DocumentDto.DocumentResponse(d));
         }
 
         return responses;

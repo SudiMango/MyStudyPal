@@ -5,10 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.sudimango.MyStudyPal.dto.request.quiz.question.CreateQuizQuestionManuallyRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.CreateQuizQuestionWithAIRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.UpdateQuizQuestionManuallyRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.UpdateQuizQuestionWithAIRequest;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizQuestionService;
 
@@ -37,7 +34,7 @@ public class QuizQuestionController {
      * @see QuizQuestion QuizQuestion class for response body structure
      */
     @PostMapping("/manual/{quizId}")
-    public ResponseEntity<?> createQuizQuestionManually(@PathVariable String quizId, @Valid @RequestBody CreateQuizQuestionManuallyRequest request) {
+    public ResponseEntity<?> createQuizQuestionManually(@PathVariable String quizId, @Valid @RequestBody QuizQuestionDto.CreateQuizQuestionManuallyRequest request) {
         QuizQuestion response = questionService.createQuestionManually(quizId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -58,7 +55,7 @@ public class QuizQuestionController {
      * @see QuizQuestion QuizQuestion class for response body structure
      */
     @PostMapping("/ai/{quizId}")
-    public ResponseEntity<?> createQuizQuestionWithAI(@PathVariable String quizId, @Valid @RequestBody CreateQuizQuestionWithAIRequest request) {
+    public ResponseEntity<?> createQuizQuestionWithAI(@PathVariable String quizId, @Valid @RequestBody QuizQuestionDto.CreateQuizQuestionWithAIRequest request) {
         QuizQuestion response = questionService.createQuestionWithAI(quizId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -79,7 +76,7 @@ public class QuizQuestionController {
      * @see QuizQuestion QuizQuestion class for response body structure
      */
     @PatchMapping("/manual/{questionId}")
-    public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId, @Valid @RequestBody UpdateQuizQuestionManuallyRequest request) {
+    public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId, @Valid @RequestBody QuizQuestionDto.UpdateQuizQuestionManuallyRequest request) {
         QuizQuestion response = questionService.updateQuestionManually(questionId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -100,7 +97,7 @@ public class QuizQuestionController {
      * @see QuizQuestion QuizQuestion class for response body structure
      */
     @PatchMapping("/ai/{questionId}")
-    public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId, @Valid @RequestBody UpdateQuizQuestionWithAIRequest request) {
+    public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId, @Valid @RequestBody QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
         QuizQuestion response = questionService.updateQuestionWithAI(questionId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

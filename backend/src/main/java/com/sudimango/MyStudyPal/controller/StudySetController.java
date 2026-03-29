@@ -8,10 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import com.sudimango.MyStudyPal.dto.request.studyset.CreateStudySetRequest;
-import com.sudimango.MyStudyPal.dto.request.studyset.UpdateStudySetRequest;
-import com.sudimango.MyStudyPal.dto.response.studyset.CreateStudySetResponse;
-import com.sudimango.MyStudyPal.dto.response.studyset.StudySetResponse;
+import com.sudimango.MyStudyPal.dto.StudySetDto;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.service.study.StudySetService;
 
@@ -34,10 +31,10 @@ public class StudySetController {
      * {@code HTTP 500} - Internal server error
      */
     @PostMapping("/create")
-    public ResponseEntity<?> createStudySet(@Valid @RequestBody CreateStudySetRequest studySetRequest,
+    public ResponseEntity<?> createStudySet(@Valid @RequestBody StudySetDto.CreateStudySetRequest studySetRequest,
                                             @AuthenticationPrincipal User user) {
         try {
-            CreateStudySetResponse response = studySetService.createStudySet(studySetRequest, user);
+            StudySetDto.CreateStudySetResponse response = studySetService.createStudySet(studySetRequest, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -51,7 +48,7 @@ public class StudySetController {
     @GetMapping("/get-all")
     public ResponseEntity<?> getStudySets(@AuthenticationPrincipal User user) {
         try {
-            List<StudySetResponse> studySets = studySetService.getStudySets(user.getUserId());
+            List<StudySetDto.StudySetResponse> studySets = studySetService.getStudySets(user.getUserId());
             return ResponseEntity.status(HttpStatus.OK).body(studySets);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -65,7 +62,7 @@ public class StudySetController {
     @GetMapping("/{studySetId}")
     public ResponseEntity<?> getOneStudySet(@PathVariable String studySetId) {
         try {
-            StudySetResponse studySet = studySetService.getOneStudySet(studySetId);
+            StudySetDto.StudySetResponse studySet = studySetService.getOneStudySet(studySetId);
             return ResponseEntity.status(HttpStatus.OK).body(studySet);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -78,7 +75,7 @@ public class StudySetController {
      */
     @PatchMapping("/{studySetId}")
     public ResponseEntity<?> updateStudySet(@PathVariable String studySetId, 
-                                            @Valid @RequestBody UpdateStudySetRequest request) {
+                                            @Valid @RequestBody StudySetDto.UpdateStudySetRequest request) {
         try {
             studySetService.updateStudySet(studySetId, request);
             return ResponseEntity.status(HttpStatus.OK).body(null);

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardDto;
 import com.sudimango.MyStudyPal.entity.Flashcard;
 import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardService;
 
@@ -68,7 +68,7 @@ public class FlashcardController {
 
     @PatchMapping("/{flashcardId}")
     public ResponseEntity<?> updateFlashcard(@PathVariable String flashcardId, 
-                                            @Valid @RequestBody UpdateFlashcardRequest request) {
+                                            @Valid @RequestBody FlashcardDto.UpdateFlashcardRequest request) {
         try {
             flashcardService.updateFlashcard(flashcardId, request);
             return ResponseEntity.status(HttpStatus.OK).body(null);

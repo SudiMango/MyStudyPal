@@ -10,11 +10,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.CreateQuizQuestionManuallyRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.CreateQuizQuestionWithAIRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.UpdateQuizQuestionManuallyRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.question.UpdateQuizQuestionWithAIRequest;
-import com.sudimango.MyStudyPal.dto.request.quiz.quiz.CreateQuizRequest;
+import com.sudimango.MyStudyPal.dto.QuizDto;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
@@ -43,18 +40,18 @@ public class QuizQuestionService {
         this.mapper = new ObjectMapper();
     }
 
-    public QuizQuestion createQuestionManually(String quizId, CreateQuizQuestionManuallyRequest request) {
+    public QuizQuestion createQuestionManually(String quizId, QuizQuestionDto.CreateQuizQuestionManuallyRequest request) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
         QuizQuestion question = QuizQuestion.builder()
-                .questionType(request.getQuestionType())
-                .questionText(request.getQuestionText())
-                .options(request.getOptions())
-                .correctAnswers(request.getCorrectAnswers())
-                .hint(request.getHint())
-                .points(request.getPoints())
-                .orderIndex(request.getOrderIndex())
+                .questionType(request.questionType())
+                .questionText(request.questionText())
+                .options(request.options())
+                .correctAnswers(request.correctAnswers())
+                .hint(request.hint())
+                .points(request.points())
+                .orderIndex(request.orderIndex())
                 .quiz(quiz)
                 .build();
         
@@ -62,41 +59,41 @@ public class QuizQuestionService {
     }
 
     // TODO: Finish
-    public QuizQuestion createQuestionWithAI(String quizId, CreateQuizQuestionWithAIRequest request) {
+    public QuizQuestion createQuestionWithAI(String quizId, QuizQuestionDto.CreateQuizQuestionWithAIRequest request) {
         return null;
     }
 
-    public QuizQuestion updateQuestionManually(String questionId, UpdateQuizQuestionManuallyRequest request) {
+    public QuizQuestion updateQuestionManually(String questionId, QuizQuestionDto.UpdateQuizQuestionManuallyRequest request) {
         QuizQuestion question = quizQuestionRepository.findById(questionId)
             .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + questionId));
 
-        if (Utils.hasText(request.getQuestionText())) question.setQuestionText(request.getQuestionText());
-        if (request.getQuestionType() != null) question.setQuestionType(request.getQuestionType());
-        if (request.getOptions() != null) question.setOptions(request.getOptions());
-        if (request.getCorrectAnswers() != null) question.setCorrectAnswers(request.getCorrectAnswers());
-        if (Utils.hasText(request.getHint())) question.setHint(request.getHint());
-        if (request.getPoints() != null) question.setPoints(request.getPoints());
-        if (request.getOrderIndex() != null) question.setOrderIndex(request.getOrderIndex());
+        if (Utils.hasText(request.questionText())) question.setQuestionText(request.questionText());
+        if (request.questionType() != null) question.setQuestionType(request.questionType());
+        if (request.options() != null) question.setOptions(request.options());
+        if (request.correctAnswers() != null) question.setCorrectAnswers(request.correctAnswers());
+        if (Utils.hasText(request.hint())) question.setHint(request.hint());
+        if (request.points() != null) question.setPoints(request.points());
+        if (request.orderIndex() != null) question.setOrderIndex(request.orderIndex());
 
         quizQuestionRepository.save(question);
         return question;
     }
 
     // TODO: Finish
-    public QuizQuestion updateQuestionWithAI(String questionId, UpdateQuizQuestionWithAIRequest request) {
+    public QuizQuestion updateQuestionWithAI(String questionId, QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
         return null;
     }
 
     @Transactional
-    public void createQuestionsForQuiz(CreateQuizRequest request, Quiz quiz) throws JsonProcessingException {
+    public void createQuestionsForQuiz(QuizDto.CreateQuizRequest request, Quiz quiz) throws JsonProcessingException {
 
         // Get json of questions from AI
         String studySetId = quiz.getStudySet().getStudySetId();
         String response = geminiClient.generateQuizQuestionsForStudySet(
             studySetId, 
-            request.getPrompt(),
-            request.getTimeLimitMinutes(),
-            request.getAdditionalInstructions()
+            request.prompt(),
+            request.timeLimitMinutes(),
+            request.additionalInstructions()
         );
         
         if (response == null || response.trim().isEmpty()) {

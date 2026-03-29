@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.response.flashcard.CreateFlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.response.flashcard.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardDto;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.CreateFlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.UpdateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
@@ -33,15 +33,15 @@ public class FlashcardSetService {
     private StudySetRepository studySetRepository;
 
     @Transactional
-    public CreateFlashcardSetResponse createFlashcardSet(CreateFlashcardSetRequest request, String studySetId, User user)
+    public FlashcardDto.CreateFlashcardSetResponse createFlashcardSet(FlashcardDto.CreateFlashcardSetRequest request, String studySetId, User user)
             throws JsonProcessingException, JsonMappingException {
 
         StudySet studySet = studySetRepository.findById(studySetId)
             .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));
 
         FlashcardSet set = FlashcardSet.builder()
-                .name(request.getName())
-                .icon((request.getIcon() != null && !request.getIcon().isEmpty()) ? request.getIcon() : "📖")
+                .name(request.name())
+                .icon((request.icon() != null && !request.icon().isEmpty()) ? request.icon() : "📖")
                 .studySet(studySet)
                 .user(user)
                 .build();
@@ -77,12 +77,12 @@ public class FlashcardSetService {
                 .findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
 
-        if (request.getName() != null && !request.getName().isBlank()) {
-            flashcardSet.setName(request.getName());
+        if (request.name() != null && !request.name().isBlank()) {
+            flashcardSet.setName(request.name());
         }
 
-        if (request.getIcon() != null && !request.getIcon().isBlank()) {
-            flashcardSet.setIcon(request.getIcon());
+        if (request.icon() != null && !request.icon().isBlank()) {
+            flashcardSet.setIcon(request.icon());
         }
 
         flashcardSetRepository.save(flashcardSet);

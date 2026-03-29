@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import com.sudimango.MyStudyPal.dto.request.auth.VerifyAccountRequest;
+import com.sudimango.MyStudyPal.dto.AuthDto;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.entity.VerificationCode;
 import com.sudimango.MyStudyPal.exception.InvalidVerificationCodeException;
@@ -49,19 +49,19 @@ public class VerificationCodeService {
         }
     }
 
-    public VerificationCode getVerificationCode(VerifyAccountRequest verifyAccountRequest) {
-        Optional<VerificationCode> savedVerificationCode = verificationCodeRepository.findByCodeAndUser_Username(verifyAccountRequest.getVerificationCode(), verifyAccountRequest.getUsername());
+    public VerificationCode getVerificationCode(AuthDto.VerifyAccountRequest verifyAccountRequest) {
+        Optional<VerificationCode> savedVerificationCode = verificationCodeRepository.findByCodeAndUser_Username(verifyAccountRequest.verificationCode(), verifyAccountRequest.username());
         if (savedVerificationCode.isEmpty()) {
             throw new InvalidVerificationCodeException("Invalid verification code.");
         }
         return savedVerificationCode.get();
     }
 
-    public boolean isCodeValid(VerifyAccountRequest verifyAccountRequest, VerificationCode verificationCode) {
-        System.out.println(verifyAccountRequest.getUsername().equals(verificationCode.getUser().getUsername()));
-        System.out.println(verifyAccountRequest.getVerificationCode().equals(verificationCode.getCode()));
-        return verifyAccountRequest.getUsername().equals(verificationCode.getUser().getUsername()) &&
-                 verifyAccountRequest.getVerificationCode().equals(verificationCode.getCode()) && 
+    public boolean isCodeValid(AuthDto.VerifyAccountRequest verifyAccountRequest, VerificationCode verificationCode) {
+        System.out.println(verifyAccountRequest.username().equals(verificationCode.getUser().getUsername()));
+        System.out.println(verifyAccountRequest.verificationCode().equals(verificationCode.getCode()));
+        return verifyAccountRequest.username().equals(verificationCode.getUser().getUsername()) &&
+                 verifyAccountRequest.verificationCode().equals(verificationCode.getCode()) && 
                  Instant.now().isBefore(verificationCode.getExpiryDate());
     }
 

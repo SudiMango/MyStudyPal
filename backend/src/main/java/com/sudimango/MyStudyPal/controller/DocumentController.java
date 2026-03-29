@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sudimango.MyStudyPal.dto.response.document.DocumentResponse;
+import com.sudimango.MyStudyPal.dto.DocumentDto;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.service.other.DocumentService;
 
@@ -69,7 +69,7 @@ public class DocumentController {
     @GetMapping("/get-all/{studySetId}")
     public ResponseEntity<?> getAllDocumentsForStudySet(@PathVariable String studySetId) {
         try {
-            List<DocumentResponse> documents = documentProcessor.getAllDocumentsForStudySet(studySetId);
+            List<DocumentDto.DocumentResponse> documents = documentProcessor.getAllDocumentsForStudySet(studySetId);
             return ResponseEntity.ok(documents);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

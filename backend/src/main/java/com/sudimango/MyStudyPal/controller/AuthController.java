@@ -10,11 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.request.auth.LoginRequest;
-import com.sudimango.MyStudyPal.dto.request.auth.ResendVerificationEmailRequest;
-import com.sudimango.MyStudyPal.dto.request.auth.SignUpRequest;
-import com.sudimango.MyStudyPal.dto.request.auth.VerifyAccountRequest;
-import com.sudimango.MyStudyPal.dto.response.auth.LoginResponse;
+import com.sudimango.MyStudyPal.dto.AuthDto;
 import com.sudimango.MyStudyPal.service.auth.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +36,7 @@ public class AuthController {
      * {@code HTTP 400} - Validation errors with request body {errors: []}
      */
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody AuthDto.SignupRequest signUpRequest) {
         try {
             authService.signUp(signUpRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(null);
@@ -63,9 +59,9 @@ public class AuthController {
      * {@code HTTP 400} - Validation errors with request body {errors: []}
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthDto.LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-            LoginResponse loginResponse = authService.login(loginRequest, request, response);
+            AuthDto.LoginResponse loginResponse = authService.login(loginRequest, request, response);
             return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
@@ -100,7 +96,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
         try {
-            LoginResponse accessToken = authService.refreshAccessToken(request, response);
+            AuthDto.LoginResponse accessToken = authService.refreshAccessToken(request, response);
             return ResponseEntity.status(HttpStatus.CREATED).body(accessToken);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
@@ -119,7 +115,7 @@ public class AuthController {
      * {@code HTTP 400} - Validation errors with request body {errors: []}
      */
     @PostMapping("/verify-account")
-    public ResponseEntity<?> verify(@Valid @RequestBody VerifyAccountRequest verifyAccountRequest) {
+    public ResponseEntity<?> verify(@Valid @RequestBody AuthDto.VerifyAccountRequest verifyAccountRequest) {
         try {
             authService.verifyAccountWithCode(verifyAccountRequest);
             return ResponseEntity.status(HttpStatus.OK).body(null);
@@ -140,7 +136,7 @@ public class AuthController {
      * {@code HTTP 400} - Validation errors with request body {errors: []}
      */
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest resendVerificationEmailRequest) {
+    public ResponseEntity<?> resendVerificationEmail(@Valid @RequestBody AuthDto.ResendVerificationEmailRequest resendVerificationEmailRequest) {
         try {
             authService.resendVerificationEmail(resendVerificationEmailRequest);
             return ResponseEntity.status(HttpStatus.OK).body(null);

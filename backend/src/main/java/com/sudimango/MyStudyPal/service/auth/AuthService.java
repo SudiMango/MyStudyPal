@@ -11,11 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.sudimango.MyStudyPal.dto.request.auth.LoginRequest;
-import com.sudimango.MyStudyPal.dto.request.auth.ResendVerificationEmailRequest;
-import com.sudimango.MyStudyPal.dto.request.auth.SignUpRequest;
-import com.sudimango.MyStudyPal.dto.request.auth.VerifyAccountRequest;
-import com.sudimango.MyStudyPal.dto.response.auth.LoginResponse;
+import com.sudimango.MyStudyPal.dto.AuthDto;
+import com.sudimango.MyStudyPal.dto.AuthDto.LoginResponse;
+import com.sudimango.MyStudyPal.dto.AuthDto.ResendVerificationEmailRequest;
 import com.sudimango.MyStudyPal.entity.AuthProvider;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.entity.VerificationCode;
@@ -55,14 +53,14 @@ public class AuthService {
     @Autowired
     private VerificationCodeService verificationCodeService;
 
-    public void signUp(SignUpRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+    public void signUp(AuthDto.SignupRequest signUpRequest) {
+        if (userRepository.existsByUsername(signUpRequest.username())) {
             throw new IllegalStateException("User with this email already exists.");
         }
 
         User user = User.builder()
-                        .username(signUpRequest.getUsername())
-                        .password(encoder.encode(signUpRequest.getPassword()))
+                        .username(signUpRequest.username())
+                        .password(encoder.encode(signUpRequest.password()))
                         .authProvider(AuthProvider.EMAILPASSWORD)
                         .isEnabled(false)
                         .build();
@@ -71,13 +69,13 @@ public class AuthService {
         verificationCodeService.sendVerificationEmail(user);
     }
 
-    public LoginResponse login(LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    public AuthDto.LoginResponse login(AuthDto.LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password()));
 
         if (authentication.isAuthenticated()) {
-            String accessToken = jwtService.generateAccessToken(loginRequest.getUsername());
-            String refreshToken = jwtService.generateRefreshToken(loginRequest.getUsername());
-            User savedUser = userRepository.findByUsername(loginRequest.getUsername()).get();
+            String accessToken = jwtService.generateAccessToken(loginRequest.username());
+            String refreshToken = jwtService.generateRefreshToken(loginRequest.username());
+            User savedUser = userRepository.findByUsername(loginRequest.username()).get();
 
             if (savedUser.getAuthProvider() != AuthProvider.EMAILPASSWORD) {
                 throw new WrongAuthProviderException("This email is already signed up with another auth provider.");
@@ -90,7 +88,7 @@ public class AuthService {
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
             refreshTokenService.saveRefreshTokenForUser(savedUser, refreshToken);
 
-            return new LoginResponse(accessToken, savedUser.getUsername());
+            return new AuthDto.LoginResponse(accessToken, savedUser.getUsername());
         } else {
             throw new InvalidCredentialsException("Invalid credentials.");
         }
@@ -100,7 +98,7 @@ public class AuthService {
         refreshTokenService.deleteRefreshToken(request, response);
     }
 
-    public LoginResponse refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+    public AuthDto.LoginResponse refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         // Refresh token not found in cookies
         Cookie[] cookies = request.getCookies();
         if (cookies == null) throw new InvalidRefreshTokenException("Cookies not found.");
@@ -134,8 +132,8 @@ public class AuthService {
         throw new InvalidRefreshTokenException("Invalid refresh token.");
     }
 
-    public void verifyAccountWithCode(VerifyAccountRequest verifyAccountRequest) {
-        Optional<User> savedUser = userRepository.findByUsername(verifyAccountRequest.getUsername());
+    public void verifyAccountWithCode(AuthDto.VerifyAccountRequest verifyAccountRequest) {
+        Optional<User> savedUser = userRepository.findByUsername(verifyAccountRequest.username());
         if (savedUser.isEmpty()) {
             throw new InvalidCredentialsException("Invalid email.");
         }
@@ -156,7 +154,7 @@ public class AuthService {
     }
 
     public void resendVerificationEmail(ResendVerificationEmailRequest resendVerificationEmailRequest) {
-        Optional<User> savedUser = userRepository.findByUsername(resendVerificationEmailRequest.getUsername());
+        Optional<User> savedUser = userRepository.findByUsername(resendVerificationEmailRequest.username());
         if (savedUser.isEmpty()) {
             throw new InvalidCredentialsException("Invalid email.");
         }
