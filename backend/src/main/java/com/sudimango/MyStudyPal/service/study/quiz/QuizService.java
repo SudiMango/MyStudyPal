@@ -29,16 +29,12 @@ public class QuizService {
     private StudySetRepository studySetRepository;
 
     @Transactional
-    public QuizDto.CreateQuizResponse createQuiz(QuizDto.CreateQuizRequest request, String studySetId)
-            throws JsonProcessingException {
+    public QuizDto.CreateQuizResponse createQuiz(QuizDto.CreateQuizRequest request, String studySetId) {
 
         StudySet studySet = studySetRepository.findById(studySetId)
-            .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id: " + studySetId));
+                .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id: " + studySetId));
 
-        Quiz quiz = Quiz.builder()
-                .name(request.name())
-                .timeLimitMinutes(request.timeLimitMinutes())
-                .studySet(studySet)
+        Quiz quiz = Quiz.builder().name(request.name()).timeLimitMinutes(request.timeLimitMinutes()).studySet(studySet)
                 .build();
         quizRepository.save(quiz);
 
@@ -48,6 +44,9 @@ public class QuizService {
     }
 
     public List<QuizDto.QuizDetailsResponse> getQuizzesForStudySet(String studySetId) {
+        studySetRepository.findById(studySetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id: " + studySetId));
+
         List<Quiz> quizzes = quizRepository.findAllByStudySet_StudySetId(studySetId);
 
         List<QuizDto.QuizDetailsResponse> responses = new ArrayList<>();
@@ -78,6 +77,8 @@ public class QuizService {
     }
 
     public void deleteQuiz(String quizId) {
+        quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
         quizRepository.deleteById(quizId);
     }
 }

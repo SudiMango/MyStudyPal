@@ -6,13 +6,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.CreateQuizQuestionManuallyRequest;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.CreateQuizQuestionWithAIRequest;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionManuallyRequest;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionWithAIRequest;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizQuestionService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/quiz-question")
+@RequestMapping("/quiz-question")
 public class QuizQuestionController {
 
     @Autowired
@@ -21,96 +26,120 @@ public class QuizQuestionController {
     /**
      * Create a new quiz question for a quiz manually
      * 
-     * @apiNote {@code POST /api/quiz-question/manual/{quizId}}
+     * @apiNote {@code POST /quiz-question/manual/{quizId}}
      * 
      * @param quizId - id of quiz
-     * @param request - request body
-     * 
-     * @return
-     * {@code HTTP 201 QuizQuestion} - Quiz question created successfully
-     * {@code HTTP 422} - Validation errors with request body
+     * @param createQuizQuestionManuallyRequest - request body
      * 
      * @see CreateQuizQuestionManuallyRequest CreateQuizQuestionManuallyRequest class for request body structure
-     * @see QuizQuestion QuizQuestion class for response body structure
+     * @see QuizQuestionResponse QuizQuestionResponse class for response body structure
+     * 
+     * @return
+     * {@code QuizQuestionResponse HTTP 201} - Quiz question created successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - Quiz not found
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/manual/{quizId}")
-    public ResponseEntity<?> createQuizQuestionManually(@PathVariable String quizId, @Valid @RequestBody QuizQuestionDto.CreateQuizQuestionManuallyRequest request) {
-        QuizQuestion response = questionService.createQuestionManually(quizId, request);
+    public ResponseEntity<QuizQuestionResponse> createQuizQuestionManually(@PathVariable String quizId,
+            @Valid @RequestBody QuizQuestionDto.CreateQuizQuestionManuallyRequest createQuizQuestionManuallyRequest) {
+        QuizQuestionResponse response = questionService.createQuestionManually(quizId,
+                createQuizQuestionManuallyRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Create a new quiz question for a quiz with AI
      * 
-     * @apiNote {@code POST /api/quiz-question/ai/{quizId}}
+     * @apiNote {@code POST /quiz-question/ai/{quizId}}
      * 
      * @param quizId - id of quiz
-     * @param request - request body
-     * 
-     * @return
-     * {@code HTTP 201 QuizQuestion} - Quiz question created successfully
-     * {@code HTTP 422} - Validation errors with request body
+     * @param createQuizQuestionWithAIRequest - request body
      * 
      * @see CreateQuizQuestionWithAIRequest CreateQuizQuestionWithAIRequest class for request body structure
-     * @see QuizQuestion QuizQuestion class for response body structure
+     * @see QuizQuestionResponse QuizQuestionResponse class for response body structure
+     * 
+     * @return
+     * {@code QuizQuestionResponse HTTP 201} - Quiz question created successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - Quiz not found
+     * {@code HTTP 422} - Validation errors with request body
+     * {@code HTTP 503} - Error with AI
      */
     @PostMapping("/ai/{quizId}")
-    public ResponseEntity<?> createQuizQuestionWithAI(@PathVariable String quizId, @Valid @RequestBody QuizQuestionDto.CreateQuizQuestionWithAIRequest request) {
-        QuizQuestion response = questionService.createQuestionWithAI(quizId, request);
+    public ResponseEntity<QuizQuestionResponse> createQuizQuestionWithAI(@PathVariable String quizId,
+            @Valid @RequestBody QuizQuestionDto.CreateQuizQuestionWithAIRequest createQuizQuestionWithAIRequest) {
+        QuizQuestionResponse response = questionService.createQuestionWithAI(quizId, createQuizQuestionWithAIRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Update a quiz question for a quiz manually
      * 
-     * @apiNote {@code PATCH /api/quiz-question/manual/{questionId}}
+     * @apiNote {@code PATCH /quiz-question/manual/{questionId}}
      * 
      * @param questionId - id of question
-     * @param request - request body
-     * 
-     * @return
-     * {@code HTTP 200 QuizQuestion} - Quiz question updated successfully
-     * {@code HTTP 422} - Validation errors with request body
+     * @param updateQuizQuestionManuallyRequest - request body
      * 
      * @see UpdateQuizQuestionManuallyRequest UpdateQuizQuestionManuallyRequest class for request body structure
-     * @see QuizQuestion QuizQuestion class for response body structure
+     * @see QuizQuestionResponse QuizQuestionResponse class for response body structure
+     * 
+     * @return
+     * {@code QuizQuestionResponse HTTP 200} - Quiz question updated successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - Question not found
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PatchMapping("/manual/{questionId}")
-    public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId, @Valid @RequestBody QuizQuestionDto.UpdateQuizQuestionManuallyRequest request) {
-        QuizQuestion response = questionService.updateQuestionManually(questionId, request);
+    public ResponseEntity<QuizQuestionResponse> updateQuizQuestionWithAI(@PathVariable String questionId,
+            @Valid @RequestBody QuizQuestionDto.UpdateQuizQuestionManuallyRequest updateQuizQuestionManuallyRequest) {
+        QuizQuestionResponse response = questionService.updateQuestionManually(questionId,
+                updateQuizQuestionManuallyRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Update a quiz question for a quiz with AI
      * 
-     * @apiNote {@code PATCH /api/quiz-question/ai/{questionId}}
+     * @apiNote {@code PATCH /quiz-question/ai/{questionId}}
      * 
      * @param questionId - id of question
-     * @param request - request body
+     * @param updateQuizQuestionWithAIRequest - request body
+     * 
+     * @see UpdateQuizQuestionWithAIRequest UpdateQuizQuestionWithAIRequest class for request body structure
+     * @see QuizQuestionResponse QuizQuestionResponse class for response body structure
      * 
      * @return
-     * {@code HTTP 200 QuizQuestion} - Quiz question updated successfully
-     * {@code HTTP 422} - Validation errors with request body
+     * {@code QuizQuestionResponse HTTP 200} - Quiz question updated successfully
      * 
-     * @see UpdateQuizQuestionWithAIRequest CreateQuizQuestionManuallyRequest class for request body structure
-     * @see QuizQuestion QuizQuestion class for response body structure
+     * @throws
+     * {@code HTTP 404} - Question not found
+     * {@code HTTP 422} - Validation errors with request body
+     * {@code HTTP 503} - Error with AI
      */
     @PatchMapping("/ai/{questionId}")
-    public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId, @Valid @RequestBody QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
-        QuizQuestion response = questionService.updateQuestionWithAI(questionId, request);
+    public ResponseEntity<QuizQuestionResponse> updateQuizQuestionWithAI(@PathVariable String questionId,
+            @Valid @RequestBody QuizQuestionDto.UpdateQuizQuestionWithAIRequest updateQuizQuestionWithAIRequest) {
+        QuizQuestionResponse response = questionService.updateQuestionWithAI(questionId,
+                updateQuizQuestionWithAIRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Delete a quiz question from a quiz
      * 
-     * @apiNote {@code DELETE /api/quiz-question/{questionId}}
+     * @apiNote {@code DEL /quiz-question/{questionId}}
      * 
      * @param questionId - id of question
      * 
      * @return
      * {@code HTTP 200} - Quiz question deleted successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - Question not found
      */
     @DeleteMapping("/{questionId}")
     public ResponseEntity<?> updateQuizQuestionWithAI(@PathVariable String questionId) {

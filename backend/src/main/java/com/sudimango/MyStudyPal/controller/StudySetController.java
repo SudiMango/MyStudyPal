@@ -15,7 +15,7 @@ import com.sudimango.MyStudyPal.service.study.StudySetService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/study-set")
+@RequestMapping("/study-set")
 public class StudySetController {
 
     @Autowired
@@ -23,78 +23,107 @@ public class StudySetController {
 
     /**
      * Create a new study set for the logged in user
-     * @apiNote {@code POST /api/study-set/create}
+     * 
+     * @apiNote {@code POST /study-set}
+     * 
      * @param studySetRequest - request body
+     * @param user - Current logged in user
+     * 
+     * @see StudySetDto.CreateStudySetRequest CreateStudySetRequest for request body structure
+     * @see StudySetDto.CreateStudySetResponse CreateStudySetResponse for response body structure
+     * 
      * @return
-     * {@code HTTP 201} - Study set created successfully {CreateStudySetResponse}
-     * {@code HTTP 400} - Validation errors
-     * {@code HTTP 500} - Internal server error
+     * {@code CreateStudySetResponse HTTP 201} - Study set created successfully
+     * 
+     * @throws
+     * {@code HTTP 422} - Validation errors with request body
      */
-    @PostMapping("/create")
-    public ResponseEntity<?> createStudySet(@Valid @RequestBody StudySetDto.CreateStudySetRequest studySetRequest,
-                                            @AuthenticationPrincipal User user) {
-        try {
-            StudySetDto.CreateStudySetResponse response = studySetService.createStudySet(studySetRequest, user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @PostMapping("/")
+    public ResponseEntity<StudySetDto.CreateStudySetResponse> createStudySet(
+            @Valid @RequestBody StudySetDto.CreateStudySetRequest studySetRequest, @AuthenticationPrincipal User user) {
+        StudySetDto.CreateStudySetResponse response = studySetService.createStudySet(studySetRequest, user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Get all study sets for the logged in user
-     * * @apiNote {@code GET /api/study-set/get-all}
+     * 
+     * @apiNote {@code GET /study-set}
+     * 
+     * @param user - Current logged in user
+     * 
+     * @see StudySetDto.StudySetResponse StudySetResponse for response body structure
+     * 
+     * @return
+     * {@code List<StudySetResponse> HTTP 200} - Study sets retrieved successfully
      */
-    @GetMapping("/get-all")
-    public ResponseEntity<?> getStudySets(@AuthenticationPrincipal User user) {
-        try {
-            List<StudySetDto.StudySetResponse> studySets = studySetService.getStudySets(user.getUserId());
-            return ResponseEntity.status(HttpStatus.OK).body(studySets);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @GetMapping("/")
+    public ResponseEntity<List<StudySetDto.StudySetResponse>> getStudySets(@AuthenticationPrincipal User user) {
+        List<StudySetDto.StudySetResponse> studySets = studySetService.getStudySets(user.getUserId());
+        return ResponseEntity.status(HttpStatus.OK).body(studySets);
     }
 
     /**
-     * Get a specific study set by ID
-     * * @apiNote {@code GET /api/study-set/{studySetId}}
+     * Gets a particular study set
+     * 
+     * @apiNote {@code GET /study-set/{studySetId}}
+     * 
+     * @param studySetId - id of study set
+     * 
+     * @see StudySetDto.StudySetResponse StudySetResponse for response body structure
+     * 
+     * @return
+     * {@code StudySetResponse HTTP 200} - Study set retrieved successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - study set not found
      */
     @GetMapping("/{studySetId}")
     public ResponseEntity<?> getOneStudySet(@PathVariable String studySetId) {
-        try {
-            StudySetDto.StudySetResponse studySet = studySetService.getOneStudySet(studySetId);
-            return ResponseEntity.status(HttpStatus.OK).body(studySet);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        StudySetDto.StudySetResponse studySet = studySetService.getOneStudySet(studySetId);
+        return ResponseEntity.status(HttpStatus.OK).body(studySet);
     }
 
     /**
-     * Update study set details (e.g., title, description)
-     * * @apiNote {@code PATCH /api/study-set/{studySetId}}
-     */
+    * Update study set details 
+    * 
+    * @apiNote {@code PATCH /study-set/{studySetId}}
+    * 
+    * @param studySetId - id of study set
+    * @param request - request body
+    * 
+    * @see StudySetDto.UpdateStudySetRequest UpdateStudySetRequest for request body structure
+    * @see StudySetDto.StudySetResponse StudySetResponse for response body structure
+    * 
+    * @return
+    * {@code StudySetResponse HTTP 200} - Study set updated successfully
+    * 
+    * @throws
+    * {@code HTTP 404} - study set not found
+    */
     @PatchMapping("/{studySetId}")
-    public ResponseEntity<?> updateStudySet(@PathVariable String studySetId, 
-                                            @Valid @RequestBody StudySetDto.UpdateStudySetRequest request) {
-        try {
-            studySetService.updateStudySet(studySetId, request);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<StudySetDto.StudySetResponse> updateStudySet(@PathVariable String studySetId,
+            @Valid @RequestBody StudySetDto.UpdateStudySetRequest request) {
+        StudySetDto.StudySetResponse studySet = studySetService.updateStudySet(studySetId, request);
+        return ResponseEntity.status(HttpStatus.OK).body(studySet);
     }
 
     /**
-     * Delete a study set and potentially its nested flashcard sets
-     * * @apiNote {@code DELETE /api/study-set/{studySetId}}
-     */
+    * Delete a study set
+    * 
+    * @apiNote {@code DEL /study-set/{studySetId}}
+    * 
+    * @param studySetId - id of study set
+    * 
+    * @return
+    * {@code HTTP 200} - Study set deleted successfully
+    * 
+    * @throws
+    * {@code HTTP 404} - study set not found
+    */
     @DeleteMapping("/{studySetId}")
     public ResponseEntity<?> deleteStudySet(@PathVariable String studySetId) {
-        try {
-            studySetService.deleteStudySet(studySetId);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        studySetService.deleteStudySet(studySetId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 }

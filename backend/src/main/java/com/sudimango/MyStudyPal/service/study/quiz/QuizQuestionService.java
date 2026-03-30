@@ -1,5 +1,6 @@
 package com.sudimango.MyStudyPal.service.study.quiz;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,8 +13,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.QuizDto;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
+import com.sudimango.MyStudyPal.exception.AiJsonException;
 import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
 import com.sudimango.MyStudyPal.repository.QuizQuestionRepository;
@@ -40,86 +43,91 @@ public class QuizQuestionService {
         this.mapper = new ObjectMapper();
     }
 
-    public QuizQuestion createQuestionManually(String quizId, QuizQuestionDto.CreateQuizQuestionManuallyRequest request) {
+    public QuizQuestionResponse createQuestionManually(String quizId,
+            QuizQuestionDto.CreateQuizQuestionManuallyRequest request) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
-        QuizQuestion question = QuizQuestion.builder()
-                .questionType(request.questionType())
-                .questionText(request.questionText())
-                .options(request.options())
-                .correctAnswers(request.correctAnswers())
-                .hint(request.hint())
-                .points(request.points())
-                .orderIndex(request.orderIndex())
-                .quiz(quiz)
-                .build();
-        
-        return question;
+        QuizQuestion question = QuizQuestion.builder().questionType(request.questionType())
+                .questionText(request.questionText()).options(request.options())
+                .correctAnswers(request.correctAnswers()).hint(request.hint()).points(request.points())
+                .orderIndex(request.orderIndex()).quiz(quiz).build();
+
+        return new QuizQuestionResponse(question);
     }
 
     // TODO: Finish
-    public QuizQuestion createQuestionWithAI(String quizId, QuizQuestionDto.CreateQuizQuestionWithAIRequest request) {
+    public QuizQuestionResponse createQuestionWithAI(String quizId,
+            QuizQuestionDto.CreateQuizQuestionWithAIRequest request) {
         return null;
     }
 
-    public QuizQuestion updateQuestionManually(String questionId, QuizQuestionDto.UpdateQuizQuestionManuallyRequest request) {
+    public QuizQuestionResponse updateQuestionManually(String questionId,
+            QuizQuestionDto.UpdateQuizQuestionManuallyRequest request) {
         QuizQuestion question = quizQuestionRepository.findById(questionId)
-            .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + questionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + questionId));
 
-        if (Utils.hasText(request.questionText())) question.setQuestionText(request.questionText());
-        if (request.questionType() != null) question.setQuestionType(request.questionType());
-        if (request.options() != null) question.setOptions(request.options());
-        if (request.correctAnswers() != null) question.setCorrectAnswers(request.correctAnswers());
-        if (Utils.hasText(request.hint())) question.setHint(request.hint());
-        if (request.points() != null) question.setPoints(request.points());
-        if (request.orderIndex() != null) question.setOrderIndex(request.orderIndex());
+        if (Utils.hasText(request.questionText()))
+            question.setQuestionText(request.questionText());
+        if (request.questionType() != null)
+            question.setQuestionType(request.questionType());
+        if (request.options() != null)
+            question.setOptions(request.options());
+        if (request.correctAnswers() != null)
+            question.setCorrectAnswers(request.correctAnswers());
+        if (Utils.hasText(request.hint()))
+            question.setHint(request.hint());
+        if (request.points() != null)
+            question.setPoints(request.points());
+        if (request.orderIndex() != null)
+            question.setOrderIndex(request.orderIndex());
 
         quizQuestionRepository.save(question);
-        return question;
+        return new QuizQuestionResponse(question);
     }
 
     // TODO: Finish
-    public QuizQuestion updateQuestionWithAI(String questionId, QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
+    public QuizQuestionResponse updateQuestionWithAI(String questionId,
+            QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
         return null;
     }
 
     @Transactional
-    public void createQuestionsForQuiz(QuizDto.CreateQuizRequest request, Quiz quiz) throws JsonProcessingException {
+    public void createQuestionsForQuiz(QuizDto.CreateQuizRequest request, Quiz quiz) {
 
         // Get json of questions from AI
         String studySetId = quiz.getStudySet().getStudySetId();
-        String response = geminiClient.generateQuizQuestionsForStudySet(
-            studySetId, 
-            request.prompt(),
-            request.timeLimitMinutes(),
-            request.additionalInstructions()
-        );
-        
+        String response = geminiClient.generateQuizQuestionsForStudySet(studySetId, request.prompt(),
+                request.timeLimitMinutes(), request.additionalInstructions());
+
         if (response == null || response.trim().isEmpty()) {
             throw new EmptyAiResponseException("AI response for creating questions for the quiz was empty.");
         }
-        
+
         // Map questions to a list
-        String cleaned = response
-            .replace("```json", "")
-            .replace("```", "")
-            .trim();
-        
-        List<QuizQuestion> questions = mapper.readValue(cleaned,
-            new TypeReference<List<QuizQuestion>>() {});
-        
+        String cleaned = response.replace("```json", "").replace("```", "").trim();
+
+        List<QuizQuestion> questions = new ArrayList<>();
+        try {
+            questions = mapper.readValue(cleaned, new TypeReference<List<QuizQuestion>>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new AiJsonException("AI didn't return proper json format.");
+        }
+
         // Set relationships and order indices
         AtomicInteger index = new AtomicInteger(0);
         for (QuizQuestion q : questions) {
             q.setQuiz(quiz);
             q.setOrderIndex(index.getAndIncrement());
         }
-        
+
         quizQuestionRepository.saveAll(questions);
     }
 
     public void deleteQuestion(String questionId) {
+        quizQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + questionId));
         quizQuestionRepository.deleteById(questionId);
     }
 }

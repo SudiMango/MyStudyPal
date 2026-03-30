@@ -6,6 +6,7 @@ import com.sudimango.MyStudyPal.entity.StudySet;
 
 import jakarta.validation.constraints.NotBlank;
 
+// @formatter:off
 public class StudySetDto {
     /**
      * Request

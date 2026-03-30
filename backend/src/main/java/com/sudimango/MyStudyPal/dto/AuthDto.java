@@ -2,6 +2,7 @@ package com.sudimango.MyStudyPal.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
+// @formatter:off
 public class AuthDto {
     /**
      * Request

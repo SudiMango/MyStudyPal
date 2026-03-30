@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.sudimango.MyStudyPal.entity.Document;
 
+// @formatter:off
 public class DocumentDto {
 
     /**

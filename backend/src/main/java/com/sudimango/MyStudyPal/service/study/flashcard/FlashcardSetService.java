@@ -15,6 +15,7 @@ import com.sudimango.MyStudyPal.dto.FlashcardDto.UpdateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
+import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
 import com.sudimango.MyStudyPal.repository.FlashcardSetRepository;
 import com.sudimango.MyStudyPal.repository.StudySetRepository;
 
@@ -34,7 +35,7 @@ public class FlashcardSetService {
 
     @Transactional
     public FlashcardDto.CreateFlashcardSetResponse createFlashcardSet(FlashcardDto.CreateFlashcardSetRequest request,
-            String studySetId) throws JsonProcessingException, JsonMappingException {
+            String studySetId) {
 
         StudySet studySet = studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));
@@ -68,7 +69,7 @@ public class FlashcardSetService {
         return new FlashcardSetResponse(flashcardSet);
     }
 
-    public void updateFlashcardSet(String setId, UpdateFlashcardSetRequest request) {
+    public FlashcardSetResponse updateFlashcardSet(String setId, UpdateFlashcardSetRequest request) {
         FlashcardSet flashcardSet = flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
 
@@ -80,10 +81,14 @@ public class FlashcardSetService {
             flashcardSet.setIcon(request.icon());
         }
 
-        flashcardSetRepository.save(flashcardSet);
+        FlashcardSet saved = flashcardSetRepository.save(flashcardSet);
+        return new FlashcardSetResponse(saved);
     }
 
     public void deleteFlashcardSet(String setId) {
+        if (!flashcardSetRepository.existsById(setId)) {
+            throw new ResourceNotFoundException("FlashcardSet with given id not found: " + setId);
+        }
         flashcardSetRepository.deleteById(setId);
     }
 

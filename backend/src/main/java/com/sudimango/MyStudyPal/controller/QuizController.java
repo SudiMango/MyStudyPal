@@ -8,12 +8,16 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sudimango.MyStudyPal.dto.QuizDto;
+import com.sudimango.MyStudyPal.dto.QuizDto.CreateQuizRequest;
+import com.sudimango.MyStudyPal.dto.QuizDto.CreateQuizResponse;
+import com.sudimango.MyStudyPal.dto.QuizDto.QuizDetailsResponse;
+import com.sudimango.MyStudyPal.dto.QuizDto.UpdateQuizRequest;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/quiz")
+@RequestMapping("/quiz")
 public class QuizController {
 
     @Autowired
@@ -22,40 +26,45 @@ public class QuizController {
     /**
      * Create a new quiz for a study set
      * 
-     * @apiNote {@code POST /api/quiz/{studySetId}}
+     * @apiNote {@code POST /quiz/{studySetId}}
      * 
      * @param studySetId - id of study set
-     * @param request - request body
-     * 
-     * @return
-     * {@code HTTP 201 CreateQuizResponse} - Quiz created successfully
-     * {@code HTTP 422} - Validation errors with request body
+     * @param createQuizRequest - request body
      * 
      * @see CreateQuizRequest CreateQuizRequest class for request body structure
      * @see CreateQuizResponse CreateQuizResponse class for response body structure
+     * 
+     * @return
+     * {@code CreateQuizResponse HTTP 201} - Quiz created successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - Study set not found
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/{studySetId}")
-    public ResponseEntity<?> createQuiz(@PathVariable String studySetId,
-                                        @Valid @RequestBody QuizDto.CreateQuizRequest request) throws JsonProcessingException {
-        QuizDto.CreateQuizResponse response = quizService.createQuiz(request, studySetId);
+    public ResponseEntity<QuizDto.CreateQuizResponse> createQuiz(@PathVariable String studySetId,
+            @Valid @RequestBody QuizDto.CreateQuizRequest createQuizRequest) {
+        QuizDto.CreateQuizResponse response = quizService.createQuiz(createQuizRequest, studySetId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Get all quizzes for a study set
      * 
-     * @apiNote {@code GET /api/quiz/get-all/{studySetId}}
+     * @apiNote {@code GET /quiz/study-set/{studySetId}}
      * 
      * @param studySetId - id of study set
      * 
-     * @return
-     * {@code HTTP 200 List<QuizResponse>} - list of quizzes
-     * {@code HTTP 422} - Validation errors with request body
+     * @see QuizDto.QuizDetailsResponse QuizDetailsResponse class for response body structure
      * 
-     * @see QuizResponse QuizResponse class for response body structure
+     * @return
+     * {@code List<QuizDto.QuizDetailsResponse> HTTP 200} - list of quizzes
+     * 
+     * @throws
+     * {@code HTTP 404} - Study set not found
      */
-    @GetMapping("/get-all/{studySetId}")
-    public ResponseEntity<?> getQuizzes(@PathVariable String studySetId) {
+    @GetMapping("/study-set/{studySetId}")
+    public ResponseEntity<List<QuizDto.QuizDetailsResponse>> getQuizzes(@PathVariable String studySetId) {
         List<QuizDto.QuizDetailsResponse> responses = quizService.getQuizzesForStudySet(studySetId);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
@@ -63,15 +72,17 @@ public class QuizController {
     /**
      * Get the details of one quiz
      * 
-     * @apiNote {@code GET /api/quiz/{quizId}}
+     * @apiNote {@code GET /quiz/{quizId}}
      * 
      * @param quizId - id of quiz
      * 
-     * @return
-     * {@code HTTP 200 QuizDetailsResponse} - quiz details
-     * {@code HTTP 422} - Validation errors with request body
-     * 
      * @see QuizDetailsResponse QuizDetailsResponse class for response body structure
+     * 
+     * @return
+     * {@code QuizDetailsResponse HTTP 200} - quiz details
+     * 
+     * @throws
+     * {@code HTTP 404} - quiz not found
      */
     @GetMapping("/{quizId}")
     public ResponseEntity<?> getOneQuizDetails(@PathVariable String quizId) {
@@ -82,38 +93,44 @@ public class QuizController {
     /**
      * Edit a quiz
      * 
-     * @apiNote {@code PATCH /api/quiz/{quizId}}
+     * @apiNote {@code PATCH /quiz/{quizId}}
      * 
      * @param quizId - id of quiz
-     * @param request - request body
-     * 
-     * @return
-     * {@code HTTP 200 QuizResponse} - quiz details
-     * {@code HTTP 422} - Validation errors with request body
+     * @param updateQuizRequest - request body
      * 
      * @see UpdateQuizRequest UpdateQuizRequest class for request body structure
-     * @see QuizResponse QuizResponse class for response body structure
+     * @see QuizDetailsResponse QuizDetailsResponse class for response body structure
+     * 
+     * @return
+     * {@code QuizDetailsResponse HTTP 200} - quiz details
+     * 
+     * @throws
+     * {@code HTTP 404} - quiz not found
+     * {@code HTTP 422} - Validation errors with request body
      */
     @PatchMapping("/{quizId}")
-    public ResponseEntity<?> updateQuiz(@PathVariable String quizId, 
-                                        @Valid @RequestBody QuizDto.UpdateQuizRequest request) {
-        QuizDto.QuizDetailsResponse response = quizService.updateQuiz(quizId, request);
+    public ResponseEntity<QuizDto.QuizDetailsResponse> updateQuiz(@PathVariable String quizId,
+            @Valid @RequestBody QuizDto.UpdateQuizRequest updateQuizRequest) {
+        QuizDto.QuizDetailsResponse response = quizService.updateQuiz(quizId, updateQuizRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     /**
      * Delete a quiz
      * 
-     * @apiNote {@code DELETE /api/quiz/{quizId}}
+     * @apiNote {@code DELETE /quiz/{quizId}}
      * 
      * @param quizId - id of quiz
      * 
      * @return
-     * {@code HTTP 204} - Quiz deleted successfully
+     * {@code HTTP 200} - Quiz deleted successfully
+     * 
+     * @throws
+     * {@code HTTP 404} - quiz not found
      */
     @DeleteMapping("/{quizId}")
     public ResponseEntity<?> deleteQuiz(@PathVariable String quizId) {
         quizService.deleteQuiz(quizId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 }

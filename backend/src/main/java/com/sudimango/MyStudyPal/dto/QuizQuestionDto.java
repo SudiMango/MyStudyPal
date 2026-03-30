@@ -3,11 +3,13 @@ package com.sudimango.MyStudyPal.dto;
 import java.util.List;
 
 import com.sudimango.MyStudyPal.entity.QuestionType;
+import com.sudimango.MyStudyPal.entity.QuizQuestion;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+// @formatter:off
 public class QuizQuestionDto {
 
     /**
@@ -46,4 +48,30 @@ public class QuizQuestionDto {
         @NotNull Integer orderIndex,
         @NotBlank String prompt
     ) {}
+
+    /**
+     * Response
+     */
+
+    public record QuizQuestionResponse(
+        QuestionType questionType,
+        String questionText,
+        List<String> options,
+        List<String> correctAnswers,
+        String hint,
+        double points,
+        int orderIndex
+    ) {
+        public QuizQuestionResponse(QuizQuestion question) {
+            this(
+                question.getQuestionType(),
+                question.getQuestionText(),
+                question.getOptions(),
+                question.getCorrectAnswers(),
+                question.getHint(),
+                question.getPoints(),
+                question.getOrderIndex()
+            );
+        }
+    }
 }

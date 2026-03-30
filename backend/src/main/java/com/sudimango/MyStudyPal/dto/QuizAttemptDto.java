@@ -10,6 +10,7 @@ import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+// @formatter:off
 public class QuizAttemptDto {
 
     public record AnswerSubmission(

@@ -8,6 +8,7 @@ import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+// @formatter:off
 public class FlashcardDto {
     /**
      * Request
@@ -41,6 +42,28 @@ public class FlashcardDto {
     public record CreateFlashcardSetResponse(
         String flashcardSetId
     ) {}
+
+    public record FlashcardResponse(
+        String flashcardId,
+        String question,
+        String answer,
+        String hint,
+        boolean isReviewed,
+        boolean isStarred,
+        Instant createdAt
+    ) {
+        public FlashcardResponse(Flashcard flashcard) {
+            this(
+                flashcard.getFlashcardId(),
+                flashcard.getQuestion(),
+                flashcard.getAnswer(),
+                flashcard.getHint(),
+                flashcard.isReviewed(),
+                flashcard.isStarred(),
+                flashcard.getCreatedAt()
+            );
+        }
+    }
 
     public record FlashcardSetResponse(
         String flashcardSetId,

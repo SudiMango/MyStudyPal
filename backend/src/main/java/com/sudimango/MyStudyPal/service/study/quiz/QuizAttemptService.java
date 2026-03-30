@@ -18,12 +18,15 @@ import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.AnswerSubmission;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptResponse;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.QuizAttemptDetailsResponse;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.ShortAnswerGradingResponse;
 import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizAttempt;
 import com.sudimango.MyStudyPal.entity.QuizAttemptAnswer;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
+import com.sudimango.MyStudyPal.exception.AiJsonException;
+import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
 import com.sudimango.MyStudyPal.repository.QuizAttemptRepository;
 import com.sudimango.MyStudyPal.repository.QuizRepository;
@@ -51,21 +54,17 @@ public class QuizAttemptService {
     }
 
     @Transactional
-    public QuizAttemptDto.CreateQuizAttemptResponse submitAttempt(String quizId, QuizAttemptDto.CreateQuizAttemptRequest request) throws JsonProcessingException, JsonMappingException {
+    public QuizAttemptDto.CreateQuizAttemptResponse submitAttempt(String quizId,
+            QuizAttemptDto.CreateQuizAttemptRequest request) {
 
         // Find quiz to grade
         Quiz quiz = quizRepository.findById(quizId)
-            .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
         // Create quiz attempt
-        QuizAttempt attempt = QuizAttempt.builder()
-                .quiz(quiz)
-                .startedAt(Instant.now().minusSeconds(request.timeSpentSeconds()))
-                .completedAt(Instant.now())
-                .score(0.0)
-                .maxScore(0.0)
-                .quizAttemptAnswers(new ArrayList<>())
-                .build();
+        QuizAttempt attempt = QuizAttempt.builder().quiz(quiz)
+                .startedAt(Instant.now().minusSeconds(request.timeSpentSeconds())).completedAt(Instant.now()).score(0.0)
+                .maxScore(0.0).quizAttemptAnswers(new ArrayList<>()).build();
 
         // Get all valid questions
         Map<String, QuizQuestion> questionMap = quiz.getQuizQuestions().stream()
@@ -73,26 +72,23 @@ public class QuizAttemptService {
 
         double totalEarned = 0.0;
         double totalPossible = 0.0;
-        Map<QuizQuestion, QuizAttemptDto.AnswerSubmission> qtoa = new HashMap<>(); 
+        Map<QuizQuestion, QuizAttemptDto.AnswerSubmission> qtoa = new HashMap<>();
 
         // Handle submitted answers
         for (QuizAttemptDto.AnswerSubmission submission : request.answers()) {
             QuizQuestion question = questionMap.get(submission.questionId());
-            if (question == null) continue;
+            if (question == null)
+                continue;
 
             if (question.getQuestionType() == QuestionType.SHORT_ANSWER) {
                 qtoa.put(question, submission);
             } else {
                 double pointsToGive = getPointsForAnswer(question, submission.userAnswer());
 
-                QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder()
-                        .quizAttempt(attempt)
-                        .quizQuestion(question)
-                        .userAnswer(submission.userAnswer())
-                        .isCorrect(pointsToGive > 0.0 ? true : false)
-                        .pointsEarned(pointsToGive)
-                        .build();
-                
+                QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt).quizQuestion(question)
+                        .userAnswer(submission.userAnswer()).isCorrect(pointsToGive > 0.0 ? true : false)
+                        .pointsEarned(pointsToGive).build();
+
                 attempt.getQuizAttemptAnswers().add(answerRecord);
                 totalEarned += pointsToGive;
                 totalPossible += question.getPoints();
@@ -100,20 +96,15 @@ public class QuizAttemptService {
         }
 
         // Save unanswered questions as 0-point records
-        Set<String> submittedIds = request.answers().stream()
-            .map(QuizAttemptDto.AnswerSubmission::questionId)
-            .collect(Collectors.toSet());
+        Set<String> submittedIds = request.answers().stream().map(QuizAttemptDto.AnswerSubmission::questionId)
+                .collect(Collectors.toSet());
 
         for (QuizQuestion question : quiz.getQuizQuestions()) {
-            if (submittedIds.contains(question.getQuestionId())) continue;
+            if (submittedIds.contains(question.getQuestionId()))
+                continue;
 
-            QuizAttemptAnswer unanswered = QuizAttemptAnswer.builder()
-                    .quizAttempt(attempt)
-                    .quizQuestion(question)
-                    .userAnswer(List.of())
-                    .isCorrect(false)
-                    .pointsEarned(0.0)
-                    .build();
+            QuizAttemptAnswer unanswered = QuizAttemptAnswer.builder().quizAttempt(attempt).quizQuestion(question)
+                    .userAnswer(List.of()).isCorrect(false).pointsEarned(0.0).build();
 
             attempt.getQuizAttemptAnswers().add(unanswered);
             totalPossible += question.getPoints();
@@ -127,6 +118,19 @@ public class QuizAttemptService {
         return new CreateQuizAttemptResponse(saved.getAttemptId());
     }
 
+    public List<QuizAttemptDetailsResponse> getAllByQuizId(String quizId) {
+        quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+
+        List<QuizAttempt> attempts = attemptRepository.findByQuiz_QuizIdOrderByCompletedAtDesc(quizId);
+        List<QuizAttemptDetailsResponse> responses = new ArrayList<>();
+        for (QuizAttempt a : attempts) {
+            responses.add(new QuizAttemptDetailsResponse(a));
+        }
+
+        return responses;
+    }
+
     public QuizAttemptDto.QuizAttemptDetailsResponse getOneAttempt(String attemptId) {
         QuizAttempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz attempt not found with id: " + attemptId));
@@ -134,13 +138,11 @@ public class QuizAttemptService {
         return new QuizAttemptDto.QuizAttemptDetailsResponse(attempt);
     }
 
-
     /**
      * 
      * Private functions
      * 
      */
-
 
     private double getPointsForAnswer(QuizQuestion question, Object userAnswer) {
         if (userAnswer == null) {
@@ -223,7 +225,8 @@ public class QuizAttemptService {
         return 0.0;
     }
 
-    private AbstractMap.SimpleEntry<Double, Double> gradeShortAnswerQuestions(Map<QuizQuestion, AnswerSubmission> qtoa, QuizAttempt attempt) throws JsonProcessingException, JsonMappingException {
+    private AbstractMap.SimpleEntry<Double, Double> gradeShortAnswerQuestions(Map<QuizQuestion, AnswerSubmission> qtoa,
+            QuizAttempt attempt) {
         double totalEarned = 0.0;
         double totalPossible = 0.0;
 
@@ -245,32 +248,30 @@ public class QuizAttemptService {
         // Handle AI response for grading short answers
         String response = geminiClient.markShortAnswerQuestions(questions, correctAnswers, userAnswers, maxPoints);
         if (response == null || response.trim().equals("")) {
-            throw new RuntimeException("AI response was null.");
+            throw new EmptyAiResponseException(
+                    "AI response for grading short answer questions for the quiz was empty.");
         }
 
         System.out.println(response);
-        
-        String cleaned = response
-            .replace("```json", "")
-            .replace("```", "")
-            .trim();
 
-        List<ShortAnswerGradingResponse> grades = mapper.readValue(cleaned,
-            new TypeReference<List<ShortAnswerGradingResponse>>() {
-        });
+        String cleaned = response.replace("```json", "").replace("```", "").trim();
+
+        List<ShortAnswerGradingResponse> grades = new ArrayList<>();
+        try {
+            grades = mapper.readValue(cleaned, new TypeReference<List<ShortAnswerGradingResponse>>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new AiJsonException("AI didn't return proper json format.");
+        }
 
         int gradeIndex = 0;
         for (Map.Entry<QuizQuestion, AnswerSubmission> entry : qtoa.entrySet()) {
             QuizQuestion key = entry.getKey();
             AnswerSubmission value = entry.getValue();
 
-            QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder()
-                        .quizAttempt(attempt)
-                        .quizQuestion(key)
-                        .userAnswer(value.userAnswer())
-                        .isCorrect(grades.get(gradeIndex).score() > 0.0 ? true : false)
-                        .pointsEarned(grades.get(gradeIndex).score())
-                        .build();
+            QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt).quizQuestion(key)
+                    .userAnswer(value.userAnswer()).isCorrect(grades.get(gradeIndex).score() > 0.0 ? true : false)
+                    .pointsEarned(grades.get(gradeIndex).score()).build();
 
             attempt.getQuizAttemptAnswers().add(answerRecord);
             totalEarned += grades.get(gradeIndex).score();

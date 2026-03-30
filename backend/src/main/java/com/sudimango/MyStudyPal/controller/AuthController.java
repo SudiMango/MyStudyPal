@@ -29,9 +29,10 @@ public class AuthController {
     /**
      * Sign up a new user to the system
      * 
-     * Endpoint: {@code POST /auth/signup}
+     * @apiNote {@code POST /auth/signup}
      * 
      * @param signUpRequest - request body
+     * 
      * @see AuthDto.SignupRequest SignupRequest for request body structure
      * 
      * @return
@@ -49,11 +50,12 @@ public class AuthController {
     /**
      * Log in existing user to the system
      * 
-     * Endpoint: {@code POST /auth/login}
+     * @apiNote {@code POST /auth/login}
      * 
      * @param loginRequest - request body
      * @param request - HttpRequest
      * @param response - HttpResponse
+     * 
      * @see AuthDto.LoginRequest LoginRequest for request body structure
      * @see AuthDto.LoginResponse LoginResponse for response body structure
      * 
@@ -66,8 +68,8 @@ public class AuthController {
      * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthDto.LoginRequest loginRequest, HttpServletRequest request,
-            HttpServletResponse response) {
+    public ResponseEntity<AuthDto.LoginResponse> login(@Valid @RequestBody AuthDto.LoginRequest loginRequest,
+            HttpServletRequest request, HttpServletResponse response) {
         AuthDto.LoginResponse loginResponse = authService.login(loginRequest, request, response);
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
@@ -75,7 +77,7 @@ public class AuthController {
     /**
      * Logs user out of the current device
      * 
-     * Endpoint: {@code POST /auth/logout}
+     * @apiNote {@code POST /auth/logout}
      * 
      * @param request - HttpRequest
      * @param response - HttpResponse
@@ -92,20 +94,20 @@ public class AuthController {
     /**
      * Refresh access token for user
      * 
-     * Endpoint: {@code POST /auth/refresh}
+     * @apiNote {@code POST /auth/refresh}
      * 
      * @param request - HttpRequest
      * @param response - HttpResponse
      * 
      * @return
-     * {@code HTTP 200} - Account verified successfully
+     * {@code LoginResponse HTTP 200} - Account verified successfully
      * 
      * @throws
      * {@code HTTP 401} - Invalid credentials
      * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<AuthDto.LoginResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
         AuthDto.LoginResponse accessToken = authService.refreshAccessToken(request, response);
         return ResponseEntity.status(HttpStatus.CREATED).body(accessToken);
     }
@@ -116,6 +118,7 @@ public class AuthController {
      * Endpoint: {@code POST /auth/verify-account}
      * 
      * @param verifyAccountRequest - request body
+     * 
      * @see AuthDto.VerifyAccountRequest VerifyAccountRequest for request body structure
      * 
      * @return
@@ -137,6 +140,7 @@ public class AuthController {
      * Endpoint: {@code POST /auth/resend-verification}
      * 
      * @param resendVerificationEmailRequest - request body
+     * 
      * @see AuthDto.ResendVerificationEmailRequest ResendVerificationEmailRequest for request body structure
      * 
      * @return
