@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sudimango.MyStudyPal.dto.FlashcardDto;
-import com.sudimango.MyStudyPal.dto.FlashcardDto.FlashcardSetResponse;
 import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardSetService;
 
 import jakarta.validation.Valid;

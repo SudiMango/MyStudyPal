@@ -6,15 +6,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.sudimango.MyStudyPal.dto.FlashcardDto;
 import com.sudimango.MyStudyPal.dto.FlashcardDto.CreateFlashcardSetResponse;
 import com.sudimango.MyStudyPal.dto.FlashcardDto.FlashcardSetResponse;
 import com.sudimango.MyStudyPal.dto.FlashcardDto.UpdateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.entity.StudySet;
-import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
 import com.sudimango.MyStudyPal.repository.FlashcardSetRepository;
 import com.sudimango.MyStudyPal.repository.StudySetRepository;

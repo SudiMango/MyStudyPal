@@ -11,7 +11,6 @@ import com.sudimango.MyStudyPal.dto.QuizQuestionDto.CreateQuizQuestionWithAIRequ
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionManuallyRequest;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionWithAIRequest;
-import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizQuestionService;
 
 import jakarta.validation.Valid;
