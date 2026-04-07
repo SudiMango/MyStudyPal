@@ -1,133 +1,60 @@
-import apiClient from "./client";
-
-/**
- *
- * DTOs
- *
- */
-
-export type QuestionType =
-    | "MULTIPLE_CHOICE"
-    | "MULTIPLE_ANSWER"
-    | "SHORT_ANSWER"
-    | "TRUE_FALSE";
-
-// Post
-export interface CreateQuizQuestionManuallyRequest {
-    questionType: QuestionType;
-    questionText: string;
-    options: string[];
-    correctAnswers: string[];
-    hint?: string;
-    points: number;
-    orderIndex: number;
-}
-
-export interface CreateQuizQuestionWithAIRequest {
-    questionType: QuestionType;
-    prompt: string;
-    additionalInstructions?: string;
-    orderIndex: number;
-}
-
-// Get
-export interface QuizQuestion {
-    questionId: string;
-    questionType: QuestionType;
-    questionText: string;
-    options: string[];
-    correctAnswers: string[];
-    hint: string;
-    points: number;
-    orderIndex: number;
-}
-
-// Update
-export interface UpdateQuizQuestionManuallyRequest {
-    questionType?: QuestionType;
-    questionText?: string;
-    options?: string[];
-    correctAnswers?: string[];
-    hint?: string;
-    points?: number;
-    orderIndex?: number;
-}
-
-export interface UpdateQuizQuestionWithAIRequest {
-    questionType?: QuestionType;
-    prompt: string;
-    orderIndex?: number;
-}
-
-/**
- *
- * API calls
- *
- */
-
-/**
- * POST
- */
+import {
+    CreateQuizQuestionManuallyRequest,
+    CreateQuizQuestionWithAIRequest,
+    QuizQuestionResponse,
+    TakeQuizResponse,
+    UpdateQuizQuestionManuallyRequest,
+    UpdateQuizQuestionWithAIRequest,
+} from "../dto/quiz-question-dto";
+import { ApiResponse } from "../types/api";
+import { getErrorMessage } from "../util";
+import apiClient from "../client";
 
 // Generate new quiz question manually
 export const createQuizQuestionManually = async (
-    studySetId: string,
+    quizId: string,
     payload: CreateQuizQuestionManuallyRequest,
-): Promise<{ success: boolean; data?: QuizQuestion; error?: string }> => {
+): Promise<ApiResponse<QuizQuestionResponse>> => {
     try {
         const response = await apiClient.post(
-            `/quiz-question/create/manual/${studySetId}`,
+            `/quiz-question/manual/${quizId}`,
             payload,
         );
 
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };
 
 // Generate new quiz question with AI
 export const createQuizQuestionWithAI = async (
-    studySetId: string,
+    quizId: string,
     payload: CreateQuizQuestionWithAIRequest,
-): Promise<{ success: boolean; data?: QuizQuestion; error?: string }> => {
+): Promise<ApiResponse<QuizQuestionResponse>> => {
     try {
         const response = await apiClient.post(
-            `/quiz-question/create/ai/${studySetId}`,
+            `/quiz-question/ai/${quizId}`,
             payload,
         );
 
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };
-
-/**
- * PATCH
- */
 
 // Update a quiz question manually
 export const updateQuizQuestionManually = async (
     questionId: string,
     payload: UpdateQuizQuestionManuallyRequest,
-): Promise<{ success: boolean; data?: QuizQuestion; error?: string }> => {
+): Promise<ApiResponse<QuizQuestionResponse>> => {
     try {
         const response = await apiClient.patch(
             `/quiz-question/manual/${questionId}`,
@@ -135,14 +62,9 @@ export const updateQuizQuestionManually = async (
         );
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };
@@ -151,7 +73,7 @@ export const updateQuizQuestionManually = async (
 export const updateQuizQuestionWithAI = async (
     questionId: string,
     payload: UpdateQuizQuestionWithAIRequest,
-): Promise<{ success: boolean; data?: QuizQuestion; error?: string }> => {
+): Promise<ApiResponse<QuizQuestionResponse>> => {
     try {
         const response = await apiClient.patch(
             `/quiz-question/ai/${questionId}`,
@@ -159,38 +81,39 @@ export const updateQuizQuestionWithAI = async (
         );
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };
 
-/**
- * DELETE
- */
+// Get quiz questions for quiz
+export const getQuizQuestionsForQuiz = async (
+    quizId: string,
+): Promise<ApiResponse<TakeQuizResponse>> => {
+    try {
+        const response = await apiClient.get(`/quiz-question/${quizId}`);
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        return {
+            success: false,
+            error: getErrorMessage(error),
+        };
+    }
+};
 
 // Delete a quiz question
 export const deleteQuizQuestion = async (
     questionId: string,
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<ApiResponse> => {
     try {
         await apiClient.delete(`/quiz-question/${questionId}`);
         return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };

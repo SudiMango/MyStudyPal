@@ -1,65 +1,22 @@
-import apiClient from "./client";
-
-/**
- *
- * DTOs
- *
- */
-
-// Create
-
-export interface CreateStudySetRequest {
-    name: string;
-    icon?: string;
-    description?: string;
-}
-
-export interface CreateStudySetResponse {
-    studySetId: string;
-}
-
-// Get
-
-export interface StudySet {
-    createdAt: string;
-    description: string;
-    icon: string;
-    name: string;
-    studySetId: string;
-    totalDocuments: number;
-    totalFlashcardSets: number;
-    totalQuizzes: number;
-    updatedAt: string;
-}
-
-// Update
-
-export interface UpdateStudySetRequest {
-    name?: string;
-    description?: string;
-    icon?: string;
-}
-
-/**
- *
- * API calls
- *
- */
+import {
+    CreateStudySetRequest,
+    CreateStudySetResponse,
+    StudySetResponse,
+    UpdateStudySetRequest,
+} from "../dto/study-set-dto";
+import { ApiResponse } from "../types/api";
+import { getErrorMessage } from "../util";
+import apiClient from "../client";
 
 // Generate new study set
 export const createStudySet = async (
     payload: CreateStudySetRequest,
-): Promise<{ data?: CreateStudySetResponse; error?: string }> => {
+): Promise<ApiResponse<CreateStudySetResponse>> => {
     try {
-        const response = await apiClient.post(`/study-set/create`, payload);
-        return { data: response.data };
+        const response = await apiClient.post(`/study-set`, payload);
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Study set generation failed";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
@@ -67,71 +24,47 @@ export const createStudySet = async (
 export const updateStudySet = async (
     studySetId: string,
     payload: UpdateStudySetRequest,
-): Promise<{ error?: string }> => {
+): Promise<ApiResponse> => {
     try {
         await apiClient.patch(`/study-set/${studySetId}`, payload);
-        return {};
+        return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to update study set";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Get all study sets
-export const getAllStudySets = async (): Promise<{
-    data?: StudySet[];
-    error?: string;
-}> => {
+export const getAllStudySets = async (): Promise<
+    ApiResponse<StudySetResponse[]>
+> => {
     try {
-        const response = await apiClient.get(`/study-set/get-all`);
-        return { data: response.data };
+        const response = await apiClient.get(`/study-set`);
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to fetch study sets";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Get all study sets
 export const getOneStudySet = async (
     studySetId: string,
-): Promise<{
-    data?: StudySet;
-    error?: string;
-}> => {
+): Promise<ApiResponse<StudySetResponse>> => {
     try {
         const response = await apiClient.get(`/study-set/${studySetId}`);
-        return { data: response.data };
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to fetch study set";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Delete a study set
 export const deleteStudySet = async (
     studySetId: string,
-): Promise<{ error?: string }> => {
+): Promise<ApiResponse> => {
     try {
         await apiClient.delete(`/study-set/${studySetId}`);
-        return {};
+        return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to delete study set";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };

@@ -19,14 +19,16 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 const apiClient = axios.create({
-    baseURL: "/api",
+    baseURL: "http://localhost:8080",
     withCredentials: true,
 });
 
 apiClient.interceptors.request.use(
     (config) => {
         const token = TokenStore.get();
-        if (token) {
+        const isRefreshRequest = config.url === "/auth/refresh";
+
+        if (token && !isRefreshRequest) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -86,6 +88,9 @@ apiClient.interceptors.response.use(
             } catch (refreshError: any) {
                 processQueue(refreshError, null);
                 TokenStore.set(null);
+                if (window.location.pathname !== "/login") {
+                    window.location.href = "/login";
+                }
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;

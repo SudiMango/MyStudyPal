@@ -1,70 +1,27 @@
-import apiClient from "./client";
-
-/**
- *
- * DTOs
- *
- */
-
-// Create
-
-export interface CreateFlashcardSetRequest {
-    name: string;
-    icon: string;
-    numFlashcards: number;
-    prompt: string;
-    additionalInstructions?: string;
-}
-
-interface CreateFlashcardSetResponse {
-    flashcardSetId: string;
-}
-
-// Get
-
-export interface FlashcardSet {
-    flashcardSetId: string;
-    name: string;
-    icon: string;
-    createdAt: string;
-    updatedAt: string;
-    totalCards: number;
-    reviewedCards: number;
-    starredCards: number;
-}
-
-// Update
-
-export interface UpdateFlashcardSetRequest {
-    name?: string;
-    icon?: string;
-}
-
-/**
- *
- * API calls
- *
- */
+import {
+    CreateFlashcardSetRequest,
+    CreateFlashcardSetResponse,
+    FlashcardSetResponse,
+    UpdateFlashcardSetRequest,
+} from "../dto/flashcard-dto";
+import { ApiResponse } from "../types/api";
+import { getErrorMessage } from "../util";
+import apiClient from "../client";
 
 // Generate new flashcard set
 export const createFlashcardSet = async (
     studySetId: string,
     payload: CreateFlashcardSetRequest,
-): Promise<{ data?: CreateFlashcardSetResponse; error?: string }> => {
+): Promise<ApiResponse<CreateFlashcardSetResponse>> => {
     try {
         const response = await apiClient.post(
-            `/flashcard-set/create/${studySetId}`,
+            `/flashcard-set/${studySetId}`,
             payload,
         );
 
-        return { data: response.data };
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Flashcard generation failed";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
@@ -72,77 +29,51 @@ export const createFlashcardSet = async (
 export const updateFlashcardSet = async (
     flashcardSetId: string,
     payload: UpdateFlashcardSetRequest,
-): Promise<{ error?: string }> => {
+): Promise<ApiResponse> => {
     try {
         await apiClient.patch(`/flashcard-set/${flashcardSetId}`, payload);
-        return {};
+        return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to update flashcard set";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Get all flashcard sets
 export const getAllFlashcardSetsForStudySet = async (
     studySetId: string,
-): Promise<{
-    data?: FlashcardSet[];
-    error?: string;
-}> => {
+): Promise<ApiResponse<FlashcardSetResponse[]>> => {
     try {
         const response = await apiClient.get(
-            `/flashcard-set/get-all/${studySetId}`,
+            `/flashcard-set/study-set/${studySetId}`,
         );
-        return { data: response.data };
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to fetch flashcard sets";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Get all flashcard sets
 export const getOneFlashcardSet = async (
     flashcardSetId: string,
-): Promise<{
-    data?: FlashcardSet;
-    error?: string;
-}> => {
+): Promise<ApiResponse<FlashcardSetResponse>> => {
     try {
         const response = await apiClient.get(
             `/flashcard-set/${flashcardSetId}`,
         );
-        return { data: response.data };
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to fetch flashcard set";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Delete a flashcard set
 export const deleteFlashcardSet = async (
     flashcardSetId: string,
-): Promise<{ error?: string }> => {
+): Promise<ApiResponse> => {
     try {
         await apiClient.delete(`/flashcard-set/${flashcardSetId}`);
-        return {};
+        return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "Failed to delete flashcard set";
-        return { error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };

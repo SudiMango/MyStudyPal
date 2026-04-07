@@ -1,74 +1,57 @@
-import apiClient from "./client";
-import { QuizAttempt } from "./quiz-attempt-api";
-import { QuizQuestion } from "./quiz-question-api";
-
-/**
- *
- * DTOs
- *
- */
-
-// Post
-export interface CreateQuizRequest {
-    name: string;
-    timeLimitMinutes: number;
-    prompt: string;
-    additionalInstructions?: string;
-}
-
-// Get
-export interface Quiz {
-    quizId: string;
-    name: string;
-    timeLimitMinutes: number;
-    createdAt: string;
-    totalQuestions: number;
-    totalPoints: number;
-}
-
-export interface QuizDetails {
-    quizId: string;
-    name: string;
-    timeLimitMinutes: number;
-    createdAt: string;
-    totalQuestions: number;
-    totalPoints: number;
-    quizQuestions: QuizQuestion[];
-    quizAttempts: QuizAttempt[];
-}
-
-// Update
-export interface UpdateQuizRequest {
-    name?: string;
-}
-
-/**
- *
- * API calls
- *
- */
+import {
+    CreateQuizRequest,
+    CreateQuizResponse,
+    OneQuizPage_QuizDetailsResponse,
+    QuizListPage_QuizDetailsResponse,
+    UpdateQuizRequest,
+} from "../dto/quiz-dto";
+import { ApiResponse } from "../types/api";
+import { getErrorMessage } from "../util";
+import apiClient from "../client";
 
 // Generate new quiz
 export const createQuiz = async (
     studySetId: string,
     payload: CreateQuizRequest,
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<ApiResponse<CreateQuizResponse>> => {
     try {
-        const response = await apiClient.post(
-            `/quiz/create/${studySetId}`,
-            payload,
-        );
+        const response = await apiClient.post(`/quiz/${studySetId}`, payload);
 
-        return { success: true };
+        return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
+        };
+    }
+};
+
+// Get all quizzes for a study set
+export const getQuizzesForStudySet = async (
+    studySetId: string,
+): Promise<ApiResponse<QuizListPage_QuizDetailsResponse[]>> => {
+    try {
+        const response = await apiClient.get(`/quiz/study-set/${studySetId}`);
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        return {
+            success: false,
+            error: getErrorMessage(error),
+        };
+    }
+};
+
+// Get a single quiz by ID
+export const getOneQuizDetails = async (
+    quizId: string,
+): Promise<ApiResponse<OneQuizPage_QuizDetailsResponse>> => {
+    try {
+        const response = await apiClient.get(`/quiz/${quizId}`);
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        return {
+            success: false,
+            error: getErrorMessage(error),
         };
     }
 };
@@ -77,79 +60,27 @@ export const createQuiz = async (
 export const updateQuiz = async (
     quizId: string,
     payload: UpdateQuizRequest,
-): Promise<{ success: boolean; data?: Quiz; error?: string }> => {
+): Promise<ApiResponse<OneQuizPage_QuizDetailsResponse>> => {
     try {
         const response = await apiClient.patch(`/quiz/${quizId}`, payload);
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
-        };
-    }
-};
-
-// Get all quizzes for a study set
-export const getAllQuizzesForStudySet = async (
-    studySetId: string,
-): Promise<{ success: boolean; data?: Quiz[]; error?: string }> => {
-    try {
-        const response = await apiClient.get(`/quiz/get-all/${studySetId}`);
-        return { success: true, data: response.data };
-    } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
-        return {
-            success: false,
-            error: errorMessage,
-        };
-    }
-};
-
-// Get a single quiz by ID
-export const getOneQuizDetails = async (
-    quizId: string,
-): Promise<{ success: boolean; data?: QuizDetails; error?: string }> => {
-    try {
-        const response = await apiClient.get(`/quiz/${quizId}`);
-        return { success: true, data: response.data };
-    } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
-        return {
-            success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };
 
 // Delete a quiz
-export const deleteQuiz = async (
-    quizId: string,
-): Promise<{ success: boolean; error?: string }> => {
+export const deleteQuiz = async (quizId: string): Promise<ApiResponse> => {
     try {
         await apiClient.delete(`/quiz/${quizId}`);
         return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.errorMessage ||
-            error.message ||
-            "An unexpected error occurred";
-
         return {
             success: false,
-            error: errorMessage,
+            error: getErrorMessage(error),
         };
     }
 };
