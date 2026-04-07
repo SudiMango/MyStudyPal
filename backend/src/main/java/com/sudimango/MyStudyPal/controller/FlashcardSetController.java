@@ -41,6 +41,7 @@ public class FlashcardSetController {
      * {@code HTTP 201} - Flashcard set and flashcards created successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set not found
      * {@code HTTP 422} - Validation errors with request body
      */
@@ -65,6 +66,7 @@ public class FlashcardSetController {
      * {@code List<FlashcardDto.FlashcardSetResponse> HTTP 200} - Retrieved all flashcard sets successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set not found
      */
     @GetMapping("/study-set/{studySetId}")
@@ -87,6 +89,7 @@ public class FlashcardSetController {
      * {@code HTTP 200} - Retrieved flashcard set successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard set not found
      */
     @GetMapping("/{flashcardSetId}")
@@ -110,6 +113,7 @@ public class FlashcardSetController {
      * {@code FlashcardSetResponse HTTP 200} - Updated flashcard set successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard set not found
      * {@code HTTP 422} - Validation errors with request body
      */
@@ -132,6 +136,7 @@ public class FlashcardSetController {
      * {@code HTTP 200} - Deleted flashcard set successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard set not found
      */
     @DeleteMapping("/{flashcardSetId}")

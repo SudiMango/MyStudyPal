@@ -9,6 +9,7 @@ import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.CreateQuizQuestionManuallyRequest;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.CreateQuizQuestionWithAIRequest;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.TakeQuizResponse;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionManuallyRequest;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionWithAIRequest;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizQuestionService;
@@ -125,6 +126,27 @@ public class QuizQuestionController {
         QuizQuestionResponse response = questionService.updateQuestionWithAI(questionId,
                 updateQuizQuestionWithAIRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Get the name and questions of a quiz without its answers for a quiz
+     * 
+     * @apiNote {@code GET /quiz-question/{quizId}}
+     * 
+     * @param quizId - id of quiz
+     * 
+     * @see TakeQuizResponse TakeQuizResponse class for response body structure
+     * 
+     * @return
+     * {@code TakeQuizResponse HTTP 200} - Quiz name and questions
+     * 
+     * @throws
+     * {@code HTTP 404} - Quiz not found
+     */
+    @GetMapping("/{quizId}")
+    public ResponseEntity<TakeQuizResponse> getQuizQuestionsForQuiz(@PathVariable String quizId) {
+        TakeQuizResponse response = questionService.getQuizQuestionsForQuiz(quizId);
+        return ResponseEntity.ok(response);
     }
 
     /**

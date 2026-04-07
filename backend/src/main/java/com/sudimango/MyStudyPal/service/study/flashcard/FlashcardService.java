@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -75,6 +76,7 @@ public class FlashcardService {
     /**
     * Get all the flashcards of a set
     */
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcardSet(#setId, authentication.principal.userId)")
     public List<FlashcardResponse> getAllFlashcardsOfSet(String setId) {
         flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard set not found: " + setId));
@@ -92,6 +94,7 @@ public class FlashcardService {
     /**
     * Change review status of a flashcard
     */
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcard(#flashcardId, authentication.principal.userId)")
     public void changeReviewStatus(String flashcardId) {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard not found: " + flashcardId));
@@ -103,6 +106,7 @@ public class FlashcardService {
     /**
     * Change star status of a flashcard
     */
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcard(#flashcardId, authentication.principal.userId)")
     public void changeStarStatus(String flashcardId) {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard not found: " + flashcardId));
@@ -114,6 +118,7 @@ public class FlashcardService {
     /**
     * Delete a flashcard
     */
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcard(#flashcardId, authentication.principal.userId)")
     public void deleteFlashcard(String flashcardId) {
         flashcardRepository.findById(flashcardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard not found: " + flashcardId));
@@ -123,6 +128,7 @@ public class FlashcardService {
     /**
     * Update a flashcard
     */
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcard(#flashcardId, authentication.principal.userId)")
     public FlashcardDto.FlashcardResponse updateFlashcard(String flashcardId,
             FlashcardDto.UpdateFlashcardRequest request) {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)

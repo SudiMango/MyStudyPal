@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.sudimango.MyStudyPal.dto.FlashcardDto;
@@ -31,6 +32,7 @@ public class FlashcardSetService {
     private StudySetRepository studySetRepository;
 
     @Transactional
+    @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
     public FlashcardDto.CreateFlashcardSetResponse createFlashcardSet(FlashcardDto.CreateFlashcardSetRequest request,
             String studySetId) {
 
@@ -47,6 +49,7 @@ public class FlashcardSetService {
         return new CreateFlashcardSetResponse(set.getFlashcardSetId());
     }
 
+    @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
     public List<FlashcardSetResponse> getFlashcardSetsForStudySet(String studySetId) {
         List<FlashcardSet> flashcardSets = flashcardSetRepository.findAllByStudySet_StudySetId(studySetId);
 
@@ -59,6 +62,7 @@ public class FlashcardSetService {
         return responses;
     }
 
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcardSet(#setId, authentication.principal.userId)")
     public FlashcardSetResponse getOneFlashcardSet(String setId) {
         FlashcardSet flashcardSet = flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
@@ -66,6 +70,7 @@ public class FlashcardSetService {
         return new FlashcardSetResponse(flashcardSet);
     }
 
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcardSet(#setId, authentication.principal.userId)")
     public FlashcardSetResponse updateFlashcardSet(String setId, UpdateFlashcardSetRequest request) {
         FlashcardSet flashcardSet = flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new RuntimeException("FlashcardSet with given id not found!"));
@@ -82,6 +87,7 @@ public class FlashcardSetService {
         return new FlashcardSetResponse(saved);
     }
 
+    @PreAuthorize("@resourceAuthorizationService.canAccessFlashcardSet(#setId, authentication.principal.userId)")
     public void deleteFlashcardSet(String setId) {
         if (!flashcardSetRepository.existsById(setId)) {
             throw new ResourceNotFoundException("FlashcardSet with given id not found: " + setId);

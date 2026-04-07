@@ -10,4 +10,6 @@ import com.sudimango.MyStudyPal.entity.Document;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, String> {
     List<Document> findByStudySet_StudySetId(String studySetId);
+    
+    boolean existsByDocumentIdAndUser_UserId(String documentId, String userId);
 }

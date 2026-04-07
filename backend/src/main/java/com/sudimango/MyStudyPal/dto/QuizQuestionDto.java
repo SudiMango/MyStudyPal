@@ -1,8 +1,10 @@
 package com.sudimango.MyStudyPal.dto;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.sudimango.MyStudyPal.entity.QuestionType;
+import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 
 import jakarta.validation.constraints.NotBlank;
@@ -11,6 +13,28 @@ import jakarta.validation.constraints.NotNull;
 
 // @formatter:off
 public class QuizQuestionDto {
+
+    public record Quiz_QuizQuestionResponse(
+        String questionId,
+        QuestionType questionType,
+        String questionText,
+        List<String> options,
+        String hint,
+        double points,
+        int orderIndex
+    ) {
+        public Quiz_QuizQuestionResponse(QuizQuestion question) {
+            this(
+                question.getQuestionId(),
+                question.getQuestionType(),
+                question.getQuestionText(),
+                question.getOptions(),
+                question.getHint(),
+                question.getPoints(),
+                question.getOrderIndex()
+            );
+        }
+    }
 
     /**
      * Request
@@ -54,6 +78,7 @@ public class QuizQuestionDto {
      */
 
     public record QuizQuestionResponse(
+        String questionId,
         QuestionType questionType,
         String questionText,
         List<String> options,
@@ -64,6 +89,7 @@ public class QuizQuestionDto {
     ) {
         public QuizQuestionResponse(QuizQuestion question) {
             this(
+                question.getQuestionId(),
                 question.getQuestionType(),
                 question.getQuestionText(),
                 question.getOptions(),
@@ -71,6 +97,22 @@ public class QuizQuestionDto {
                 question.getHint(),
                 question.getPoints(),
                 question.getOrderIndex()
+            );
+        }
+    }
+
+    public record TakeQuizResponse(
+        String name,
+        List<Quiz_QuizQuestionResponse> questions
+    ) {
+        public TakeQuizResponse(Quiz quiz) {
+            this(
+                quiz.getName(),
+                Optional.ofNullable(quiz.getQuizQuestions())
+                    .orElse(List.of())
+                    .stream()
+                    .map(Quiz_QuizQuestionResponse::new)
+                    .toList()
             );
         }
     }

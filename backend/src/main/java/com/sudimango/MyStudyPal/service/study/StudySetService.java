@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.sudimango.MyStudyPal.dto.StudySetDto;
@@ -45,6 +46,7 @@ public class StudySetService {
     /**
      * Retrieves a single study set by its ID.
      */
+    @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
     public StudySetDto.StudySetResponse getOneStudySet(String studySetId) {
         StudySet studySet = studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new ResourceNotFoundException("StudySet with given id not found: " + studySetId));
@@ -56,6 +58,7 @@ public class StudySetService {
      * Updates study set metadata (name, description, icon).
      */
     @Transactional
+    @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
     public StudySetDto.StudySetResponse updateStudySet(String studySetId, StudySetDto.UpdateStudySetRequest request) {
         StudySet studySet = studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new ResourceNotFoundException("StudySet with given id not found: " + studySetId));
@@ -81,6 +84,7 @@ public class StudySetService {
      * Due to CascadeType.ALL in the entity, this will also delete nested flashcards/documents.
      */
     @Transactional
+    @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
     public void deleteStudySet(String studySetId) {
         if (!studySetRepository.existsById(studySetId)) {
             throw new ResourceNotFoundException("StudySet with given id not found: " + studySetId);

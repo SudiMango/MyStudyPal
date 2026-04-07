@@ -14,6 +14,7 @@ import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.QuizDto;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.TakeQuizResponse;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.exception.AiJsonException;
@@ -90,6 +91,12 @@ public class QuizQuestionService {
     public QuizQuestionResponse updateQuestionWithAI(String questionId,
             QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
         return null;
+    }
+
+    public TakeQuizResponse getQuizQuestionsForQuiz(String quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+        return new TakeQuizResponse(quiz);
     }
 
     @Transactional

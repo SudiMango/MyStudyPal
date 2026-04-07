@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.sudimango.MyStudyPal.dto.QuizDto;
 import com.sudimango.MyStudyPal.dto.QuizDto.CreateQuizRequest;
 import com.sudimango.MyStudyPal.dto.QuizDto.CreateQuizResponse;
-import com.sudimango.MyStudyPal.dto.QuizDto.QuizDetailsResponse;
+import com.sudimango.MyStudyPal.dto.QuizDto.OneQuizPage_QuizDetailsResponse;
 import com.sudimango.MyStudyPal.dto.QuizDto.UpdateQuizRequest;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizService;
 
@@ -37,6 +37,7 @@ public class QuizController {
      * {@code CreateQuizResponse HTTP 201} - Quiz created successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set not found
      * {@code HTTP 422} - Validation errors with request body
      */
@@ -54,17 +55,19 @@ public class QuizController {
      * 
      * @param studySetId - id of study set
      * 
-     * @see QuizDto.QuizDetailsResponse QuizDetailsResponse class for response body structure
+     * @see QuizDto.QuizListPage_QuizDetailsResponse QuizListPage_QuizDetailsResponse class for response body structure
      * 
      * @return
-     * {@code List<QuizDto.QuizDetailsResponse> HTTP 200} - list of quizzes
+     * {@code List<QuizDto.QuizListPage_QuizDetailsResponse> HTTP 200} - list of quizzes
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set not found
      */
     @GetMapping("/study-set/{studySetId}")
-    public ResponseEntity<List<QuizDto.QuizDetailsResponse>> getQuizzes(@PathVariable String studySetId) {
-        List<QuizDto.QuizDetailsResponse> responses = quizService.getQuizzesForStudySet(studySetId);
+    public ResponseEntity<List<QuizDto.QuizListPage_QuizDetailsResponse>> getQuizzesForStudySet(
+            @PathVariable String studySetId) {
+        List<QuizDto.QuizListPage_QuizDetailsResponse> responses = quizService.getQuizzesForStudySet(studySetId);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
@@ -75,17 +78,18 @@ public class QuizController {
      * 
      * @param quizId - id of quiz
      * 
-     * @see QuizDetailsResponse QuizDetailsResponse class for response body structure
+     * @see OneQuizPage_QuizDetailsResponse OneQuizPage_QuizDetailsResponse class for response body structure
      * 
      * @return
-     * {@code QuizDetailsResponse HTTP 200} - quiz details
+     * {@code OneQuizPage_QuizDetailsResponse HTTP 200} - quiz details
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - quiz not found
      */
     @GetMapping("/{quizId}")
-    public ResponseEntity<?> getOneQuizDetails(@PathVariable String quizId) {
-        QuizDto.QuizDetailsResponse response = quizService.getOneQuizDetails(quizId);
+    public ResponseEntity<QuizDto.OneQuizPage_QuizDetailsResponse> getOneQuizDetails(@PathVariable String quizId) {
+        QuizDto.OneQuizPage_QuizDetailsResponse response = quizService.getOneQuizDetails(quizId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -98,19 +102,20 @@ public class QuizController {
      * @param updateQuizRequest - request body
      * 
      * @see UpdateQuizRequest UpdateQuizRequest class for request body structure
-     * @see QuizDetailsResponse QuizDetailsResponse class for response body structure
+     * @see OneQuizPage_QuizDetailsResponse OneQuizPage_QuizDetailsResponse class for response body structure
      * 
      * @return
-     * {@code QuizDetailsResponse HTTP 200} - quiz details
+     * {@code OneQuizPage_QuizDetailsResponse HTTP 200} - quiz details
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - quiz not found
      * {@code HTTP 422} - Validation errors with request body
      */
     @PatchMapping("/{quizId}")
-    public ResponseEntity<QuizDto.QuizDetailsResponse> updateQuiz(@PathVariable String quizId,
+    public ResponseEntity<QuizDto.OneQuizPage_QuizDetailsResponse> updateQuiz(@PathVariable String quizId,
             @Valid @RequestBody QuizDto.UpdateQuizRequest updateQuizRequest) {
-        QuizDto.QuizDetailsResponse response = quizService.updateQuiz(quizId, updateQuizRequest);
+        QuizDto.OneQuizPage_QuizDetailsResponse response = quizService.updateQuiz(quizId, updateQuizRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -125,6 +130,7 @@ public class QuizController {
      * {@code HTTP 200} - Quiz deleted successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - quiz not found
      */
     @DeleteMapping("/{quizId}")

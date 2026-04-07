@@ -38,7 +38,7 @@ public class StudySetController {
      * @throws
      * {@code HTTP 422} - Validation errors with request body
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<StudySetDto.CreateStudySetResponse> createStudySet(
             @Valid @RequestBody StudySetDto.CreateStudySetRequest studySetRequest, @AuthenticationPrincipal User user) {
         StudySetDto.CreateStudySetResponse response = studySetService.createStudySet(studySetRequest, user);
@@ -57,7 +57,7 @@ public class StudySetController {
      * @return
      * {@code List<StudySetResponse> HTTP 200} - Study sets retrieved successfully
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<StudySetDto.StudySetResponse>> getStudySets(@AuthenticationPrincipal User user) {
         List<StudySetDto.StudySetResponse> studySets = studySetService.getStudySets(user.getUserId());
         return ResponseEntity.status(HttpStatus.OK).body(studySets);
@@ -76,6 +76,7 @@ public class StudySetController {
      * {@code StudySetResponse HTTP 200} - Study set retrieved successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - study set not found
      */
     @GetMapping("/{studySetId}")
@@ -99,6 +100,7 @@ public class StudySetController {
     * {@code StudySetResponse HTTP 200} - Study set updated successfully
     * 
     * @throws
+    * {@code HTTP 403} - Current user doesn't own this resource
     * {@code HTTP 404} - study set not found
     */
     @PatchMapping("/{studySetId}")
@@ -119,6 +121,7 @@ public class StudySetController {
     * {@code HTTP 200} - Study set deleted successfully
     * 
     * @throws
+    * {@code HTTP 403} - Current user doesn't own this resource
     * {@code HTTP 404} - study set not found
     */
     @DeleteMapping("/{studySetId}")

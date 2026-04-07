@@ -64,6 +64,7 @@ public class DocumentController {
      * {@code DocumentResponse HTTP 200} - Documents retrieved successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set/user not found
      */
     @GetMapping("/{studySetId}")
@@ -83,6 +84,7 @@ public class DocumentController {
      * {@code HTTP 200} - Document deleted successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Document not found
      */
     @DeleteMapping("/{documentId}")

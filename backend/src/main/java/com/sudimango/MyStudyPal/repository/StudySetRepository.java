@@ -10,4 +10,6 @@ import com.sudimango.MyStudyPal.entity.StudySet;
 @Repository
 public interface StudySetRepository extends JpaRepository<StudySet, String> {
     List<StudySet> findAllByUser_UserId(String userId);
+    
+    boolean existsByStudySetIdAndUser_UserId(String studySetId, String userId);
 }

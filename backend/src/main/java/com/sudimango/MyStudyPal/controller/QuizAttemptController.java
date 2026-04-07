@@ -1,7 +1,5 @@
 package com.sudimango.MyStudyPal.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptRequest;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptResponse;
-import com.sudimango.MyStudyPal.dto.QuizAttemptDto.QuizAttemptDetailsResponse;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.OneAttemptPage_QuizAttemptDetailsResponse;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizAttemptService;
 
 import jakarta.validation.Valid;
@@ -42,6 +40,7 @@ public class QuizAttemptController {
      * {@code CreateQuizAttemptResponse HTTP 201} - Quiz attempt created successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Quiz not found
      * {@code HTTP 422} - Validation errors with request body
      * {@code HTTP 503} - Error with AI
@@ -56,42 +55,22 @@ public class QuizAttemptController {
     /**
      * Get details of one attempt for a quiz
      * 
-     * @apiNote {@code GET /quiz-attempt/quiz/{quizId}}
-     * 
-     * @param quizId - id of quiz
-     * 
-     * @see QuizAttemptDetailsResponse QuizAttemptDetailsResponse class for response body structure
-     * 
-     * @return
-     * {@code List<QuizAttemptDetailsResponse> HTTP 200} - list of quiz attempt
-     * 
-     * @throws
-     * {@code HTTP 404} - quiz not found
-     */
-    @GetMapping("/quiz/{quizId}")
-    public ResponseEntity<List<QuizAttemptDetailsResponse>> getAllByQuizId(@PathVariable String quizId) {
-        List<QuizAttemptDetailsResponse> response = attemptService.getAllByQuizId(quizId);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    /**
-     * Get details of one attempt for a quiz
-     * 
      * @apiNote {@code GET /quiz-attempt/{attemptId}}
      * 
      * @param attemptId - id of attempt
      * 
-     * @see QuizAttemptDetailsResponse QuizAttemptDetailsResponse class for response body structure
+     * @see OneAttemptPage_QuizAttemptDetailsResponse OneAttemptPage_QuizAttemptDetailsResponse class for response body structure
      * 
      * @return
-     * {@code QuizAttemptDetailsResponse HTTP 200} - details of quiz attempt
+     * {@code OneAttemptPage_QuizAttemptDetailsResponse HTTP 200} - details of quiz attempt
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - attempt not found
      */
     @GetMapping("/{attemptId}")
-    public ResponseEntity<QuizAttemptDetailsResponse> getOneAttempt(@PathVariable String attemptId) {
-        QuizAttemptDetailsResponse response = attemptService.getOneAttempt(attemptId);
+    public ResponseEntity<OneAttemptPage_QuizAttemptDetailsResponse> getOneAttempt(@PathVariable String attemptId) {
+        OneAttemptPage_QuizAttemptDetailsResponse response = attemptService.getOneAttempt(attemptId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

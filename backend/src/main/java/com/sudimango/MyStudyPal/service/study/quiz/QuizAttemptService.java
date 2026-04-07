@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,6 @@ import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.AnswerSubmission;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptResponse;
-import com.sudimango.MyStudyPal.dto.QuizAttemptDto.QuizAttemptDetailsResponse;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.ShortAnswerGradingResponse;
 import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
@@ -53,6 +53,7 @@ public class QuizAttemptService {
     }
 
     @Transactional
+    @PreAuthorize("@resourceAuthorizationService.canAccessQuiz(#quizId, authentication.principal.userId)")
     public QuizAttemptDto.CreateQuizAttemptResponse submitAttempt(String quizId,
             QuizAttemptDto.CreateQuizAttemptRequest request) {
 
@@ -117,24 +118,12 @@ public class QuizAttemptService {
         return new CreateQuizAttemptResponse(saved.getAttemptId());
     }
 
-    public List<QuizAttemptDetailsResponse> getAllByQuizId(String quizId) {
-        quizRepository.findById(quizId)
-                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
-
-        List<QuizAttempt> attempts = attemptRepository.findByQuiz_QuizIdOrderByCompletedAtDesc(quizId);
-        List<QuizAttemptDetailsResponse> responses = new ArrayList<>();
-        for (QuizAttempt a : attempts) {
-            responses.add(new QuizAttemptDetailsResponse(a));
-        }
-
-        return responses;
-    }
-
-    public QuizAttemptDto.QuizAttemptDetailsResponse getOneAttempt(String attemptId) {
+    @PreAuthorize("@resourceAuthorizationService.canAccessQuizAttempt(#attemptId, authentication.principal.userId)")
+    public QuizAttemptDto.OneAttemptPage_QuizAttemptDetailsResponse getOneAttempt(String attemptId) {
         QuizAttempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz attempt not found with id: " + attemptId));
 
-        return new QuizAttemptDto.QuizAttemptDetailsResponse(attempt);
+        return new QuizAttemptDto.OneAttemptPage_QuizAttemptDetailsResponse(attempt);
     }
 
     /**

@@ -38,6 +38,7 @@ public class FlashcardController {
      * {@code List<FlashcardDto.FlashcardResponse> HTTP 200} - Flashcards retrieved successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard set not found
      */
     @GetMapping("/{flashcardSetId}")
@@ -58,6 +59,7 @@ public class FlashcardController {
      * {@code HTTP 200} - Flashcard reviewed/unreviewed successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard not found
      */
     @PatchMapping("/review/{flashcardId}")
@@ -77,6 +79,7 @@ public class FlashcardController {
      * {@code HTTP 200} - Flashcard starred/unstarred successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard not found
      */
     @PatchMapping("/star/{flashcardId}")
@@ -100,6 +103,7 @@ public class FlashcardController {
      * {@code FlashcardResponse HTTP 200} - Flashcard updated successfully
      * 
      * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - flashcard set not found
      * {@code HTTP 422} - Validation errors with request body
      */
@@ -122,6 +126,7 @@ public class FlashcardController {
     * {@code HTTP 200} - Flashcard deleted successfully
     * 
     * @throws
+    * {@code HTTP 403} - Current user doesn't own this resource
     * {@code HTTP 404} - flashcard not found
     */
     @DeleteMapping("/{flashcardId}")

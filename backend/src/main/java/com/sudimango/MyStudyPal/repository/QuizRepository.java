@@ -8,4 +8,6 @@ import com.sudimango.MyStudyPal.entity.Quiz;
 
 public interface QuizRepository extends JpaRepository<Quiz, String> {
     List<Quiz> findAllByStudySet_StudySetId(String studySetId);
+    
+    boolean existsByQuizIdAndStudySet_User_UserId(String quizId, String userId);
 }

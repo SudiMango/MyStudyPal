@@ -8,4 +8,6 @@ import com.sudimango.MyStudyPal.entity.Flashcard;
 
 public interface FlashcardRepository extends JpaRepository<Flashcard, String> {
     List<Flashcard> getByFlashcardSet_FlashcardSetIdOrderByCreatedAtAsc(String flashcardSetId);
+    
+    boolean existsByFlashcardIdAndFlashcardSet_StudySet_User_UserId(String flashcardId, String userId);
 }

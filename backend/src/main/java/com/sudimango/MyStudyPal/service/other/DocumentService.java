@@ -9,6 +9,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -105,6 +106,7 @@ public class DocumentService {
         }
     }
 
+    @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
     public List<DocumentDto.DocumentResponse> getAllDocumentsForStudySet(String studySetId) {
         studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id " + studySetId));
@@ -118,6 +120,7 @@ public class DocumentService {
         return responses;
     }
 
+    @PreAuthorize("@resourceAuthorizationService.canAccessDocument(#documentId, authentication.principal.userId)")
     public void deleteDocument(String documentId) {
         documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id " + documentId));
