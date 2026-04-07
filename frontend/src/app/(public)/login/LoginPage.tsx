@@ -52,8 +52,8 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)]">
-            <div className="bg-(--discord-gray-2) flex flex-col items-center justify-center rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)] w-full px-4">
+            <div className="bg-(--discord-gray-2) flex flex-col items-center justify-center rounded-2xl p-5 shadow-xl space-y-4 w-full max-w-sm">
                 {/* Title */}
                 <div className="flex flex-col items-center justify-center">
                     <label className="font-extrabold text-2xl text-white">

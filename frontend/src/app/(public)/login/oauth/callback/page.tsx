@@ -13,10 +13,10 @@ export default function OAuthCallbackPage() {
 
         if (token) {
             TokenStore.set(token);
-            router.push("/app/flashcard-sets");
+            router.push("/app/study-sets");
         } else {
             router.push(
-                "/login?error=OAuth2 authentication failed. Please try again."
+                "/login?error=OAuth2 authentication failed. Please try again.",
             );
         }
     }, [searchParams, router]);
