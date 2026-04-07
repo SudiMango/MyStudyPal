@@ -1,5 +1,10 @@
 package com.sudimango.MyStudyPal.dto;
 
+import java.time.Instant;
+
+import com.sudimango.MyStudyPal.entity.AuthProvider;
+import com.sudimango.MyStudyPal.entity.User;
+
 import jakarta.validation.constraints.NotBlank;
 
 // @formatter:off
@@ -32,7 +37,26 @@ public class AuthDto {
      */
 
     public record LoginResponse(
-        String accessToken,
-        String username
+        String accessToken
     ) {}
+
+    public record UserDetailsResponse(
+        String userId,
+        String username,
+        AuthProvider authProvider,
+        boolean isEnabled,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        public UserDetailsResponse(User user) {
+            this(
+                user.getUserId(),
+                user.getUsername(),
+                user.getAuthProvider(),
+                user.isEnabled(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+            );
+        }
+    }
 }

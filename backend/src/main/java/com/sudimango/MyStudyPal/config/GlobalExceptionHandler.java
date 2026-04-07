@@ -11,11 +11,27 @@ import com.sudimango.MyStudyPal.dto.ErrorDto;
 import com.sudimango.MyStudyPal.exception.AiJsonException;
 import com.sudimango.MyStudyPal.exception.EmailDeliveryFailedException;
 import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
+import com.sudimango.MyStudyPal.exception.ForbiddenException;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
+import com.sudimango.MyStudyPal.exception.UnauthorizedException;
 import com.sudimango.MyStudyPal.exception.UnsupportedFormatException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorDto.ErrorResponse> handleException(UnauthorizedException e) {
+        ErrorDto.ErrorResponse error = new ErrorDto.ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorDto.ErrorResponse> handleException(ForbiddenException e) {
+        ErrorDto.ErrorResponse error = new ErrorDto.ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
     @ExceptionHandler(MethodArgumentNotValidException.class)

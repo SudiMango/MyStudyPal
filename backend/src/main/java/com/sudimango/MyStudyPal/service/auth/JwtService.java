@@ -30,7 +30,6 @@ public class JwtService {
     public static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 365;
     public static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 365;
 
-
     /**
      * Generates an access token for a given username
      * 
@@ -97,7 +96,6 @@ public class JwtService {
         return key;
     }
 
-
     /*
      * 
      * 
@@ -106,22 +104,16 @@ public class JwtService {
      * 
      */
 
-
     // Generate a generc token given a username and an expiration time
     private String generateToken(String username, long expirationTimeMillis, String tokenType) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", tokenType);
 
-        String token = Jwts.builder()
-                        .claims()
-                        .add(claims)
-                        .subject(username)
-                        .issuedAt(new Date(System.currentTimeMillis()))
-                        .expiration(new Date(System.currentTimeMillis() + expirationTimeMillis))
-                        .and()
-                        .signWith(getKey())
-                        .compact();
-        
+        String token = Jwts.builder().claims().add(claims).subject(username)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expirationTimeMillis)).and().signWith(getKey())
+                .compact();
+
         return token;
     }
 
@@ -133,11 +125,7 @@ public class JwtService {
 
     // Extract all claims from a token
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                    .verifyWith(getKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+        return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
     }
 
     // Check if a given token is expired

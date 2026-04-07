@@ -27,6 +27,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.sudimango.MyStudyPal.service.auth.CustomOAuth2UserService;
 import com.sudimango.MyStudyPal.service.auth.OAuth2LoginSuccessHandler;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -43,23 +45,23 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(customizer -> customizer.disable())
-        .authorizeHttpRequests(request -> 
-            request
-                .requestMatchers("/api/public/**", "/api/auth/**", "/error").permitAll()
-                .anyRequest().authenticated())
-        .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .oauth2Login(customizer -> customizer
-                                        .loginPage("/oauth2/authorization/google")
-                                        .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
-                                        .successHandler(oauth2LoginSuccessHandler)
-                                        .failureHandler((request, response, exception) -> {
-                                            String encodedMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
-                                            response.sendRedirect("http://localhost:3000/signup?error=" + encodedMessage);
-                                        }))
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(customizer -> customizer.disable())
+                .authorizeHttpRequests(request -> request.requestMatchers("/public/**", "/auth/**", "/error")
+                        .permitAll().anyRequest().authenticated())
+                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                }))
+                .oauth2Login(customizer -> customizer.loginPage("/oauth2/authorization/google")
+                        .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
+                        .successHandler(oauth2LoginSuccessHandler).failureHandler((request, response, exception) -> {
+                            String encodedMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
+                            response.sendRedirect("http://localhost:3000/signup?error=" + encodedMessage);
+                        }))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
@@ -70,12 +72,12 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.sudimango.MyStudyPal.dto.AuthDto;
 import com.sudimango.MyStudyPal.dto.AuthDto.LoginResponse;
 import com.sudimango.MyStudyPal.dto.AuthDto.ResendVerificationEmailRequest;
+import com.sudimango.MyStudyPal.dto.AuthDto.UserDetailsResponse;
 import com.sudimango.MyStudyPal.entity.AuthProvider;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.entity.VerificationCode;
@@ -50,6 +51,10 @@ public class AuthService {
     @Autowired
     private VerificationCodeService verificationCodeService;
 
+    public UserDetailsResponse getLoggedInUser(User user) {
+        return new UserDetailsResponse(user);
+    }
+
     public void signUp(AuthDto.SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.username())) {
             return;
@@ -83,7 +88,7 @@ public class AuthService {
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
             refreshTokenService.saveRefreshTokenForUser(savedUser, refreshToken);
 
-            return new AuthDto.LoginResponse(accessToken, savedUser.getUsername());
+            return new AuthDto.LoginResponse(accessToken);
         } else {
             throw new UnauthorizedException("Invalid credentials.");
         }
@@ -122,7 +127,7 @@ public class AuthService {
         String username = jwtService.extractClaim(refreshToken, Claims::getSubject);
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
         if (jwtService.isTokenValid(refreshToken, userDetails)) {
-            return new LoginResponse(jwtService.generateAccessToken(username), username);
+            return new LoginResponse(jwtService.generateAccessToken(username));
         }
 
         throw new UnauthorizedException("Invalid refresh token.");

@@ -3,12 +3,16 @@ package com.sudimango.MyStudyPal.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sudimango.MyStudyPal.dto.AuthDto;
+import com.sudimango.MyStudyPal.dto.AuthDto.UserDetailsResponse;
+import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.service.auth.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +25,29 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    /**
+     * Get the current logged in user
+     * 
+     * @apiNote {@code GET /auth/me}
+     * 
+     * @param user - current user
+     * 
+     * @return
+     * {@code UserDetailsResponse HTTP 200}: User fetched successfully
+     * 
+     * @throws
+     * {@code HTTP 401}: No one logged in
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserDetailsResponse> getLoggedInUser(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserDetailsResponse res = authService.getLoggedInUser(user);
+        return ResponseEntity.ok(res);
+    }
 
     /**
      * Sign up a new user to the system
