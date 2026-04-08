@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { TokenStore } from "../token-store";
+import { TokenStore } from "./token-store";
 
 let isRefreshing = false;
 let failedQueue: {

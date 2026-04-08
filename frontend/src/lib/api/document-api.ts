@@ -1,6 +1,7 @@
 import { ApiResponse } from "../types/api";
 import { getErrorMessage } from "../util";
 import apiClient from "../client";
+import { DocumentResponse } from "../dto/document-dto";
 
 // Upload multiple documents
 export const uploadDocuments = async (
@@ -29,9 +30,9 @@ export const uploadDocuments = async (
 // Get all documents for a single study set
 export const getAllDocumentsForStudySet = async (
     studySetId: string,
-): Promise<ApiResponse<Document[]>> => {
+): Promise<ApiResponse<DocumentResponse[]>> => {
     try {
-        const response = await apiClient.get<Document[]>(
+        const response = await apiClient.get<DocumentResponse[]>(
             `/document/${studySetId}`,
         );
         return { success: true, data: response.data };

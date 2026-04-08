@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-    Document,
     getAllDocumentsForStudySet,
     deleteDocument,
     uploadDocuments,
@@ -14,35 +13,45 @@ import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 import SearchBar from "@/app/components/global/SearchBar";
 import UploadFileSection from "@/app/components/create-flashcard-set-page/UploadFileSection";
 import { formatDate } from "@/lib/util";
+import { DocumentResponse } from "@/lib/dto/document-dto";
+import AbstractModal from "../global/AbstractModal";
 
 interface DocumentsTabProps {
     studySetId: string;
 }
 
 const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
+    /**
+     * Variables
+     */
+
     const router = useRouter();
 
-    const [query, setQuery] = useState("");
-    const [documents, setDocuments] = useState<Document[]>([]);
+    // Global
+    const [documents, setDocuments] = useState<DocumentResponse[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [query, setQuery] = useState("");
+
+    // UI
     const [showDropdown, setShowDropdown] = useState<number | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Delete state
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
-        null,
-    );
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    // Upload state
+    // Upload
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
 
+    // Delete
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [documentToDelete, setDocumentToDelete] =
+        useState<DocumentResponse | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     /**
-     * Fetch documents for this study set
+     * Functions
      */
+
+    // Data fetching
     const fetchDocuments = async () => {
         setIsLoading(true);
         const response = await getAllDocumentsForStudySet(studySetId);
@@ -58,14 +67,74 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
         fetchDocuments();
     }, [studySetId]);
 
-    /**
-     * Settings dropdown logic
-     */
-    const handleDropdownToggle = (e: React.MouseEvent, index: number) => {
+    // Filtering
+    const filteredDocuments = useMemo(() => {
+        const searchTerm = query.trim().toLowerCase();
+        if (!searchTerm) return documents;
+        return documents.filter((doc) =>
+            doc.title.toLowerCase().includes(searchTerm),
+        );
+    }, [query, documents]);
+
+    // Upload
+    const handleUploadClick = () => {
+        setIsUploadModalOpen(true);
+    };
+
+    const handleConfirmUpload = async () => {
+        if (files.length === 0) {
+            alert("Please select at least one file to upload.");
+            return;
+        }
+
+        setIsUploading(true);
+        const response = await uploadDocuments(studySetId, files);
+
+        if (!response.error) {
+            fetchDocuments();
+            setIsUploadModalOpen(false);
+            setFiles([]);
+        } else {
+            alert(response.error);
+        }
+
+        setIsUploading(false);
+    };
+
+    // Delete
+    const handleDeleteClick = (document: DocumentResponse) => {
+        setDocumentToDelete(document);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!documentToDelete) return;
+
+        setIsDeleting(true);
+        const response = await deleteDocument(documentToDelete.documentId);
+
+        if (!response.error) {
+            fetchDocuments();
+            setIsDeleteModalOpen(false);
+            setDocumentToDelete(null);
+            setShowDropdown(null);
+        } else {
+            alert(response.error);
+        }
+
+        setIsDeleting(false);
+    };
+
+    // Settings
+    const handleSettingsDropdownToggle = (
+        e: React.MouseEvent,
+        index: number,
+    ) => {
         e.stopPropagation();
         setShowDropdown(showDropdown !== index ? index : null);
     };
 
+    // Handle click outside
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (
@@ -79,72 +148,29 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
         if (showDropdown !== null) {
             document.addEventListener("mousedown", handleClickOutside);
         }
-
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, [showDropdown]);
 
-    /**
-     * Handle document delete
-     */
-    const handleDeleteClick = (document: Document) => {
-        setDocumentToDelete(document);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (documentToDelete) {
-            setIsDeleting(true);
-            const response = await deleteDocument(documentToDelete.documentId);
-            setIsDeleting(false);
-
-            if (!response.error) {
-                fetchDocuments();
-            } else {
-                alert(response.error);
-            }
-            setIsDeleteModalOpen(false);
-            setDocumentToDelete(null);
-            setShowDropdown(null);
-        }
-    };
-
-    /**
-     * Handle document upload
-     */
-    const handleUploadClick = () => {
-        setIsUploadModalOpen(true);
-    };
-
-    const handleConfirmUpload = async () => {
-        if (files.length === 0) {
-            alert("Please select at least one file to upload.");
-            return;
-        }
-
-        setIsUploading(true);
-        const response = await uploadDocuments(studySetId, files);
-        setIsUploading(false);
-
-        if (!response.error) {
-            fetchDocuments();
-            setIsUploadModalOpen(false);
-            setFiles([]);
-        } else {
-            alert(response.error);
-        }
-    };
-
-    // Filtered documents for search
-    const filteredDocuments = useMemo(() => {
-        if (!query.trim()) return documents;
-        return documents.filter((doc) =>
-            doc.title.toLowerCase().includes(query.toLowerCase()),
-        );
-    }, [query, documents]);
-
     return (
         <>
+            {/* Upload document modal */}
+            <AbstractModal
+                isOpen={isUploadModalOpen}
+                title="Upload Documents"
+                onConfirm={() => handleConfirmUpload()}
+                onCancel={() => {
+                    setIsUploadModalOpen(false);
+                    setFiles([]);
+                }}
+                isLoading={isUploading}
+                confirmLabel="Upload"
+                confirmLoadingLabel="Uploading..."
+                confirmDisabled={files.length === 0}
+            >
+                <UploadFileSection files={files} onFilesChange={setFiles} />
+            </AbstractModal>
+
             {/* Delete document modal */}
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
@@ -155,49 +181,15 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
                 isLoading={isDeleting}
             />
 
-            {/* Upload document modal */}
-            {isUploadModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-5 overflow-auto">
-                    <div className="bg-(--discord-gray-2) p-6 rounded-lg shadow-xl max-w-2xl w-full">
-                        <h2 className="text-white text-lg mb-4">
-                            Upload Documents
-                        </h2>
-
-                        <UploadFileSection
-                            files={files}
-                            onFilesChange={setFiles}
-                        />
-
-                        <div className="flex justify-end gap-4 mt-6">
-                            <button
-                                onClick={() => {
-                                    setIsUploadModalOpen(false);
-                                    setFiles([]);
-                                }}
-                                disabled={isUploading}
-                                className="px-4 py-2 bg-(--discord-gray-1) text-white rounded hover:bg-(--discord-gray-3) disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmUpload}
-                                disabled={isUploading || files.length === 0}
-                                className="px-4 py-2 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) text-white rounded disabled:opacity-50"
-                            >
-                                {isUploading ? "Uploading..." : "Upload"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Search bar and upload button */}
+            {/* Actions */}
             <div className="flex flex-row w-full mb-5 space-x-3">
+                {/* Search */}
                 <SearchBar
                     query={query}
                     onQueryChange={setQuery}
                     placeholder="Search documents..."
                 />
+                {/* Upload new file */}
                 <button
                     onClick={handleUploadClick}
                     className="flex flex-row justify-center items-center bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) cursor-pointer rounded-xl w-40 text-white font-medium"
@@ -207,6 +199,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
                 </button>
             </div>
 
+            {/* Body */}
             <div className="space-y-5 w-full">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20">
@@ -260,7 +253,10 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
                                     >
                                         <button
                                             onClick={(e) =>
-                                                handleDropdownToggle(e, i)
+                                                handleSettingsDropdownToggle(
+                                                    e,
+                                                    i,
+                                                )
                                             }
                                             className="hover:text-(--discord-blurple)"
                                         >
@@ -272,7 +268,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
                                             onClose={() =>
                                                 setShowDropdown(null)
                                             }
-                                            onEdit={undefined}
+                                            showEdit={false}
                                             onDelete={() =>
                                                 handleDeleteClick(doc)
                                             }
@@ -292,6 +288,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
                     </>
                 )}
 
+                {/* Upload new file */}
                 <button
                     onClick={handleUploadClick}
                     className="flex flex-row w-full items-center justify-center space-x-3 outline-dashed rounded-lg p-3 outline-2 outline-(--discord-blurple-hover) bg-(--discord-gray-1) hover:bg-(--discord-gray-2)"

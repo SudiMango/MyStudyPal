@@ -18,7 +18,6 @@ export default function UploadFileSection({
         );
         onFilesChange(updatedFiles);
 
-        // Reset input value so the same file can be re-uploaded if cleared
         if (updatedFiles.length === 0 && fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -30,8 +29,6 @@ export default function UploadFileSection({
 
         const droppedFiles = Array.from(e.dataTransfer.files);
         if (droppedFiles.length > 0) {
-            // Merge with existing files or replace?
-            // Here we merge and filter for PDFs to be safe
             const pdfs = droppedFiles.filter(
                 (f) => f.type === "application/pdf",
             );
@@ -55,7 +52,7 @@ export default function UploadFileSection({
             <input
                 ref={fileInputRef}
                 type="file"
-                multiple // Allows selecting multiple files in the browser dialog
+                multiple
                 accept=".pdf,application/pdf"
                 onChange={handleChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
@@ -73,7 +70,7 @@ export default function UploadFileSection({
                                 className="flex items-center justify-between bg-(--discord-gray-2) p-3 rounded-lg border border-(--discord-gray-3)"
                             >
                                 <div className="flex items-center space-x-3 overflow-hidden">
-                                    <FileText className="h-5 w-5 flex-shrink-0 text-(--discord-blurple)" />
+                                    <FileText className="h-5 w-5 shrink-0 text-(--discord-blurple)" />
                                     <div className="truncate">
                                         <p className="text-sm font-medium truncate">
                                             {file.name}

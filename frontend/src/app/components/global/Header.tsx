@@ -16,7 +16,7 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
     return (
-        <header className="bg-(--discord-gray-2) shadow-md flex flex-row px-4 min-h-[65px]">
+        <header className="bg-(--discord-gray-2) shadow-md flex flex-row px-4 min-h-16.25">
             {/* Website logo */}
             <Link
                 className="inline-flex flex-row w-auto text-xl justify-center items-center text-(--discord-blurple) font-bold"
@@ -41,7 +41,7 @@ const Header = () => {
                 >
                     FAQ
                 </Link>
-                <div className="h-[45px] w-0.5 bg-(--discord-gray-3) mx-3" />
+                <div className="h-11.25 w-0.5 bg-(--discord-gray-3) mx-3" />
 
                 <div className="relative h-full">
                     <button
