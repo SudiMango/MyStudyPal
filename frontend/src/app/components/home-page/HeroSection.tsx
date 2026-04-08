@@ -7,7 +7,7 @@ import Link from "next/link";
 const HeroSection = () => {
     return (
         <div className="p-5 flex justify-center items-center w-full pb-20 bg-linear-to-b from-(--discord-gray-3) to-(--discord-blurple-hover)/50 from-50%">
-            <div className="flex flex-col items-center justify-center w-full max-w-[800px]">
+            <div className="flex flex-col items-center justify-center w-full max-w-200">
                 {/*  */}
                 <div className="flex flex-row justify-center items-center mr-auto text-sm mt-5">
                     <ShieldCheck className="h-5 w-5 text-(--discord-blurple) mr-1.5" />
@@ -37,6 +37,7 @@ const HeroSection = () => {
                             alt="Profile image"
                             width={50}
                             height={50}
+                            priority
                             className="rounded-full w-8 h-8 outline-2 outline-white object-cover"
                         />
                         <Image
@@ -44,6 +45,7 @@ const HeroSection = () => {
                             alt="Profile image"
                             width={50}
                             height={50}
+                            priority
                             className="rounded-full w-8 h-8 outline-2 outline-white -ml-3 object-cover"
                         />
                         <Image
@@ -51,6 +53,7 @@ const HeroSection = () => {
                             alt="Profile image"
                             width={50}
                             height={50}
+                            priority
                             className="rounded-full w-8 h-8 outline-2 outline-white -ml-3 object-cover"
                         />
 
@@ -76,6 +79,7 @@ const HeroSection = () => {
                             alt="Profile image"
                             width={50}
                             height={50}
+                            priority
                             className="rounded-full w-8 h-8 outline-2 outline-white object-cover"
                         />
                         <Image
@@ -83,6 +87,7 @@ const HeroSection = () => {
                             alt="Profile image"
                             width={50}
                             height={50}
+                            priority
                             className="rounded-full w-8 h-8 outline-2 outline-white -ml-3 object-cover"
                         />
                         <Image
@@ -90,6 +95,7 @@ const HeroSection = () => {
                             alt="Profile image"
                             width={50}
                             height={50}
+                            priority
                             className="rounded-full w-8 h-8 outline-2 outline-white -ml-3 object-cover"
                         />
 
