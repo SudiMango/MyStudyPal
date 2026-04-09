@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import {
     getAllFlashcardsInSet,
     changeReviewStatus,
-    Flashcard,
     changeStarStatus,
 } from "@/lib/api/flashcard-api";
-import { FlashcardSet, getOneFlashcardSet } from "@/lib/api/flashcard-set-api";
-import { getOneStudySet, StudySet } from "@/lib/api/study-set-api";
+import { getOneFlashcardSet } from "@/lib/api/flashcard-set-api";
+import { getOneStudySet } from "@/lib/api/study-set-api";
+import { FlashcardResponse } from "@/lib/dto/flashcard-dto";
+import { StudySetResponse } from "@/lib/dto/study-set-dto";
+import { FlashcardSetResponse } from "@/lib/dto/flashcard-set-dto";
 
 export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
     /**
@@ -15,9 +17,9 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
      *
      */
 
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [flashcardSet, setFlashcardSet] = useState<FlashcardSet>();
-    const [studySet, setStudySet] = useState<StudySet>();
+    const [flashcards, setFlashcards] = useState<FlashcardResponse[]>([]);
+    const [flashcardSet, setFlashcardSet] = useState<FlashcardSetResponse>();
+    const [studySet, setStudySet] = useState<StudySetResponse>();
     const [currIndex, setCurrIndex] = useState<number>(0);
 
     const [showHint, setShowHint] = useState<boolean>(false);
@@ -140,7 +142,7 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
 
         setFlashcards(
             flashcards.map((card, idx) =>
-                idx === index ? { ...card, starred: !card.starred } : card,
+                idx === index ? { ...card, isStarred: !card.isStarred } : card,
             ),
         );
 
@@ -176,7 +178,9 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
 
         setFlashcards(
             flashcards.map((card, idx) =>
-                idx === index ? { ...card, reviewed: !card.reviewed } : card,
+                idx === index
+                    ? { ...card, isReviewed: !card.isReviewed }
+                    : card,
             ),
         );
 

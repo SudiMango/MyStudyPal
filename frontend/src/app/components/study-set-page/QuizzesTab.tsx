@@ -8,15 +8,16 @@ import {
     getQuizzesForStudySet,
     updateQuiz,
 } from "@/lib/api/quiz-api";
-import { Brain, ChartNoAxesCombined, Plus, Loader, Clock } from "lucide-react";
+import { Brain, ChartNoAxesCombined, Plus, Loader } from "lucide-react";
 import ConfirmationModal from "@/app/components/global/ConfirmationModal";
 import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 import SearchBar from "@/app/components/global/SearchBar";
 import { formatDate } from "@/lib/util";
 import ItemDisplayCard from "../global/ItemDisplayCard";
-import { QuizListPage_QuizDetailsResponse } from "@/lib/dto/quiz-dto";
+import { QuestionType } from "@/lib/dto/quiz-question-dto";
 import { FieldConfig } from "@/lib/types/modal";
 import AbstractModal from "../global/AbstractModal";
+import { QuizResponse } from "@/lib/dto/quiz-dto";
 
 interface QuizzesTabProps {
     studySetId: string;
@@ -35,13 +36,13 @@ const CREATE_QUIZ_FIELDS: FieldConfig[] = [
         placeholder: "e.g., Biology Chapter 5 Final",
     },
     {
-        key: "timeLimitMinutes",
+        key: "numQuestions",
         type: "number",
-        label: "Time Limit (1-120 minutes)",
+        label: "Number of Questions (1-50)",
         row: 2,
         required: true,
         min: 1,
-        max: 120,
+        max: 50,
         placeholder: "10",
     },
     {
@@ -89,9 +90,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
     const router = useRouter();
 
     // Global
-    const [quizzes, setQuizzes] = useState<QuizListPage_QuizDetailsResponse[]>(
-        [],
-    );
+    const [quizzes, setQuizzes] = useState<QuizResponse[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [query, setQuery] = useState("");
 
@@ -106,14 +105,12 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
 
     // Edit
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editingQuiz, setEditingQuiz] =
-        useState<QuizListPage_QuizDetailsResponse | null>(null);
+    const [editingQuiz, setEditingQuiz] = useState<QuizResponse | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
 
     // Delete
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [quizToDelete, setQuizToDelete] =
-        useState<QuizListPage_QuizDetailsResponse | null>(null);
+    const [quizToDelete, setQuizToDelete] = useState<QuizResponse | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     /**
@@ -147,7 +144,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
     // Create
     const handleConfirmCreate = async (
         name: string,
-        timeLimitMinutes: number,
+        numQuestions: number,
         prompt: string,
         additionalInstructions?: string,
     ) => {
@@ -155,8 +152,14 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
 
         const payload = {
             name,
-            timeLimitMinutes,
+            numQuestions,
             prompt,
+            allowedTypes: [
+                QuestionType.MULTIPLE_CHOICE,
+                QuestionType.MULTIPLE_ANSWER,
+                QuestionType.SHORT_ANSWER,
+                QuestionType.TRUE_FALSE,
+            ],
             ...(additionalInstructions?.trim() && {
                 additionalInstructions: additionalInstructions.trim(),
             }),
@@ -175,7 +178,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
     };
 
     // Edit
-    const handleEditClick = (quiz: QuizListPage_QuizDetailsResponse) => {
+    const handleEditClick = (quiz: QuizResponse) => {
         setEditingQuiz(quiz);
         setIsEditModalOpen(true);
     };
@@ -189,7 +192,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
 
         const response = await updateQuiz(quizId, payload);
 
-        if (response.success) {
+        if (response.success && response.data) {
             fetchQuizzes();
             setIsEditModalOpen(false);
             setEditingQuiz(null);
@@ -202,7 +205,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
     };
 
     // Delete
-    const handleDeleteClick = (quiz: QuizListPage_QuizDetailsResponse) => {
+    const handleDeleteClick = (quiz: QuizResponse) => {
         setQuizToDelete(quiz);
         setIsDeleteModalOpen(true);
     };
@@ -261,19 +264,19 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
                 fields={CREATE_QUIZ_FIELDS}
                 initialValues={{
                     name: "",
-                    timeLimitMinutes: "10",
+                    numQuestions: "10",
                     prompt: "",
                     additionalInstructions: "",
                 }}
                 onConfirm={({
                     name,
-                    timeLimitMinutes,
+                    numQuestions,
                     prompt,
                     additionalInstructions,
                 }) =>
                     handleConfirmCreate(
                         name,
-                        Number(timeLimitMinutes),
+                        Number(numQuestions),
                         prompt,
                         additionalInstructions || undefined,
                     )
@@ -350,7 +353,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
                         {!query.trim() && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium"
+                                className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium cursor-pointer"
                             >
                                 Create quiz
                             </button>
@@ -369,13 +372,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
                                 stats={[
                                     `${quiz.totalQuestions} questions`,
                                     `${quiz.totalPoints} points`,
-                                    <div
-                                        key="timer"
-                                        className="flex items-center space-x-1"
-                                    >
-                                        <Clock className="w-3 h-3" />
-                                        <span>{quiz.timeLimitMinutes} min</span>
-                                    </div>,
+                                    `${quiz.totalAttempts} attempts`,
                                 ]}
                                 onCardClick={() =>
                                     router.push(

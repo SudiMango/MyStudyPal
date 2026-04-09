@@ -14,9 +14,9 @@ import SettingsDropdown from "@/app/components/global/SettingsDropdown";
 import SearchBar from "@/app/components/global/SearchBar";
 import { formatDate } from "@/lib/util";
 import ItemDisplayCard from "../global/ItemDisplayCard";
-import { FlashcardSetResponse } from "@/lib/dto/flashcard-dto";
 import { FieldConfig } from "@/lib/types/modal";
 import AbstractModal from "../global/AbstractModal";
+import { FlashcardSetResponse } from "@/lib/dto/flashcard-set-dto";
 
 const CREATE_FLASHCARD_SET_FIELDS: FieldConfig[] = [
     { key: "icon", type: "emoji", label: "Icon", row: 1, width: "w-12" },
@@ -203,7 +203,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
 
         const response = await updateFlashcardSet(flashcardSetId, payload);
 
-        if (!response.error) {
+        if (response.success && response.data) {
             fetchFlashcardSets();
             setIsEditModalOpen(false);
             setEditingSet(null);
@@ -288,8 +288,8 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
                     additionalInstructions,
                 }) =>
                     handleConfirmCreate(
-                        icon,
                         name,
+                        icon,
                         Number(numFlashcards),
                         prompt,
                         additionalInstructions || undefined,
@@ -312,7 +312,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
                 }}
                 onConfirm={({ icon, name }) =>
                     editingSet &&
-                    handleConfirmUpdate(editingSet.flashcardSetId, icon, name)
+                    handleConfirmUpdate(editingSet.flashcardSetId, name, icon)
                 }
                 onCancel={() => {
                     setIsEditModalOpen(false);
@@ -371,7 +371,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
                         {!query.trim() && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium"
+                                className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium cursor-pointer"
                             >
                                 Create flashcard set
                             </button>

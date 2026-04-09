@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getOneStudySet, StudySet } from "@/lib/api/study-set-api";
+import { getOneStudySet } from "@/lib/api/study-set-api";
 import {
     Loader,
     Layers,
@@ -11,16 +11,17 @@ import {
     FileText,
     Calendar,
 } from "lucide-react";
-import FlashcardsTab from "@/app/components/study-set-page/FlashcardsTab";
 import QuizzesTab from "@/app/components/study-set-page/QuizzesTab";
 import DocumentsTab from "@/app/components/study-set-page/DocumentsTab";
 import { formatDate } from "@/lib/util";
+import FlashcardSetsTab from "@/app/components/study-set-page/FlashcardSetsTab";
+import { StudySetResponse } from "@/lib/dto/study-set-dto";
 
 const CurrentStudySetPage = () => {
     const { studySetId } = useParams();
     const router = useRouter();
 
-    const [studySet, setStudySet] = useState<StudySet | null>(null);
+    const [studySet, setStudySet] = useState<StudySetResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<
         "flashcards" | "quizzes" | "stats" | "documents"
@@ -187,11 +188,15 @@ const CurrentStudySetPage = () => {
             {/* Content Section */}
             <div className="w-full max-w-150 p-5">
                 {activeTab === "flashcards" && (
-                    <FlashcardsTab studySetId={studySetId as string} />
+                    <FlashcardSetsTab studySetId={studySetId as string} />
                 )}
 
                 {activeTab === "quizzes" && (
                     <QuizzesTab studySetId={studySetId as string} />
+                )}
+
+                {activeTab === "documents" && (
+                    <DocumentsTab studySetId={studySetId as string} />
                 )}
 
                 {activeTab === "stats" && (
@@ -201,10 +206,6 @@ const CurrentStudySetPage = () => {
                             No stats available yet
                         </p>
                     </div>
-                )}
-
-                {activeTab === "documents" && (
-                    <DocumentsTab studySetId={studySetId as string} />
                 )}
             </div>
         </div>

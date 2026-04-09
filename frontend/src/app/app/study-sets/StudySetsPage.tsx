@@ -7,7 +7,14 @@ import {
     updateStudySet,
     createStudySet,
 } from "@/lib/api/study-set-api";
-import { Brain, ChartNoAxesCombined, Layers, Loader, Plus } from "lucide-react";
+import {
+    Brain,
+    ChartNoAxesCombined,
+    Folder,
+    Layers,
+    Loader,
+    Plus,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/app/components/global/SearchBar";
@@ -171,7 +178,7 @@ const StudySetsPage = () => {
 
         const response = await updateStudySet(studySetId, payload);
 
-        if (response.success) {
+        if (response.success && response.data) {
             fetchStudySets();
             setIsEditModalOpen(false);
             setEditingSet(null);
@@ -196,7 +203,9 @@ const StudySetsPage = () => {
         const response = await deleteStudySet(setToDelete.studySetId);
 
         if (!response.error) {
-            fetchStudySets();
+            setStudySets((prev) =>
+                prev.filter((set) => set.studySetId !== setToDelete.studySetId),
+            );
         } else {
             alert(response.error);
         }
@@ -325,10 +334,21 @@ const StudySetsPage = () => {
                             </p>
                         </div>
                     ) : filteredSets.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center w-full py-20">
+                        <div className="flex flex-col items-center justify-center py-20">
+                            <Folder className="w-16 h-16 text-gray-400 mb-4" />
                             <p className="text-gray-400 text-lg">
-                                Nothing to show here...
+                                {query.trim()
+                                    ? "No study sets match your search"
+                                    : "No study sets yet"}
                             </p>
+                            {!query.trim() && (
+                                <button
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                    className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium cursor-pointer"
+                                >
+                                    Create study set
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <>

@@ -219,7 +219,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
                         {!query.trim() && (
                             <button
                                 onClick={handleUploadClick}
-                                className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium"
+                                className="mt-4 bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) px-6 py-2 rounded-lg font-medium cursor-pointer"
                             >
                                 Upload document
                             </button>
