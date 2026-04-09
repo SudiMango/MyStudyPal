@@ -24,10 +24,10 @@ export const createStudySet = async (
 export const updateStudySet = async (
     studySetId: string,
     payload: UpdateStudySetRequest,
-): Promise<ApiResponse> => {
+): Promise<ApiResponse<StudySetResponse>> => {
     try {
-        await apiClient.patch(`/study-set/${studySetId}`, payload);
-        return { success: true };
+        const response = await apiClient.patch(`/study-set/${studySetId}`, payload);
+        return { success: true, data: response.data };
     } catch (error: any) {
         return { success: false, error: getErrorMessage(error) };
     }

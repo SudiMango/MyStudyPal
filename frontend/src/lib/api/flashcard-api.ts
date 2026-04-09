@@ -1,10 +1,27 @@
 import {
+    CreateFlashcardRequest,
     FlashcardResponse,
     UpdateFlashcardRequest,
 } from "../dto/flashcard-dto";
 import { ApiResponse } from "../types/api";
 import { getErrorMessage } from "../util";
 import apiClient from "../client";
+
+// Create a flashcard for a set
+export const createFlashcard = async (
+    flashcardSetId: string,
+    data: CreateFlashcardRequest,
+): Promise<ApiResponse<FlashcardResponse>> => {
+    try {
+        const response = await apiClient.post<FlashcardResponse>(
+            `/flashcard/${flashcardSetId}`,
+            data,
+        );
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        return { success: false, error: getErrorMessage(error) };
+    }
+};
 
 // Get all flashcards of one set
 export const getAllFlashcardsInSet = async (
@@ -44,20 +61,17 @@ export const changeStarStatus = async (
     }
 };
 
-// Create one flashcard manually
-
-// Create one flashcard with prompt and AI
-
-// Regenerate flashcard with optional additional instructions
-
 // Edit flashcard
 export const updateFlashcard = async (
     flashcardId: string,
     data: UpdateFlashcardRequest,
-): Promise<ApiResponse> => {
+): Promise<ApiResponse<FlashcardResponse>> => {
     try {
-        await apiClient.patch(`/flashcard/${flashcardId}`, data);
-        return { success: true };
+        const response = await apiClient.patch(
+            `/flashcard/${flashcardId}`,
+            data,
+        );
+        return { success: true, data: response.data };
     } catch (error: any) {
         return { success: false, error: getErrorMessage(error) };
     }

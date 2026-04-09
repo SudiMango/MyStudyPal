@@ -1,26 +1,22 @@
 import {
-    CreateQuizQuestionManuallyRequest,
-    CreateQuizQuestionWithAIRequest,
+    CreateQuizQuestionRequest,
     QuizQuestionResponse,
     TakeQuizResponse,
-    UpdateQuizQuestionManuallyRequest,
-    UpdateQuizQuestionWithAIRequest,
+    UpdateQuizQuestionRequest,
 } from "../dto/quiz-question-dto";
 import { ApiResponse } from "../types/api";
 import { getErrorMessage } from "../util";
 import apiClient from "../client";
 
-// Generate new quiz question manually
-export const createQuizQuestionManually = async (
+export const createQuizQuestion = async (
     quizId: string,
-    payload: CreateQuizQuestionManuallyRequest,
+    payload: CreateQuizQuestionRequest,
 ): Promise<ApiResponse<QuizQuestionResponse>> => {
     try {
         const response = await apiClient.post(
-            `/quiz-question/manual/${quizId}`,
+            `/quiz-question/${quizId}`,
             payload,
         );
-
         return { success: true, data: response.data };
     } catch (error: any) {
         return {
@@ -30,34 +26,13 @@ export const createQuizQuestionManually = async (
     }
 };
 
-// Generate new quiz question with AI
-export const createQuizQuestionWithAI = async (
-    quizId: string,
-    payload: CreateQuizQuestionWithAIRequest,
-): Promise<ApiResponse<QuizQuestionResponse>> => {
-    try {
-        const response = await apiClient.post(
-            `/quiz-question/ai/${quizId}`,
-            payload,
-        );
-
-        return { success: true, data: response.data };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: getErrorMessage(error),
-        };
-    }
-};
-
-// Update a quiz question manually
-export const updateQuizQuestionManually = async (
+export const updateQuizQuestion = async (
     questionId: string,
-    payload: UpdateQuizQuestionManuallyRequest,
+    payload: UpdateQuizQuestionRequest,
 ): Promise<ApiResponse<QuizQuestionResponse>> => {
     try {
         const response = await apiClient.patch(
-            `/quiz-question/manual/${questionId}`,
+            `/quiz-question/${questionId}`,
             payload,
         );
         return { success: true, data: response.data };
@@ -69,29 +44,9 @@ export const updateQuizQuestionManually = async (
     }
 };
 
-// Update a quiz question with AI
-export const updateQuizQuestionWithAI = async (
-    questionId: string,
-    payload: UpdateQuizQuestionWithAIRequest,
-): Promise<ApiResponse<QuizQuestionResponse>> => {
-    try {
-        const response = await apiClient.patch(
-            `/quiz-question/ai/${questionId}`,
-            payload,
-        );
-        return { success: true, data: response.data };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: getErrorMessage(error),
-        };
-    }
-};
-
-// Get quiz questions for quiz
 export const getQuizQuestionsForQuiz = async (
     quizId: string,
-): Promise<ApiResponse<TakeQuizResponse>> => {
+): Promise<ApiResponse<QuizQuestionResponse[]>> => {
     try {
         const response = await apiClient.get(`/quiz-question/${quizId}`);
         return { success: true, data: response.data };
@@ -103,7 +58,20 @@ export const getQuizQuestionsForQuiz = async (
     }
 };
 
-// Delete a quiz question
+export const getQuizQuestionsForTakingQuiz = async (
+    quizId: string,
+): Promise<ApiResponse<TakeQuizResponse>> => {
+    try {
+        const response = await apiClient.get(`/quiz-question/exam/${quizId}`);
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        return {
+            success: false,
+            error: getErrorMessage(error),
+        };
+    }
+};
+
 export const deleteQuizQuestion = async (
     questionId: string,
 ): Promise<ApiResponse> => {

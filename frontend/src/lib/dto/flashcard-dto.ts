@@ -2,34 +2,23 @@
  * Request
  */
 
-export interface CreateFlashcardSetRequest {
-    name: string;
-    icon?: string;
-    numFlashcards: number;
-    prompt: string;
-    additionalInstructions?: string;
-}
-
-export interface UpdateFlashcardSetRequest {
-    name?: string;
-    icon?: string;
+export interface CreateFlashcardRequest {
+    question: string;
+    answer: string;
+    hint?: string;
+    orderIndex: number;
 }
 
 export interface UpdateFlashcardRequest {
     question?: string;
     answer?: string;
     hint?: string;
-    instructions?: string;
-    mode?: "manual" | "AI";
+    orderIndex?: number;
 }
 
 /**
  * Response
  */
-
-export interface CreateFlashcardSetResponse {
-    flashcardSetId: string;
-}
 
 export interface FlashcardResponse {
     flashcardId: string;
@@ -39,15 +28,5 @@ export interface FlashcardResponse {
     isReviewed: boolean;
     isStarred: boolean;
     createdAt: string;
-}
-
-export interface FlashcardSetResponse {
-    flashcardSetId: string;
-    name: string;
-    icon?: string;
-    createdAt: string;
-    updatedAt: string;
-    totalCards: number;
-    reviewedCards: number;
-    starredCards: number;
+    orderIndex: number;
 }

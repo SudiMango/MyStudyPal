@@ -3,7 +3,7 @@ import {
     CreateFlashcardSetResponse,
     FlashcardSetResponse,
     UpdateFlashcardSetRequest,
-} from "../dto/flashcard-dto";
+} from "../dto/flashcard-set-dto";
 import { ApiResponse } from "../types/api";
 import { getErrorMessage } from "../util";
 import apiClient from "../client";
@@ -29,10 +29,13 @@ export const createFlashcardSet = async (
 export const updateFlashcardSet = async (
     flashcardSetId: string,
     payload: UpdateFlashcardSetRequest,
-): Promise<ApiResponse> => {
+): Promise<ApiResponse<FlashcardSetResponse>> => {
     try {
-        await apiClient.patch(`/flashcard-set/${flashcardSetId}`, payload);
-        return { success: true };
+        const response = await apiClient.patch(
+            `/flashcard-set/${flashcardSetId}`,
+            payload,
+        );
+        return { success: true, data: response.data };
     } catch (error: any) {
         return { success: false, error: getErrorMessage(error) };
     }

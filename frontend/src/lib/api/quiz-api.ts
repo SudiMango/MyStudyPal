@@ -1,8 +1,7 @@
 import {
     CreateQuizRequest,
     CreateQuizResponse,
-    OneQuizPage_QuizDetailsResponse,
-    QuizListPage_QuizDetailsResponse,
+    QuizResponse,
     UpdateQuizRequest,
 } from "../dto/quiz-dto";
 import { ApiResponse } from "../types/api";
@@ -29,7 +28,7 @@ export const createQuiz = async (
 // Get all quizzes for a study set
 export const getQuizzesForStudySet = async (
     studySetId: string,
-): Promise<ApiResponse<QuizListPage_QuizDetailsResponse[]>> => {
+): Promise<ApiResponse<QuizResponse[]>> => {
     try {
         const response = await apiClient.get(`/quiz/study-set/${studySetId}`);
         return { success: true, data: response.data };
@@ -44,7 +43,7 @@ export const getQuizzesForStudySet = async (
 // Get a single quiz by ID
 export const getOneQuizDetails = async (
     quizId: string,
-): Promise<ApiResponse<OneQuizPage_QuizDetailsResponse>> => {
+): Promise<ApiResponse<QuizResponse>> => {
     try {
         const response = await apiClient.get(`/quiz/${quizId}`);
         return { success: true, data: response.data };
@@ -60,7 +59,7 @@ export const getOneQuizDetails = async (
 export const updateQuiz = async (
     quizId: string,
     payload: UpdateQuizRequest,
-): Promise<ApiResponse<OneQuizPage_QuizDetailsResponse>> => {
+): Promise<ApiResponse<QuizResponse>> => {
     try {
         const response = await apiClient.patch(`/quiz/${quizId}`, payload);
         return { success: true, data: response.data };

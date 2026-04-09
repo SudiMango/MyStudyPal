@@ -1,5 +1,4 @@
-import { ListAttemptPage_QuizAttemptDetailsResponse } from "./quiz-attempt-dto";
-import { QuizQuestionResponse } from "./quiz-question-dto";
+import { QuestionType } from "./quiz-question-dto";
 
 /**
  * Request
@@ -7,9 +6,10 @@ import { QuizQuestionResponse } from "./quiz-question-dto";
 
 export interface CreateQuizRequest {
     name: string;
-    timeLimitMinutes: number;
+    numQuestions: number;
     prompt: string;
     additionalInstructions?: string;
+    allowedTypes: QuestionType[];
 }
 
 export interface UpdateQuizRequest {
@@ -24,26 +24,12 @@ export interface CreateQuizResponse {
     quizId: string;
 }
 
-export interface QuizListPage_QuizDetailsResponse {
+export interface QuizResponse {
     quizId: string;
     name: string;
-    timeLimitMinutes?: number;
     createdAt: string;
     updatedAt: string;
     totalQuestions: number;
     totalPoints: number;
     totalAttempts: number;
-}
-
-export interface OneQuizPage_QuizDetailsResponse {
-    quizId: string;
-    name: string;
-    timeLimitMinutes?: number;
-    createdAt: string;
-    updatedAt: string;
-    totalQuestions: number;
-    totalPoints: number;
-    totalAttempts: number;
-    questions: QuizQuestionResponse[];
-    attempts: ListAttemptPage_QuizAttemptDetailsResponse[];
 }

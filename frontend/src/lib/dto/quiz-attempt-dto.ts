@@ -8,9 +8,9 @@ export interface AnswerSubmission {
 export interface QuizAttemptAnswerResponse {
     answerId: string;
     userAnswer: string[];
-    isCorrect?: boolean;
+    isCorrect: boolean;
     pointsEarned: number;
-    question?: QuizQuestionResponse;
+    question: QuizQuestionResponse;
 }
 
 /**
@@ -30,19 +30,10 @@ export interface CreateQuizAttemptResponse {
     attemptId: string;
 }
 
-export interface ListAttemptPage_QuizAttemptDetailsResponse {
+export interface QuizAttemptResponse {
     attemptId: string;
     score: number;
     maxScore: number;
     startedAt: string;
     completedAt: string;
-}
-
-export interface OneAttemptPage_QuizAttemptDetailsResponse {
-    attemptId: string;
-    score: number;
-    maxScore: number;
-    startedAt: string;
-    completedAt: string;
-    questionsToAnswers: QuizAttemptAnswerResponse[];
 }

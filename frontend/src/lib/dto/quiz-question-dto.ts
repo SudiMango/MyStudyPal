@@ -19,7 +19,7 @@ export interface Quiz_QuizQuestionResponse {
  * Request
  */
 
-export interface CreateQuizQuestionManuallyRequest {
+export interface CreateQuizQuestionRequest {
     questionType: QuestionType;
     questionText: string;
     options: string[];
@@ -29,27 +29,13 @@ export interface CreateQuizQuestionManuallyRequest {
     orderIndex: number;
 }
 
-export interface CreateQuizQuestionWithAIRequest {
-    questionType: QuestionType;
-    orderIndex: number;
-    prompt: string;
-    additionalInstructions?: string;
-}
-
-export interface UpdateQuizQuestionManuallyRequest {
-    questionType?: QuestionType;
+export interface UpdateQuizQuestionRequest {
     questionText?: string;
     options?: string[];
     correctAnswers?: string[];
     hint?: string;
     points?: number;
     orderIndex?: number;
-}
-
-export interface UpdateQuizQuestionWithAIRequest {
-    questionType: QuestionType;
-    orderIndex: number;
-    prompt: string;
 }
 
 /**
