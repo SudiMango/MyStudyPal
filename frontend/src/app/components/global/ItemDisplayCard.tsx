@@ -87,7 +87,7 @@ const ItemDisplayCard = ({
                             e.stopPropagation();
                             action.onClick();
                         }}
-                        className="flex-1 bg-(--discord-gray-1) flex flex-row justify-center items-center space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2) cursor-pointer"
+                        className="flex-1 bg-(--discord-gray-1) flex flex-row justify-center items-center sm:space-x-3 p-3 rounded-lg outline outline-(--discord-blurple) hover:bg-(--discord-gray-2) cursor-pointer"
                     >
                         <span>{action.icon}</span>
                         <span className="hidden sm:inline">{action.label}</span>
