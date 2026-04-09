@@ -2,7 +2,6 @@ package com.sudimango.MyStudyPal.service.study.quiz;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,9 +11,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.QuizDto;
-import com.sudimango.MyStudyPal.dto.QuizQuestionDto;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.CreateQuizQuestionRequest;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
 import com.sudimango.MyStudyPal.dto.QuizQuestionDto.TakeQuizResponse;
+import com.sudimango.MyStudyPal.dto.QuizQuestionDto.UpdateQuizQuestionRequest;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.exception.AiJsonException;
@@ -44,34 +44,34 @@ public class QuizQuestionService {
         this.mapper = new ObjectMapper();
     }
 
-    public QuizQuestionResponse createQuestionManually(String quizId,
-            QuizQuestionDto.CreateQuizQuestionManuallyRequest request) {
+    @Transactional
+    public QuizQuestionResponse createQuestion(String quizId, CreateQuizQuestionRequest request) {
         Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found: " + quizId));
+
+        int maxIdx = quiz.getQuizQuestions().size();
+        int targetIndex = Math.max(1, Math.min(request.orderIndex(), maxIdx + 1));
+
+        quizQuestionRepository.incrementIndicesFrom(quizId, targetIndex);
 
         QuizQuestion question = QuizQuestion.builder().questionType(request.questionType())
                 .questionText(request.questionText()).options(request.options())
                 .correctAnswers(request.correctAnswers()).hint(request.hint()).points(request.points())
-                .orderIndex(request.orderIndex()).quiz(quiz).build();
+                .orderIndex(targetIndex).quiz(quiz).build();
 
-        return new QuizQuestionResponse(question);
+        return new QuizQuestionResponse(quizQuestionRepository.save(question));
     }
 
-    // TODO: Finish
-    public QuizQuestionResponse createQuestionWithAI(String quizId,
-            QuizQuestionDto.CreateQuizQuestionWithAIRequest request) {
-        return null;
-    }
-
-    public QuizQuestionResponse updateQuestionManually(String questionId,
-            QuizQuestionDto.UpdateQuizQuestionManuallyRequest request) {
+    @Transactional
+    public QuizQuestionResponse updateQuestion(String questionId, UpdateQuizQuestionRequest request) {
         QuizQuestion question = quizQuestionRepository.findById(questionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + questionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found: " + questionId));
+
+        Quiz quiz = quizRepository.findById(question.getQuiz().getQuizId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found: " + question.getQuiz().getQuizId()));
 
         if (Utils.hasText(request.questionText()))
             question.setQuestionText(request.questionText());
-        if (request.questionType() != null)
-            question.setQuestionType(request.questionType());
         if (request.options() != null)
             question.setOptions(request.options());
         if (request.correctAnswers() != null)
@@ -80,23 +80,40 @@ public class QuizQuestionService {
             question.setHint(request.hint());
         if (request.points() != null)
             question.setPoints(request.points());
-        if (request.orderIndex() != null)
-            question.setOrderIndex(request.orderIndex());
 
-        quizQuestionRepository.save(question);
-        return new QuizQuestionResponse(question);
+        if (request.orderIndex() != null && request.orderIndex() != question.getOrderIndex()) {
+            String quizId = question.getQuiz().getQuizId();
+            int oldIndex = question.getOrderIndex();
+            int maxIdx = quiz.getQuizQuestions().size();
+            int targetIndex = Math.max(1, Math.min(request.orderIndex(), maxIdx));
+
+            if (targetIndex != oldIndex) {
+                quizQuestionRepository.decrementOrderIndices(quizId, oldIndex);
+                quizQuestionRepository.incrementIndicesFrom(quizId, targetIndex);
+
+                question.setOrderIndex(targetIndex);
+            }
+        }
+
+        return new QuizQuestionResponse(quizQuestionRepository.save(question));
     }
 
-    // TODO: Finish
-    public QuizQuestionResponse updateQuestionWithAI(String questionId,
-            QuizQuestionDto.UpdateQuizQuestionWithAIRequest request) {
-        return null;
-    }
-
-    public TakeQuizResponse getQuizQuestionsForQuiz(String quizId) {
+    public TakeQuizResponse getQuizQuestionsForTakingQuiz(String quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
         return new TakeQuizResponse(quiz);
+    }
+
+    public List<QuizQuestionResponse> getQuizQuestionsForQuiz(String quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+
+        List<QuizQuestionResponse> questions = new ArrayList<>();
+        for (QuizQuestion q : quiz.getQuizQuestions()) {
+            questions.add(new QuizQuestionResponse(q));
+        }
+
+        return questions;
     }
 
     @Transactional
@@ -105,7 +122,7 @@ public class QuizQuestionService {
         // Get json of questions from AI
         String studySetId = quiz.getStudySet().getStudySetId();
         String response = geminiClient.generateQuizQuestionsForStudySet(studySetId, request.prompt(),
-                request.timeLimitMinutes(), request.additionalInstructions());
+                request.numQuestions(), request.additionalInstructions());
 
         if (response == null || response.trim().isEmpty()) {
             throw new EmptyAiResponseException("AI response for creating questions for the quiz was empty.");
@@ -122,19 +139,22 @@ public class QuizQuestionService {
             throw new AiJsonException("AI didn't return proper json format.");
         }
 
-        // Set relationships and order indices
-        AtomicInteger index = new AtomicInteger(0);
         for (QuizQuestion q : questions) {
             q.setQuiz(quiz);
-            q.setOrderIndex(index.getAndIncrement());
         }
 
         quizQuestionRepository.saveAll(questions);
     }
 
+    @Transactional
     public void deleteQuestion(String questionId) {
-        quizQuestionRepository.findById(questionId)
+        QuizQuestion question = quizQuestionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + questionId));
-        quizQuestionRepository.deleteById(questionId);
+
+        String quizId = question.getQuiz().getQuizId();
+        int deletedIndex = question.getOrderIndex();
+
+        quizQuestionRepository.delete(question);
+        quizQuestionRepository.decrementOrderIndices(quizId, deletedIndex);
     }
 }

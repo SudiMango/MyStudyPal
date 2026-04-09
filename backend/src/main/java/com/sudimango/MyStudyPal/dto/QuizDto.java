@@ -3,14 +3,18 @@ package com.sudimango.MyStudyPal.dto;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import com.sudimango.MyStudyPal.dto.QuizAttemptDto.ListAttemptPage_QuizAttemptDetailsResponse;
-import com.sudimango.MyStudyPal.dto.QuizQuestionDto.QuizQuestionResponse;
+import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 // @formatter:off
 public class QuizDto {
@@ -19,14 +23,15 @@ public class QuizDto {
      */
 
     public record CreateQuizRequest(
-        @NotBlank String name,
-        @NotNull int timeLimitMinutes,
+        @NotBlank @Size(min = 1, max = 50) String name,
+        @NotNull @Min(1) @Max(50) int numQuestions,
         @NotBlank String prompt,
-        String additionalInstructions
+        @Size(max = 150) String additionalInstructions,
+        @NotEmpty @Size(min = 1, max = 4) Set<QuestionType> allowedTypes
     ) {}
 
     public record UpdateQuizRequest(
-        String name
+        @Size(max = 50) String name
     ) {}
 
 
@@ -38,21 +43,19 @@ public class QuizDto {
         String quizId
     ) {}
 
-    public record QuizListPage_QuizDetailsResponse(
+    public record QuizResponse(
         String quizId,
         String name,
-        Integer timeLimitMinutes,
         Instant createdAt,
         Instant updatedAt,
         int totalQuestions,
         double totalPoints,
         int totalAttempts
     ) {
-        public QuizListPage_QuizDetailsResponse(Quiz quiz) {
+        public QuizResponse(Quiz quiz) {
             this(
                 quiz.getQuizId(),
                 quiz.getName(),
-                quiz.getTimeLimitMinutes(),
                 quiz.getCreatedAt(),
                 quiz.getUpdatedAt(),
                 Optional.ofNullable(quiz.getQuizQuestions()).map(List::size).orElse(0),
@@ -60,38 +63,6 @@ public class QuizDto {
                         .map(qs -> qs.stream().mapToDouble(QuizQuestion::getPoints).sum())
                         .orElse(0.0),
                 Optional.ofNullable(quiz.getQuizAttempts()).map(List::size).orElse(0)
-            );
-        }
-    }
-
-    public record OneQuizPage_QuizDetailsResponse(
-        String quizId,
-        String name,
-        Integer timeLimitMinutes,
-        Instant createdAt,
-        Instant updatedAt,
-        int totalQuestions,
-        double totalPoints,
-        int totalAttempts,
-        List<QuizQuestionResponse> questions,
-        List<ListAttemptPage_QuizAttemptDetailsResponse> attempts
-    ) {
-        public OneQuizPage_QuizDetailsResponse(Quiz quiz) {
-            this(
-                quiz.getQuizId(),
-                quiz.getName(),
-                quiz.getTimeLimitMinutes(),
-                quiz.getCreatedAt(),
-                quiz.getUpdatedAt(),
-                Optional.ofNullable(quiz.getQuizQuestions()).map(List::size).orElse(0),
-                Optional.ofNullable(quiz.getQuizQuestions())
-                        .map(qs -> qs.stream().mapToDouble(QuizQuestion::getPoints).sum())
-                        .orElse(0.0),
-                Optional.ofNullable(quiz.getQuizAttempts()).map(List::size).orElse(0),
-                quiz.getQuizQuestions() == null ? List.of() : 
-                    quiz.getQuizQuestions().stream().map(QuizQuestionResponse::new).toList(),
-                quiz.getQuizAttempts() == null ? List.of() : 
-                    quiz.getQuizAttempts().stream().map(ListAttemptPage_QuizAttemptDetailsResponse::new).toList()
             );
         }
     }

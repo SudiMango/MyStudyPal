@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import com.sudimango.MyStudyPal.dto.FlashcardDto;
-import com.sudimango.MyStudyPal.dto.FlashcardDto.CreateFlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.FlashcardDto.FlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.FlashcardDto.UpdateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.UpdateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
@@ -33,8 +33,7 @@ public class FlashcardSetService {
 
     @Transactional
     @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
-    public FlashcardDto.CreateFlashcardSetResponse createFlashcardSet(FlashcardDto.CreateFlashcardSetRequest request,
-            String studySetId) {
+    public CreateFlashcardSetResponse createFlashcardSet(CreateFlashcardSetRequest request, String studySetId) {
 
         StudySet studySet = studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new RuntimeException("Study set not found: " + studySetId));

@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.sudimango.MyStudyPal.dto.QuizDto;
+import com.sudimango.MyStudyPal.dto.QuizDto.QuizResponse;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
@@ -35,8 +36,7 @@ public class QuizService {
         StudySet studySet = studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id: " + studySetId));
 
-        Quiz quiz = Quiz.builder().name(request.name()).timeLimitMinutes(request.timeLimitMinutes()).studySet(studySet)
-                .build();
+        Quiz quiz = Quiz.builder().name(request.name()).studySet(studySet).build();
         quizRepository.save(quiz);
 
         quizQuestionService.createQuestionsForQuiz(request, quiz);
@@ -45,30 +45,30 @@ public class QuizService {
     }
 
     @PreAuthorize("@resourceAuthorizationService.canAccessStudySet(#studySetId, authentication.principal.userId)")
-    public List<QuizDto.QuizListPage_QuizDetailsResponse> getQuizzesForStudySet(String studySetId) {
+    public List<QuizResponse> getQuizzesForStudySet(String studySetId) {
         studySetRepository.findById(studySetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Study set not found with id: " + studySetId));
 
         List<Quiz> quizzes = quizRepository.findAllByStudySet_StudySetId(studySetId);
 
-        List<QuizDto.QuizListPage_QuizDetailsResponse> responses = new ArrayList<>();
+        List<QuizResponse> responses = new ArrayList<>();
         for (Quiz q : quizzes) {
-            responses.add(new QuizDto.QuizListPage_QuizDetailsResponse(q));
+            responses.add(new QuizResponse(q));
         }
 
         return responses;
     }
 
     @PreAuthorize("@resourceAuthorizationService.canAccessQuiz(#quizId, authentication.principal.userId)")
-    public QuizDto.OneQuizPage_QuizDetailsResponse getOneQuizDetails(String quizId) {
+    public QuizResponse getOneQuizDetails(String quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
-        return new QuizDto.OneQuizPage_QuizDetailsResponse(quiz);
+        return new QuizResponse(quiz);
     }
 
     @PreAuthorize("@resourceAuthorizationService.canAccessQuiz(#quizId, authentication.principal.userId)")
-    public QuizDto.OneQuizPage_QuizDetailsResponse updateQuiz(String quizId, QuizDto.UpdateQuizRequest request) {
+    public QuizResponse updateQuiz(String quizId, QuizDto.UpdateQuizRequest request) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
 
@@ -77,7 +77,7 @@ public class QuizService {
         }
 
         quizRepository.save(quiz);
-        return new QuizDto.OneQuizPage_QuizDetailsResponse(quiz);
+        return new QuizResponse(quiz);
     }
 
     @PreAuthorize("@resourceAuthorizationService.canAccessQuiz(#quizId, authentication.principal.userId)")

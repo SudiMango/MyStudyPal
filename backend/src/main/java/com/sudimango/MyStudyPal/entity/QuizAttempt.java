@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,29 +29,30 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class QuizAttempt {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String attemptId;
-    
+
     @Column(nullable = false)
     private double score;
-    
+
     @Column(nullable = false)
     private double maxScore;
-    
+
     @Column(nullable = false)
     private Instant startedAt;
-    
+
     @Column(nullable = false)
     private Instant completedAt;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
     @JsonIgnore
     private Quiz quiz;
-    
+
     @OneToMany(mappedBy = "quizAttempt", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
+    @OrderBy("quizQuestion ASC")
     private List<QuizAttemptAnswer> quizAttemptAnswers;
 }

@@ -12,7 +12,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.FlashcardDto;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.CreateFlashcardRequest;
 import com.sudimango.MyStudyPal.dto.FlashcardDto.FlashcardResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.entity.Flashcard;
 import com.sudimango.MyStudyPal.entity.FlashcardSet;
 import com.sudimango.MyStudyPal.exception.AiJsonException;
@@ -41,11 +43,27 @@ public class FlashcardService {
         mapper = new ObjectMapper();
     }
 
+    @Transactional
+    public FlashcardResponse createFlashcard(String flashcardSetId, CreateFlashcardRequest request) {
+        FlashcardSet set = flashcardSetRepository.findById(flashcardSetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Flashcard set not found"));
+
+        int maxIdx = set.getFlashcards().size();
+        int targetIndex = Math.max(1, Math.min(request.orderIndex(), maxIdx + 1));
+
+        flashcardRepository.incrementIndicesFrom(flashcardSetId, targetIndex);
+
+        Flashcard flashcard = Flashcard.builder().question(request.question()).answer(request.answer())
+                .hint(request.hint()).orderIndex(targetIndex).flashcardSet(set).build();
+
+        return new FlashcardResponse(flashcardRepository.save(flashcard));
+    }
+
     /**
      * Create flashcards for a set
      */
     @Transactional
-    public void createFlashcardsForSet(FlashcardDto.CreateFlashcardSetRequest request, FlashcardSet set) {
+    public void createFlashcardsForSet(CreateFlashcardSetRequest request, FlashcardSet set) {
         String studySetId = set.getStudySet().getStudySetId();
 
         String response = geminiClient.generateFlashcardsForStudySet(studySetId, request.prompt(),
@@ -78,13 +96,11 @@ public class FlashcardService {
     */
     @PreAuthorize("@resourceAuthorizationService.canAccessFlashcardSet(#setId, authentication.principal.userId)")
     public List<FlashcardResponse> getAllFlashcardsOfSet(String setId) {
-        flashcardSetRepository.findById(setId)
+        FlashcardSet set = flashcardSetRepository.findById(setId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard set not found: " + setId));
 
         List<FlashcardResponse> lst = new ArrayList<>();
-
-        List<Flashcard> flashcards = flashcardRepository.getByFlashcardSet_FlashcardSetIdOrderByCreatedAtAsc(setId);
-        for (Flashcard f : flashcards) {
+        for (Flashcard f : set.getFlashcards()) {
             lst.add(new FlashcardResponse(f));
         }
 
@@ -118,59 +134,52 @@ public class FlashcardService {
     /**
     * Delete a flashcard
     */
+    @Transactional
     @PreAuthorize("@resourceAuthorizationService.canAccessFlashcard(#flashcardId, authentication.principal.userId)")
     public void deleteFlashcard(String flashcardId) {
-        flashcardRepository.findById(flashcardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Flashcard not found: " + flashcardId));
-        flashcardRepository.deleteById(flashcardId);
+        Flashcard flashcard = flashcardRepository.findById(flashcardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Flashcard not found"));
+
+        String setId = flashcard.getFlashcardSet().getFlashcardSetId();
+        int deletedIndex = flashcard.getOrderIndex();
+
+        flashcardRepository.delete(flashcard);
+        flashcardRepository.decrementIndicesFrom(setId, deletedIndex);
     }
 
     /**
     * Update a flashcard
     */
+    @Transactional
     @PreAuthorize("@resourceAuthorizationService.canAccessFlashcard(#flashcardId, authentication.principal.userId)")
     public FlashcardDto.FlashcardResponse updateFlashcard(String flashcardId,
             FlashcardDto.UpdateFlashcardRequest request) {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard not found: " + flashcardId));
 
-        if (request.mode().equals("manual")) {
-            if (request.question() != null && !request.question().isBlank()) {
-                flashcard.setQuestion(request.question());
+        FlashcardSet set = flashcardSetRepository.findById(flashcard.getFlashcardSet().getFlashcardSetId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Flashcard set not found with id: " + flashcard.getFlashcardSet().getFlashcardSetId()));
+
+        if (request.question() != null && !request.question().isBlank())
+            flashcard.setQuestion(request.question());
+        if (request.answer() != null && !request.answer().isBlank())
+            flashcard.setAnswer(request.answer());
+        if (request.hint() != null && !request.hint().isBlank())
+            flashcard.setHint(request.hint());
+
+        int oldIndex = flashcard.getOrderIndex();
+        String setId = flashcard.getFlashcardSet().getFlashcardSetId();
+
+        if (request.orderIndex() != oldIndex) {
+            int maxIdx = set.getFlashcards().size();
+            int targetIndex = Math.max(1, Math.min(request.orderIndex(), maxIdx));
+
+            if (targetIndex != oldIndex) {
+                flashcardRepository.decrementIndicesFrom(setId, oldIndex);
+                flashcardRepository.incrementIndicesFrom(setId, targetIndex);
+                flashcard.setOrderIndex(targetIndex);
             }
-
-            if (request.answer() != null && !request.answer().isBlank()) {
-                flashcard.setAnswer(request.answer());
-            }
-
-            if (request.hint() != null && !request.hint().isBlank()) {
-                flashcard.setHint(request.hint());
-            }
-        } else if (request.mode().equals("AI")) {
-            StringBuilder currFlashcard = new StringBuilder();
-            currFlashcard.append("Question: ").append(flashcard.getQuestion()).append(", ").append("Answer: ")
-                    .append(flashcard.getAnswer()).append(", ").append("Hint: ").append(flashcard.getHint())
-                    .append("\n\n").append(request.instructions());
-
-            String studySetId = flashcard.getFlashcardSet().getStudySet().getStudySetId();
-            String query = currFlashcard.toString() + "\n\n" + request.instructions();
-
-            String context = geminiClient.getContextFromStudySet(studySetId, query);
-            String response = geminiClient.editFlashcard(context, currFlashcard.toString(), request.instructions());
-
-            String cleaned = response.replace("```json", "").replace("```", "").trim();
-
-            Flashcard newFlashcard;
-            try {
-                newFlashcard = mapper.readValue(cleaned, new TypeReference<Flashcard>() {
-                });
-            } catch (JsonProcessingException e) {
-                throw new AiJsonException("AI didn't return proper json format.");
-            }
-
-            flashcard.setQuestion(newFlashcard.getQuestion());
-            flashcard.setAnswer(newFlashcard.getAnswer());
-            flashcard.setHint(newFlashcard.getHint());
         }
 
         Flashcard saved = flashcardRepository.save(flashcard);

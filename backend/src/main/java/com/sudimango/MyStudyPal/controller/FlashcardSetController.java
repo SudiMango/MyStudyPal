@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.FlashcardDto;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.UpdateFlashcardSetRequest;
 import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardSetService;
 
 import jakarta.validation.Valid;
@@ -34,8 +37,8 @@ public class FlashcardSetController {
      * @param studySetId - id of study set
      * @param flashcardSetRequest - request body
      * 
-     * @see FlashcardDto.CreateFlashcardSetRequest CreateFlashcardSetRequest class for request body structure
-     * @see FlashcardDto.CreateFlashcardSetResponse CreateFlashcardSetResponse class for response body structure
+     * @see CreateFlashcardSetRequest CreateFlashcardSetRequest class for request body structure
+     * @see CreateFlashcardSetResponse CreateFlashcardSetResponse class for response body structure
      * 
      * @return
      * {@code HTTP 201} - Flashcard set and flashcards created successfully
@@ -46,10 +49,9 @@ public class FlashcardSetController {
      * {@code HTTP 422} - Validation errors with request body
      */
     @PostMapping("/{studySetId}")
-    public ResponseEntity<FlashcardDto.CreateFlashcardSetResponse> createFlashcardSet(@PathVariable String studySetId,
-            @Valid @RequestBody FlashcardDto.CreateFlashcardSetRequest flashcardSetRequest) {
-        FlashcardDto.CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest,
-                studySetId);
+    public ResponseEntity<CreateFlashcardSetResponse> createFlashcardSet(@PathVariable String studySetId,
+            @Valid @RequestBody CreateFlashcardSetRequest flashcardSetRequest) {
+        CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, studySetId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -60,19 +62,18 @@ public class FlashcardSetController {
      * 
      * @param studySetId - id of study set
      * 
-     * @see FlashcardDto.FlashcardSetResponse FlashcardSetResponse class for response body structure
+     * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
      * 
      * @return
-     * {@code List<FlashcardDto.FlashcardSetResponse> HTTP 200} - Retrieved all flashcard sets successfully
+     * {@code List<FlashcardSetResponse> HTTP 200} - Retrieved all flashcard sets successfully
      * 
      * @throws
      * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set not found
      */
     @GetMapping("/study-set/{studySetId}")
-    public ResponseEntity<List<FlashcardDto.FlashcardSetResponse>> getFlashcardSets(@PathVariable String studySetId) {
-        List<FlashcardDto.FlashcardSetResponse> flashcardSets = flashcardSetService
-                .getFlashcardSetsForStudySet(studySetId);
+    public ResponseEntity<List<FlashcardSetResponse>> getFlashcardSets(@PathVariable String studySetId) {
+        List<FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSetsForStudySet(studySetId);
         return ResponseEntity.status(HttpStatus.OK).body(flashcardSets);
     }
 
@@ -83,7 +84,7 @@ public class FlashcardSetController {
      * 
      * @param flashcardSetId - id of flashcard set
      * 
-     * @see FlashcardDto.FlashcardSetResponse FlashcardSetResponse class for response body structure
+     * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
      * 
      * @return
      * {@code HTTP 200} - Retrieved flashcard set successfully
@@ -93,8 +94,8 @@ public class FlashcardSetController {
      * {@code HTTP 404} - flashcard set not found
      */
     @GetMapping("/{flashcardSetId}")
-    public ResponseEntity<FlashcardDto.FlashcardSetResponse> getOneFlashcardSet(@PathVariable String flashcardSetId) {
-        FlashcardDto.FlashcardSetResponse flashcardSet = flashcardSetService.getOneFlashcardSet(flashcardSetId);
+    public ResponseEntity<FlashcardSetResponse> getOneFlashcardSet(@PathVariable String flashcardSetId) {
+        FlashcardSetResponse flashcardSet = flashcardSetService.getOneFlashcardSet(flashcardSetId);
         return ResponseEntity.status(HttpStatus.OK).body(flashcardSet);
     }
 
@@ -106,8 +107,8 @@ public class FlashcardSetController {
      * @param flashcardSetId - id of flashcard set
      * @param updateFlashcardSetRequest - request body
      * 
-     * @see FlashcardDto.UpdateFlashcardSetRequest UpdateFlashcardSetRequest class for request body structure
-     * @see FlashcardDto.FlashcardSetResponse FlashcardSetResponse class for response body structure
+     * @see UpdateFlashcardSetRequest UpdateFlashcardSetRequest class for request body structure
+     * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
      * 
      * @return
      * {@code FlashcardSetResponse HTTP 200} - Updated flashcard set successfully
@@ -119,9 +120,8 @@ public class FlashcardSetController {
      */
     @PatchMapping("/{flashcardSetId}")
     public ResponseEntity<?> updateFlashcardSet(@PathVariable String flashcardSetId,
-            @Valid @RequestBody FlashcardDto.UpdateFlashcardSetRequest updateFlashcardSetRequest) {
-        FlashcardDto.FlashcardSetResponse set = flashcardSetService.updateFlashcardSet(flashcardSetId,
-                updateFlashcardSetRequest);
+            @Valid @RequestBody UpdateFlashcardSetRequest updateFlashcardSetRequest) {
+        FlashcardSetResponse set = flashcardSetService.updateFlashcardSet(flashcardSetId, updateFlashcardSetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(set);
     }
 

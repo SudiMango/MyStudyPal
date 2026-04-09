@@ -18,6 +18,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,17 +32,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class Quiz {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String quizId;
-    
+
     @Column(nullable = false)
     private String name;
-    
-    @Column(nullable = false)
-    private Integer timeLimitMinutes;
-    
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -49,16 +47,18 @@ public class Quiz {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_set_id", nullable = false)
     private StudySet studySet;
-    
+
     @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
+    @OrderBy("orderIndex ASC")
     private List<QuizQuestion> quizQuestions;
-    
+
     @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
+    @OrderBy("completedAt DESC")
     private List<QuizAttempt> quizAttempts;
 }

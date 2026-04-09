@@ -56,44 +56,20 @@ public class QuizAttemptDto {
         String attemptId
     ) {}
 
-    public record ListAttemptPage_QuizAttemptDetailsResponse(
+    public record QuizAttemptResponse(
         String attemptId,
         double score,
         double maxScore,
         Instant startedAt,
         Instant completedAt
     ) {
-        public ListAttemptPage_QuizAttemptDetailsResponse(QuizAttempt attempt) {
+        public QuizAttemptResponse(QuizAttempt attempt) {
             this(
                 attempt.getAttemptId(),
                 attempt.getScore(),
                 attempt.getMaxScore(),
                 attempt.getStartedAt(),
                 attempt.getCompletedAt()
-            );
-        }
-    }
-
-    public record OneAttemptPage_QuizAttemptDetailsResponse(
-        String attemptId,
-        double score,
-        double maxScore,
-        Instant startedAt,
-        Instant completedAt,
-        List<QuizAttemptAnswerResponse> questionsToAnswers
-    ) {
-        public OneAttemptPage_QuizAttemptDetailsResponse(QuizAttempt attempt) {
-            this(
-                attempt.getAttemptId(),
-                attempt.getScore(),
-                attempt.getMaxScore(),
-                attempt.getStartedAt(),
-                attempt.getCompletedAt(),
-                Optional.ofNullable(attempt.getQuizAttemptAnswers())
-                .map(answers -> answers.stream()
-                    .map(QuizAttemptAnswerResponse::new)
-                    .toList())
-                .orElse(null)
             );
         }
     }

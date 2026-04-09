@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.sudimango.MyStudyPal.dto.QuizDto;
 import com.sudimango.MyStudyPal.dto.QuizDto.CreateQuizRequest;
 import com.sudimango.MyStudyPal.dto.QuizDto.CreateQuizResponse;
-import com.sudimango.MyStudyPal.dto.QuizDto.OneQuizPage_QuizDetailsResponse;
+import com.sudimango.MyStudyPal.dto.QuizDto.QuizResponse;
 import com.sudimango.MyStudyPal.dto.QuizDto.UpdateQuizRequest;
 import com.sudimango.MyStudyPal.service.study.quiz.QuizService;
 
@@ -65,9 +65,8 @@ public class QuizController {
      * {@code HTTP 404} - Study set not found
      */
     @GetMapping("/study-set/{studySetId}")
-    public ResponseEntity<List<QuizDto.QuizListPage_QuizDetailsResponse>> getQuizzesForStudySet(
-            @PathVariable String studySetId) {
-        List<QuizDto.QuizListPage_QuizDetailsResponse> responses = quizService.getQuizzesForStudySet(studySetId);
+    public ResponseEntity<List<QuizResponse>> getQuizzesForStudySet(@PathVariable String studySetId) {
+        List<QuizResponse> responses = quizService.getQuizzesForStudySet(studySetId);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
@@ -88,8 +87,8 @@ public class QuizController {
      * {@code HTTP 404} - quiz not found
      */
     @GetMapping("/{quizId}")
-    public ResponseEntity<QuizDto.OneQuizPage_QuizDetailsResponse> getOneQuizDetails(@PathVariable String quizId) {
-        QuizDto.OneQuizPage_QuizDetailsResponse response = quizService.getOneQuizDetails(quizId);
+    public ResponseEntity<QuizResponse> getOneQuizDetails(@PathVariable String quizId) {
+        QuizResponse response = quizService.getOneQuizDetails(quizId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -113,9 +112,9 @@ public class QuizController {
      * {@code HTTP 422} - Validation errors with request body
      */
     @PatchMapping("/{quizId}")
-    public ResponseEntity<QuizDto.OneQuizPage_QuizDetailsResponse> updateQuiz(@PathVariable String quizId,
+    public ResponseEntity<QuizResponse> updateQuiz(@PathVariable String quizId,
             @Valid @RequestBody QuizDto.UpdateQuizRequest updateQuizRequest) {
-        QuizDto.OneQuizPage_QuizDetailsResponse response = quizService.updateQuiz(quizId, updateQuizRequest);
+        QuizResponse response = quizService.updateQuiz(quizId, updateQuizRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

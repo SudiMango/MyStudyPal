@@ -18,8 +18,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -58,20 +58,6 @@ public class FlashcardSet {
 
     @OneToMany(mappedBy = "flashcardSet", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
+    @OrderBy("orderIndex ASC")
     private List<Flashcard> flashcards;
-
-    @Transient
-    public int getTotalCards() {
-        return flashcards != null ? flashcards.size() : 0;
-    }
-
-    @Transient
-    public int getReviewedCards() {
-        return flashcards != null ? (int) flashcards.stream().filter(Flashcard::isReviewed).count() : 0;
-    }
-
-    @Transient
-    public int getStarredCards() {
-        return flashcards != null ? (int) flashcards.stream().filter(Flashcard::isStarred).count() : 0;
-    }
 }

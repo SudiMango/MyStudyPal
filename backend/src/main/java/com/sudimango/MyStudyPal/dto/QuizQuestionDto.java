@@ -40,7 +40,7 @@ public class QuizQuestionDto {
      * Request
      */
 
-    public record CreateQuizQuestionManuallyRequest(
+    public record CreateQuizQuestionRequest(
         @NotNull QuestionType questionType,
         @NotBlank String questionText,
         @NotEmpty List<String> options,
@@ -50,27 +50,13 @@ public class QuizQuestionDto {
         @NotNull Integer orderIndex
     ) {}
 
-    public record CreateQuizQuestionWithAIRequest(
-        @NotNull QuestionType questionType,
-        @NotNull Integer orderIndex,
-        @NotBlank String prompt,
-        String additionalInstructions
-    ) {}
-
-    public record UpdateQuizQuestionManuallyRequest(
-        QuestionType questionType,
+    public record UpdateQuizQuestionRequest(
         String questionText,
         List<String> options,
         List<String> correctAnswers,
         String hint,
         Double points,
         Integer orderIndex
-    ) {}
-
-    public record UpdateQuizQuestionWithAIRequest(
-        @NotNull QuestionType questionType,
-        @NotNull Integer orderIndex,
-        @NotBlank String prompt
     ) {}
 
     /**

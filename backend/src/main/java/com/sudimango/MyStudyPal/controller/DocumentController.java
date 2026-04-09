@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sudimango.MyStudyPal.dto.DocumentDto;
+import com.sudimango.MyStudyPal.dto.DocumentDto.DocumentResponse;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.service.other.DocumentService;
 
@@ -61,15 +61,15 @@ public class DocumentController {
      * @param studySetId - id of study set
      * 
      * @return
-     * {@code DocumentResponse HTTP 200} - Documents retrieved successfully
+     * {@code List<DocumentResponse> HTTP 200} - Documents retrieved successfully
      * 
      * @throws
      * {@code HTTP 403} - Current user doesn't own this resource
      * {@code HTTP 404} - Study set/user not found
      */
     @GetMapping("/{studySetId}")
-    public ResponseEntity<?> getAllDocumentsForStudySet(@PathVariable String studySetId) {
-        List<DocumentDto.DocumentResponse> documents = documentService.getAllDocumentsForStudySet(studySetId);
+    public ResponseEntity<List<DocumentResponse>> getAllDocumentsForStudySet(@PathVariable String studySetId) {
+        List<DocumentResponse> documents = documentService.getAllDocumentsForStudySet(studySetId);
         return ResponseEntity.ok(documents);
     }
 

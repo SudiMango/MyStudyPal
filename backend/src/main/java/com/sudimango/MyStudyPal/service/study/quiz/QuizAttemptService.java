@@ -17,7 +17,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.AnswerSubmission;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptRequest;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.CreateQuizAttemptResponse;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.QuizAttemptAnswerResponse;
+import com.sudimango.MyStudyPal.dto.QuizAttemptDto.QuizAttemptResponse;
 import com.sudimango.MyStudyPal.dto.QuizAttemptDto.ShortAnswerGradingResponse;
 import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
@@ -54,8 +57,7 @@ public class QuizAttemptService {
 
     @Transactional
     @PreAuthorize("@resourceAuthorizationService.canAccessQuiz(#quizId, authentication.principal.userId)")
-    public QuizAttemptDto.CreateQuizAttemptResponse submitAttempt(String quizId,
-            QuizAttemptDto.CreateQuizAttemptRequest request) {
+    public CreateQuizAttemptResponse submitAttempt(String quizId, CreateQuizAttemptRequest request) {
 
         // Find quiz to grade
         Quiz quiz = quizRepository.findById(quizId)
@@ -119,11 +121,37 @@ public class QuizAttemptService {
     }
 
     @PreAuthorize("@resourceAuthorizationService.canAccessQuizAttempt(#attemptId, authentication.principal.userId)")
-    public QuizAttemptDto.OneAttemptPage_QuizAttemptDetailsResponse getOneAttempt(String attemptId) {
+    public QuizAttemptResponse getOneAttempt(String attemptId) {
         QuizAttempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz attempt not found with id: " + attemptId));
 
-        return new QuizAttemptDto.OneAttemptPage_QuizAttemptDetailsResponse(attempt);
+        return new QuizAttemptResponse(attempt);
+    }
+
+    @PreAuthorize("@resourceAuthorizationService.canAccessQuiz(#quizId, authentication.principal.userId)")
+    public List<QuizAttemptResponse> getAllAttemptsForQuiz(String quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + quizId));
+
+        List<QuizAttemptResponse> response = new ArrayList<>();
+        for (QuizAttempt q : quiz.getQuizAttempts()) {
+            response.add(new QuizAttemptResponse(q));
+        }
+
+        return response;
+    }
+
+    @PreAuthorize("@resourceAuthorizationService.canAccessQuizAttempt(#attemptId, authentication.principal.userId)")
+    public List<QuizAttemptAnswerResponse> getAttemptAnswers(String attemptId) {
+        QuizAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz attempt not found with id: " + attemptId));
+
+        List<QuizAttemptAnswerResponse> response = new ArrayList<>();
+        for (QuizAttemptAnswer qa : attempt.getQuizAttemptAnswers()) {
+            response.add(new QuizAttemptAnswerResponse(qa));
+        }
+
+        return response;
     }
 
     /**
@@ -190,15 +218,17 @@ public class QuizAttemptService {
         }
 
         double pointsPerCorrectAnswer = maxPoints / correctAnswers.size();
-        double ret = 0;
+        double totalScore = 0;
 
-        for (String a : userAnswers) {
-            if (correctAnswers.contains(a)) {
-                ret += pointsPerCorrectAnswer;
+        for (String answer : userAnswers) {
+            if (correctAnswers.contains(answer)) {
+                totalScore += pointsPerCorrectAnswer;
+            } else {
+                totalScore -= pointsPerCorrectAnswer;
             }
         }
 
-        return Math.clamp(ret, 0, maxPoints);
+        return Math.clamp(totalScore, 0.0, maxPoints);
     }
 
     private double getScoreForMultipleChoice(List<String> correctAnswers, List<String> userAnswers, double maxPoints) {

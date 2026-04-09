@@ -32,41 +32,42 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class QuizQuestion {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String questionId;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private QuestionType questionType;
-    
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> options;
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> correctAnswers;
 
     @Column(columnDefinition = "TEXT")
     private String hint;
-    
+
     @Column(nullable = false)
     @Builder.Default
     private double points = 1.0;
-    
+
     @Column(nullable = false)
-    private int orderIndex;
-    
+    @Builder.Default
+    private int orderIndex = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
     @JsonIgnore
     private Quiz quiz;
-    
+
     @OneToMany(mappedBy = "quizQuestion", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<QuizAttemptAnswer> quizAttemptAnswers;
