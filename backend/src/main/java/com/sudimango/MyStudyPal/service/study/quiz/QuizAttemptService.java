@@ -89,7 +89,7 @@ public class QuizAttemptService {
             if (question.getQuestionType() == QuestionType.SHORT_ANSWER) {
                 qtoa.add(new AbstractMap.SimpleEntry<>(attemptQuestion, submission));
             } else {
-                double pointsToGive = getPointsForAnswer(attemptQuestion, submission.userAnswer());
+                double pointsToGive = roundToTwoDecimals(getPointsForAnswer(attemptQuestion, submission.userAnswer()));
 
                 QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt)
                         .quizAttemptQuestion(attemptQuestion)
@@ -120,7 +120,7 @@ public class QuizAttemptService {
         }
 
         AbstractMap.SimpleEntry<Double, Double> shortAnswerGrades = gradeShortAnswerQuestions(qtoa, attempt);
-        attempt.setScore(totalEarned + shortAnswerGrades.getKey());
+        attempt.setScore(roundToTwoDecimals(totalEarned + shortAnswerGrades.getKey()));
         attempt.setMaxScore(totalPossible + shortAnswerGrades.getValue());
 
         QuizAttempt saved = attemptRepository.save(attempt);
@@ -291,17 +291,22 @@ public class QuizAttemptService {
         for (AbstractMap.SimpleEntry<QuizAttemptQuestion, AnswerSubmission> entry : qtoa) {
             QuizAttemptQuestion key = entry.getKey();
             AnswerSubmission value = entry.getValue();
+            double roundedScore = roundToTwoDecimals(grades.get(gradeIndex).score());
 
             QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt).quizAttemptQuestion(key)
-                    .userAnswer(value.userAnswer()).isCorrect(grades.get(gradeIndex).score() > 0.0 ? true : false)
-                    .pointsEarned(grades.get(gradeIndex).score()).build();
+                    .userAnswer(value.userAnswer()).isCorrect(roundedScore > 0.0 ? true : false)
+                    .pointsEarned(roundedScore).build();
 
             attempt.getQuizAttemptAnswers().add(answerRecord);
-            totalEarned += grades.get(gradeIndex).score();
+            totalEarned += roundedScore;
             gradeIndex++;
         }
 
         return new AbstractMap.SimpleEntry<>(totalEarned, totalPossible);
+    }
+
+    private double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     private Map<String, QuizAttemptQuestion> createQuestionSnapshots(QuizAttempt attempt, List<QuizQuestion> questions) {
