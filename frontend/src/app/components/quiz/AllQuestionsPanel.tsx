@@ -10,12 +10,12 @@ import {
 } from "lucide-react";
 import ConfirmationModal from "../global/ConfirmationModal";
 import SettingsDropdown from "../global/SettingsDropdown";
-import EditQuizQuestionModal from "./EditQuizQuestionModal";
 import {
     deleteQuizQuestion,
     updateQuizQuestion,
 } from "@/lib/api/quiz-question-api";
 import { QuizQuestionResponse } from "@/lib/dto/quiz-question-dto";
+import { toast } from "sonner";
 
 interface QuestionListProps {
     questions: QuizQuestionResponse[];
@@ -114,7 +114,7 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
         if (response.success) {
             onQuestionDeleted(questionToDelete.questionId);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsDeleteModalOpen(false);
@@ -159,14 +159,14 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
             setEditingQuestion(null);
             setShowDropdown(null);
         } else {
-            alert(response.error || "Failed to update question");
+            toast.error(response.error || "Failed to update question");
         }
     };
 
     return (
         <div className="bg-(--discord-gray-3) w-full rounded-xl shadow-lg p-5 mt-5 outline outline-(--discord-blurple) flex flex-col">
             {/* Edit */}
-            <EditQuizQuestionModal
+            {/* <EditQuizQuestionModal
                 isOpen={isEditModalOpen}
                 questionData={editingQuestion}
                 onConfirm={handleConfirmUpdate}
@@ -175,7 +175,7 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
                     setEditingQuestion(null);
                 }}
                 isLoading={isUpdating}
-            />
+            /> */}
 
             {/* Delete */}
             <ConfirmationModal

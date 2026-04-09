@@ -17,6 +17,7 @@ import ItemDisplayCard from "../global/ItemDisplayCard";
 import { FieldConfig } from "@/lib/types/modal";
 import AbstractModal from "../global/AbstractModal";
 import { FlashcardSetResponse } from "@/lib/dto/flashcard-set-dto";
+import { toast } from "sonner";
 
 const CREATE_FLASHCARD_SET_FIELDS: FieldConfig[] = [
     { key: "icon", type: "emoji", label: "Icon", row: 1, width: "w-12" },
@@ -132,7 +133,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
         if (response.data) {
             setFlashcardSets(response.data);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsLoading(false);
     };
@@ -177,7 +178,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
                 `/app/study-sets/${studySetId}/flashcard-sets/${flashcardSetId}`,
             );
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsCreating(false);
@@ -209,7 +210,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
             setEditingSet(null);
             setShowDropdown(null);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsUpdating(false);
@@ -230,7 +231,7 @@ const FlashcardSetsTab: React.FC<FlashcardSetsTabProps> = ({ studySetId }) => {
         if (!response.error) {
             fetchFlashcardSets();
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsDeleteModalOpen(false);

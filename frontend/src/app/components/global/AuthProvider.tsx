@@ -15,6 +15,7 @@ import {
     logoutFromApp,
 } from "@/lib/api/auth-api";
 import { UserDetailsResponse } from "@/lib/dto/auth-dto";
+import { toast } from "sonner";
 
 interface AuthContextType {
     isAuthenticated: boolean;
@@ -102,27 +103,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setIsAuthenticated(false);
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
     };
 
-    const isAppRoute = pathname.startsWith("/app");
+    // const isAppRoute = pathname.startsWith("/app");
 
-    if (isLoading && isAppRoute) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Loading...</p>
-            </div>
-        );
-    }
+    // if (isLoading && isAppRoute) {
+    //     return (
+    //         <div className="flex items-center justify-center h-screen">
+    //             <p>Loading...</p>
+    //         </div>
+    //     );
+    // }
 
-    if (!isAuthenticated && isAppRoute) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Redirecting to login...</p>
-            </div>
-        );
-    }
+    // if (!isAuthenticated && isAppRoute) {
+    //     return (
+    //         <div className="flex items-center justify-center h-screen">
+    //             <p>Redirecting to login...</p>
+    //         </div>
+    //     );
+    // }
 
     return (
         <AuthContext.Provider

@@ -16,11 +16,10 @@ import {
     LightbulbOff,
     Lightbulb,
 } from "lucide-react";
-import {
-    getQuizQuestionsForTakingQuiz,
-} from "@/lib/api/quiz-question-api";
+import { getQuizQuestionsForTakingQuiz } from "@/lib/api/quiz-question-api";
 import { AnswerSubmission } from "@/lib/dto/quiz-attempt-dto";
 import { TakeQuizResponse } from "@/lib/dto/quiz-question-dto";
+import { toast } from "sonner";
 
 type Answers = Record<string, string[]>;
 
@@ -156,7 +155,9 @@ const QuizAttemptPage = () => {
         if (res.success) {
             router.push(`/app/study-sets/${studySetId}/quizzes/${quizId}`);
         } else {
-            alert(res.error || "Failed to submit quiz. Please try again.");
+            toast.error(
+                res.error || "Failed to submit quiz. Please try again.",
+            );
         }
     };
 

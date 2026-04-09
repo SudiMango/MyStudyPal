@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 const SignupPage = () => {
     const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ const SignupPage = () => {
 
     useEffect(() => {
         if (error && !shownRef.current) {
-            alert(error);
+            toast.error(error);
             shownRef.current = true;
         }
     }, [error]);
@@ -30,12 +31,12 @@ const SignupPage = () => {
         e.preventDefault();
 
         if (!email || !password || !confirmPassword) {
-            alert("Please fill in all the fields.");
+            toast.error("Please fill in all the fields.");
             return;
         }
 
         if (password !== confirmPassword) {
-            alert("Passwords do not match.");
+            toast.error("Passwords do not match.");
             return;
         }
 
@@ -45,7 +46,7 @@ const SignupPage = () => {
         if (result.success) {
             redirect(`/verify-account?email=${email}`);
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
 
         setLoading(false);

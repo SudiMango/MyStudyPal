@@ -18,6 +18,7 @@ import { QuestionType } from "@/lib/dto/quiz-question-dto";
 import { FieldConfig } from "@/lib/types/modal";
 import AbstractModal from "../global/AbstractModal";
 import { QuizResponse } from "@/lib/dto/quiz-dto";
+import { toast } from "sonner";
 
 interface QuizzesTabProps {
     studySetId: string;
@@ -124,7 +125,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
         if (response.data) {
             setQuizzes(response.data);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsLoading(false);
     };
@@ -171,7 +172,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
             const { quizId } = result.data;
             router.push(`/app/study-sets/${studySetId}/quizzes/${quizId}`);
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
 
         setIsCreating(false);
@@ -198,7 +199,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
             setEditingQuiz(null);
             setShowDropdown(null);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsUpdating(false);
@@ -219,7 +220,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
         if (response.success) {
             fetchQuizzes();
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsDeleteModalOpen(false);

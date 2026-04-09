@@ -9,6 +9,7 @@ import { getOneStudySet } from "@/lib/api/study-set-api";
 import { FlashcardResponse } from "@/lib/dto/flashcard-dto";
 import { StudySetResponse } from "@/lib/dto/study-set-dto";
 import { FlashcardSetResponse } from "@/lib/dto/flashcard-set-dto";
+import { toast } from "sonner";
 
 export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
     /**
@@ -47,21 +48,21 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
         if (setResponse.data) {
             setFlashcardSet(setResponse.data);
         } else {
-            alert(setResponse.error);
+            toast.error(setResponse.error);
         }
 
         const studySetResponse = await getOneStudySet(studySetId);
         if (studySetResponse.data) {
             setStudySet(studySetResponse.data);
         } else {
-            alert(studySetResponse.error);
+            toast.error(studySetResponse.error);
         }
 
         const response = await getAllFlashcardsInSet(flashcardSetId);
         if (response.success && response.data) {
             setFlashcards(response.data);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsLoading(false);
     };
@@ -69,7 +70,7 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
     useEffect(() => {
         if (!flashcardSetId) {
             setIsLoading(false);
-            alert("Flashcard set ID is missing.");
+            toast.error("Flashcard set ID is missing.");
             return;
         }
 
@@ -149,7 +150,7 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
         const response = await changeStarStatus(flashcardToUpdate.flashcardId);
         if (!response.success) {
             setFlashcards(originalFlashcards);
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsStarring((prev) => {
             const newSet = new Set(prev);
@@ -189,7 +190,7 @@ export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
         );
         if (!response.success) {
             setFlashcards(originalFlashcards);
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsReviewing((prev) => {
             const newSet = new Set(prev);

@@ -18,6 +18,7 @@ import { FlashcardResponse } from "@/lib/dto/flashcard-dto";
 import AbstractModal from "../global/AbstractModal";
 import { FieldConfig } from "@/lib/types/modal";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 const CREATE_FLASHCARD_FIELDS: FieldConfig[] = [
     {
@@ -193,7 +194,7 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
             fetchEverything();
             setIsCreateModalOpen(false);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsCreating(false);
@@ -229,7 +230,7 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
             setEditingFlashcard(null);
             setShowDropdown(null);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsUpdating(false);
@@ -252,7 +253,7 @@ const AllFlashcardsPanel: React.FC<FlashcardListProps> = ({
             if (response.success) {
                 fetchEverything();
             } else {
-                alert(response.error);
+                toast.error(response.error);
             }
             setIsDeleteModalOpen(false);
             setFlashcardToDelete(null);

@@ -13,7 +13,7 @@ import {
     Clock,
     Target,
     Award,
-    AlertCircle,
+    alertCircle,
     ArrowLeft,
     Calendar,
     SquareCheck,
@@ -34,9 +34,9 @@ const AttemptDetailsPage = () => {
 
     const [attempt, setAttempt] =
         useState<OneAttemptPage_QuizAttemptDetailsResponse | null>(null);
-    const [attemptAnswers, setAttemptAnswers] = useState<QuizAttemptAnswerResponse[]>(
-        [],
-    );
+    const [attemptAnswers, setAttemptAnswers] = useState<
+        QuizAttemptAnswerResponse[]
+    >([]);
     const [studySet, setStudySet] = useState<StudySetResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | undefined>(undefined);
@@ -88,7 +88,7 @@ const AttemptDetailsPage = () => {
     if (error || !attempt) {
         return (
             <div className="flex flex-col items-center justify-center w-full py-20">
-                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+                <alertCircle className="w-12 h-12 text-red-500 mb-4" />
                 <p className="text-white text-lg">
                     {error || "Attempt not found"}
                 </p>
@@ -209,157 +209,160 @@ const AttemptDetailsPage = () => {
                                         : "border-red-500"
                                 }`}
                             >
-                            <div className="flex flex-row items-center mb-1 border-b border-(--discord-gray-1) pb-2">
-                                <label className="opacity-60 text-sm">
-                                    #{i + 1}
-                                </label>
-                                <div className="flex flex-row items-center justify-center ml-auto space-x-2">
-                                    <div className="flex flex-row items-center space-x-2">
-                                        <span
-                                            className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${
-                                                qa.isCorrect
-                                                    ? "bg-green-500/20 text-green-400"
-                                                    : "bg-red-500/20 text-red-400"
-                                            }`}
-                                        >
-                                            {qa.pointsEarned}/
-                                            {question.points} pts
-                                        </span>
-                                        <span
-                                            className={`text-xs px-2 py-0.5 rounded-full ${
-                                                question.questionType ===
-                                                "MULTIPLE_CHOICE"
-                                                    ? "bg-blue-500/20 text-blue-400"
-                                                    : question.questionType ===
-                                                        "MULTIPLE_ANSWER"
-                                                      ? "bg-purple-500/20 text-purple-400"
-                                                      : question.questionType ===
-                                                          "SHORT_ANSWER"
-                                                        ? "bg-orange-500/20 text-orange-400"
-                                                        : "bg-green-500/20 text-green-400"
-                                            }`}
-                                        >
-                                            {question.questionType.replace(
-                                                "_",
-                                                " ",
-                                            )}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <label className="py-1">
-                                Q: {question.questionText}
-                            </label>
-                            <p className="mt-1 mb-2 text-sm italic opacity-70 py-1 px-2 bg-(--discord-gray-3) rounded-lg border-l-4 border-(--discord-blurple)">
-                                H: {question.hint}
-                            </p>
-                            <div className="grid grid-cols-1 gap-2 mt-2">
-                                {question.questionType !== "SHORT_ANSWER" ? (
-                                    question.options.map(
-                                        (option, optIdx) => {
-                                            const isCorrectAnswer =
-                                                question.correctAnswers.includes(
-                                                    option,
-                                                );
-                                            const isUserPicked =
-                                                qa.userAnswer.includes(option);
-
-                                            const isRound =
-                                                question.questionType ===
-                                                    "MULTIPLE_CHOICE" ||
-                                                question.questionType ===
-                                                    "TRUE_FALSE";
-
-                                            let containerStyle =
-                                                "border-(--discord-gray-1) bg-(--discord-gray-3) opacity-40";
-                                            if (isCorrectAnswer) {
-                                                containerStyle =
-                                                    "border-green-500/50 bg-green-500/10 text-green-400 opacity-100";
-                                            } else if (
-                                                isUserPicked &&
-                                                !isCorrectAnswer
-                                            ) {
-                                                containerStyle =
-                                                    "border-red-500/50 bg-red-500/10 text-red-400 opacity-100";
-                                            }
-
-                                            return (
-                                                <div
-                                                    key={optIdx}
-                                                    className={`flex items-center justify-between px-3 py-2.5 border text-sm transition-all ${
-                                                        isRound
-                                                            ? "rounded-full"
-                                                            : "rounded-lg"
-                                                    } ${containerStyle}`}
-                                                >
-                                                    <div className="flex items-center space-x-3">
-                                                        {isCorrectAnswer ? (
-                                                            isRound ? (
-                                                                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                                                            ) : (
-                                                                <SquareCheck className="w-4 h-4 shrink-0" />
-                                                            )
-                                                        ) : isUserPicked ? (
-                                                            <XCircle className="w-4 h-4 shrink-0" />
-                                                        ) : isRound ? (
-                                                            <Circle className="w-4 h-4 opacity-20 shrink-0" />
-                                                        ) : (
-                                                            <Square className="w-4 h-4 opacity-20 shrink-0" />
-                                                        )}
-                                                        <span
-                                                            className={
-                                                                isCorrectAnswer ||
-                                                                isUserPicked
-                                                                    ? "font-bold"
-                                                                    : ""
-                                                            }
-                                                        >
-                                                            {option}
-                                                        </span>
-                                                    </div>
-
-                                                    {isUserPicked && (
-                                                        <span className="text-[9px] uppercase font-black tracking-tighter opacity-80 px-2 py-0.5 rounded bg-black/20">
-                                                            Your Pick
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        },
-                                    )
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div
-                                            className={`px-4 py-3 rounded-xl border flex flex-col ${
-                                                qa.isCorrect
-                                                    ? "border-green-500/50 bg-green-500/10 text-green-400"
-                                                    : "border-red-500/50 bg-red-500/10 text-red-400"
-                                            }`}
-                                        >
-                                            <span className="text-[10px] uppercase font-bold opacity-60 mb-1">
-                                                Your Answer:
+                                <div className="flex flex-row items-center mb-1 border-b border-(--discord-gray-1) pb-2">
+                                    <label className="opacity-60 text-sm">
+                                        #{i + 1}
+                                    </label>
+                                    <div className="flex flex-row items-center justify-center ml-auto space-x-2">
+                                        <div className="flex flex-row items-center space-x-2">
+                                            <span
+                                                className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${
+                                                    qa.isCorrect
+                                                        ? "bg-green-500/20 text-green-400"
+                                                        : "bg-red-500/20 text-red-400"
+                                                }`}
+                                            >
+                                                {qa.pointsEarned}/
+                                                {question.points} pts
                                             </span>
-                                            <span className="font-mono text-base">
-                                                {qa.userAnswer[0] ||
-                                                    "No answer provided"}
+                                            <span
+                                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                                    question.questionType ===
+                                                    "MULTIPLE_CHOICE"
+                                                        ? "bg-blue-500/20 text-blue-400"
+                                                        : question.questionType ===
+                                                            "MULTIPLE_ANSWER"
+                                                          ? "bg-purple-500/20 text-purple-400"
+                                                          : question.questionType ===
+                                                              "SHORT_ANSWER"
+                                                            ? "bg-orange-500/20 text-orange-400"
+                                                            : "bg-green-500/20 text-green-400"
+                                                }`}
+                                            >
+                                                {question.questionType.replace(
+                                                    "_",
+                                                    " ",
+                                                )}
                                             </span>
                                         </div>
+                                    </div>
+                                </div>
+                                <label className="py-1">
+                                    Q: {question.questionText}
+                                </label>
+                                <p className="mt-1 mb-2 text-sm italic opacity-70 py-1 px-2 bg-(--discord-gray-3) rounded-lg border-l-4 border-(--discord-blurple)">
+                                    H: {question.hint}
+                                </p>
+                                <div className="grid grid-cols-1 gap-2 mt-2">
+                                    {question.questionType !==
+                                    "SHORT_ANSWER" ? (
+                                        question.options.map(
+                                            (option, optIdx) => {
+                                                const isCorrectAnswer =
+                                                    question.correctAnswers.includes(
+                                                        option,
+                                                    );
+                                                const isUserPicked =
+                                                    qa.userAnswer.includes(
+                                                        option,
+                                                    );
 
-                                        {!qa.isCorrect && (
-                                            <div className="px-4 py-3 rounded-xl border border-green-500/30 bg-green-500/5 text-green-400/90 flex flex-col">
+                                                const isRound =
+                                                    question.questionType ===
+                                                        "MULTIPLE_CHOICE" ||
+                                                    question.questionType ===
+                                                        "TRUE_FALSE";
+
+                                                let containerStyle =
+                                                    "border-(--discord-gray-1) bg-(--discord-gray-3) opacity-40";
+                                                if (isCorrectAnswer) {
+                                                    containerStyle =
+                                                        "border-green-500/50 bg-green-500/10 text-green-400 opacity-100";
+                                                } else if (
+                                                    isUserPicked &&
+                                                    !isCorrectAnswer
+                                                ) {
+                                                    containerStyle =
+                                                        "border-red-500/50 bg-red-500/10 text-red-400 opacity-100";
+                                                }
+
+                                                return (
+                                                    <div
+                                                        key={optIdx}
+                                                        className={`flex items-center justify-between px-3 py-2.5 border text-sm transition-all ${
+                                                            isRound
+                                                                ? "rounded-full"
+                                                                : "rounded-lg"
+                                                        } ${containerStyle}`}
+                                                    >
+                                                        <div className="flex items-center space-x-3">
+                                                            {isCorrectAnswer ? (
+                                                                isRound ? (
+                                                                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                                ) : (
+                                                                    <SquareCheck className="w-4 h-4 shrink-0" />
+                                                                )
+                                                            ) : isUserPicked ? (
+                                                                <XCircle className="w-4 h-4 shrink-0" />
+                                                            ) : isRound ? (
+                                                                <Circle className="w-4 h-4 opacity-20 shrink-0" />
+                                                            ) : (
+                                                                <Square className="w-4 h-4 opacity-20 shrink-0" />
+                                                            )}
+                                                            <span
+                                                                className={
+                                                                    isCorrectAnswer ||
+                                                                    isUserPicked
+                                                                        ? "font-bold"
+                                                                        : ""
+                                                                }
+                                                            >
+                                                                {option}
+                                                            </span>
+                                                        </div>
+
+                                                        {isUserPicked && (
+                                                            <span className="text-[9px] uppercase font-black tracking-tighter opacity-80 px-2 py-0.5 rounded bg-black/20">
+                                                                Your Pick
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            },
+                                        )
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div
+                                                className={`px-4 py-3 rounded-xl border flex flex-col ${
+                                                    qa.isCorrect
+                                                        ? "border-green-500/50 bg-green-500/10 text-green-400"
+                                                        : "border-red-500/50 bg-red-500/10 text-red-400"
+                                                }`}
+                                            >
                                                 <span className="text-[10px] uppercase font-bold opacity-60 mb-1">
-                                                    Correct Answer:
+                                                    Your Answer:
                                                 </span>
                                                 <span className="font-mono text-base">
-                                                    {question.correctAnswers.join(
-                                                        ", ",
-                                                    )}
+                                                    {qa.userAnswer[0] ||
+                                                        "No answer provided"}
                                                 </span>
                                             </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+
+                                            {!qa.isCorrect && (
+                                                <div className="px-4 py-3 rounded-xl border border-green-500/30 bg-green-500/5 text-green-400/90 flex flex-col">
+                                                    <span className="text-[10px] uppercase font-bold opacity-60 mb-1">
+                                                        Correct Answer:
+                                                    </span>
+                                                    <span className="font-mono text-base">
+                                                        {question.correctAnswers.join(
+                                                            ", ",
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}

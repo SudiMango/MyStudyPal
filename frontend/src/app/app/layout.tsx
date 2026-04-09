@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 import AppSidebar from "../components/global/AppSidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -5,7 +6,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <>
             <main className="flex flex-row grow w-full h-full">
                 <AppSidebar />
-                <div className="flex-1 overflow-y-auto">{children}</div>
+                <div className="flex-1 overflow-y-auto">
+                    {children}
+                    <Toaster position="top-right" richColors theme="dark" />
+                </div>
             </main>
         </>
     );

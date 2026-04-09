@@ -23,6 +23,7 @@ import ItemDisplayCard from "@/app/components/global/ItemDisplayCard";
 import { StudySetResponse } from "@/lib/dto/study-set-dto";
 import { FieldConfig } from "@/lib/types/modal";
 import AbstractModal from "@/app/components/global/AbstractModal";
+import { toast } from "sonner";
 
 const CREATE_STUDY_SET_FIELDS: FieldConfig[] = [
     { key: "icon", type: "emoji", label: "Icon", row: 1, width: "w-12" },
@@ -117,7 +118,7 @@ const StudySetsPage = () => {
         if (response.data) {
             setStudySets(response.data);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsLoading(false);
     };
@@ -150,7 +151,7 @@ const StudySetsPage = () => {
             fetchStudySets();
             setIsCreateModalOpen(false);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsCreating(false);
@@ -184,7 +185,7 @@ const StudySetsPage = () => {
             setEditingSet(null);
             setShowDropdown(null);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsUpdating(false);
@@ -207,7 +208,7 @@ const StudySetsPage = () => {
                 prev.filter((set) => set.studySetId !== setToDelete.studySetId),
             );
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsDeleteModalOpen(false);

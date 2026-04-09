@@ -15,6 +15,7 @@ import UploadFileSection from "@/app/components/create-flashcard-set-page/Upload
 import { formatDate } from "@/lib/util";
 import { DocumentResponse } from "@/lib/dto/document-dto";
 import AbstractModal from "../global/AbstractModal";
+import { toast } from "sonner";
 
 interface DocumentsTabProps {
     studySetId: string;
@@ -58,7 +59,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
         if (response.data) {
             setDocuments(response.data);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsLoading(false);
     };
@@ -83,7 +84,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
 
     const handleConfirmUpload = async () => {
         if (files.length === 0) {
-            alert("Please select at least one file to upload.");
+            toast.error("Please select at least one file to upload.");
             return;
         }
 
@@ -95,7 +96,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
             setIsUploadModalOpen(false);
             setFiles([]);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsUploading(false);
@@ -119,7 +120,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ studySetId }) => {
             setDocumentToDelete(null);
             setShowDropdown(null);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
 
         setIsDeleting(false);

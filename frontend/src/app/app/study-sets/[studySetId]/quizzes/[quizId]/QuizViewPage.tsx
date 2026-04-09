@@ -7,8 +7,6 @@ import { getAllAttemptsForQuiz } from "@/lib/api/quiz-attempt-api";
 import { deleteQuiz, getOneQuizDetails, updateQuiz } from "@/lib/api/quiz-api";
 import { getQuizQuestionsForQuiz } from "@/lib/api/quiz-question-api";
 import { getOneStudySet } from "@/lib/api/study-set-api";
-import { ListAttemptPage_QuizAttemptDetailsResponse } from "@/lib/dto/quiz-attempt-dto";
-import { OneQuizPage_QuizDetailsResponse } from "@/lib/dto/quiz-dto";
 import { QuizQuestionResponse } from "@/lib/dto/quiz-question-dto";
 import { StudySetResponse } from "@/lib/dto/study-set-dto";
 import {
@@ -22,17 +20,17 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { QuizResponse } from "@/lib/dto/quiz-dto";
+import { QuizAttemptResponse } from "@/lib/dto/quiz-attempt-dto";
 
 const QuizViewPage = () => {
     const router = useRouter();
     const { studySetId, quizId } = useParams();
 
-    const [quizDetails, setQuizDetails] =
-        useState<OneQuizPage_QuizDetailsResponse | null>(null);
+    const [quizDetails, setQuizDetails] = useState<QuizResponse | null>(null);
     const [questions, setQuestions] = useState<QuizQuestionResponse[]>([]);
-    const [attempts, setAttempts] = useState<
-        ListAttemptPage_QuizAttemptDetailsResponse[]
-    >([]);
+    const [attempts, setAttempts] = useState<QuizAttemptResponse[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [studySet, setStudySet] = useState<StudySetResponse | null>(null);
 
@@ -47,14 +45,14 @@ const QuizViewPage = () => {
         if (quizRes.data) {
             setQuizDetails(quizRes.data);
         } else {
-            alert(quizRes.error);
+            toast.error(quizRes.error);
         }
 
         const studySetResponse = await getOneStudySet(studySetId as string);
         if (studySetResponse.data) {
             setStudySet(studySetResponse.data);
         } else {
-            alert(studySetResponse.error);
+            toast.error(studySetResponse.error);
         }
 
         const questionsResponse = await getQuizQuestionsForQuiz(
@@ -63,14 +61,14 @@ const QuizViewPage = () => {
         if (questionsResponse.data) {
             setQuestions(questionsResponse.data);
         } else {
-            alert(questionsResponse.error);
+            toast.error(questionsResponse.error);
         }
 
         const attemptsResponse = await getAllAttemptsForQuiz(quizId as string);
         if (attemptsResponse.data) {
             setAttempts(attemptsResponse.data);
         } else {
-            alert(attemptsResponse.error);
+            toast.error(attemptsResponse.error);
         }
 
         setIsLoading(false);
@@ -105,7 +103,7 @@ const QuizViewPage = () => {
             setQuizDetails(res.data);
             setIsSettingsOpen(false);
         } else {
-            alert(res.error);
+            toast.error(res.error);
         }
         setIsUpdating(false);
     };

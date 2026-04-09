@@ -6,6 +6,7 @@ import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/app/components/global/AuthProvider";
+import { toast } from "sonner";
 
 const LoginPage = () => {
     const { login } = useAuth();
@@ -21,7 +22,7 @@ const LoginPage = () => {
 
     useEffect(() => {
         if (error && !shownRef.current) {
-            alert(error);
+            toast.error(error);
             shownRef.current = true;
         }
     }, [error]);
@@ -30,7 +31,7 @@ const LoginPage = () => {
         e.preventDefault();
 
         if (!email || !password) {
-            alert("Please fill in all the fields.");
+            toast.error("Please fill in all the fields.");
             return;
         }
 
@@ -41,7 +42,7 @@ const LoginPage = () => {
             redirect("/app/study-sets");
         }
         if (result.error) {
-            alert(result.error);
+            toast.error(result.error);
         }
 
         setLoading(false);

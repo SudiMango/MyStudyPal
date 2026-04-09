@@ -12,6 +12,7 @@ import {
 import { Loader, Settings, Shuffle } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const FlashcardsPage = () => {
     const router = useRouter();
@@ -48,7 +49,7 @@ const FlashcardsPage = () => {
         if (res.success) {
             router.push(`/app/study-sets/${studySetId}`);
         } else {
-            alert(res.error);
+            toast.error(res.error);
             setIsUpdating(false);
             setIsDeleteModalOpen(false);
         }
