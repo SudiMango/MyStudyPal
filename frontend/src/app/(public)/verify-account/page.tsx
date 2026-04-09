@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import VerifyAccount from "./VerifyAccount";
 
 export const metadata: Metadata = {
@@ -7,7 +8,11 @@ export const metadata: Metadata = {
 };
 
 const Page = () => {
-    return <VerifyAccount />;
+    return (
+        <Suspense>
+            <VerifyAccount />
+        </Suspense>
+    );
 };
 
 export default Page;
