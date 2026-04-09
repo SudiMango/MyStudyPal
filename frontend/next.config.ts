@@ -1,15 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    rewrites: async () => {
-        return {
-            beforeFiles: [
-                {
-                    source: "/api/:path*",
-                    destination: "http://localhost:8080/api/:path*",
-                },
-            ],
-        };
+    output: "standalone",
+    devIndicators: false,
+    async rewrites() {
+        return [
+            {
+                source: "/api/:path*",
+                destination:
+                    process.env.NODE_ENV === "development"
+                        ? "http://127.0.0.1:8000/:path*"
+                        : "http://backend:8000/:path*",
+            },
+        ];
     },
 };
 
