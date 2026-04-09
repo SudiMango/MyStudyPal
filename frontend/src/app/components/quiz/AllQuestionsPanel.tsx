@@ -14,19 +14,21 @@ import {
     deleteQuizQuestion,
     updateQuizQuestion,
 } from "@/lib/api/quiz-question-api";
-import { QuizQuestionResponse } from "@/lib/dto/quiz-question-dto";
+import {
+    QuizQuestionResponse,
+    UpdateQuizQuestionRequest,
+} from "@/lib/dto/quiz-question-dto";
 import { toast } from "sonner";
+import EditQuizQuestionModal from "./EditQuizQuestionModal";
 
 interface QuestionListProps {
     questions: QuizQuestionResponse[];
-    onQuestionUpdated: (question: QuizQuestionResponse) => void;
-    onQuestionDeleted: (questionId: string) => void;
+    fetchEverything: () => Promise<void>;
 }
 
 const AllQuestionsPanel: React.FC<QuestionListProps> = ({
     questions,
-    onQuestionUpdated,
-    onQuestionDeleted,
+    fetchEverything,
 }) => {
     /**
      * Variables
@@ -112,7 +114,7 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
         setIsDeleting(false);
 
         if (response.success) {
-            onQuestionDeleted(questionToDelete.questionId);
+            fetchEverything();
         } else {
             toast.error(response.error);
         }
@@ -130,52 +132,36 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
 
     const handleConfirmUpdate = async (
         questionId: string,
-        questionText: string,
-        options: string[],
-        correctAnswers: string[],
-        hint: string,
-        points: number,
-        _instructions: string,
-        _mode: "manual" | "AI",
+        req: UpdateQuizQuestionRequest,
     ) => {
         if (!editingQuestion) return;
-
         setIsUpdating(true);
-
-        const response = await updateQuizQuestion(questionId, {
-            questionText,
-            options,
-            correctAnswers,
-            hint,
-            points,
-            orderIndex: editingQuestion.orderIndex,
-        });
-
+        const response = await updateQuizQuestion(questionId, req);
         setIsUpdating(false);
-
         if (response.success && response.data) {
-            onQuestionUpdated(response.data);
+            fetchEverything();
             setIsEditModalOpen(false);
             setEditingQuestion(null);
             setShowDropdown(null);
         } else {
-            toast.error(response.error || "Failed to update question");
+            toast.error(response.error);
         }
     };
 
     return (
         <div className="bg-(--discord-gray-3) w-full rounded-xl shadow-lg p-5 mt-5 outline outline-(--discord-blurple) flex flex-col">
             {/* Edit */}
-            {/* <EditQuizQuestionModal
+            <EditQuizQuestionModal
                 isOpen={isEditModalOpen}
-                questionData={editingQuestion}
+                question={editingQuestion}
                 onConfirm={handleConfirmUpdate}
                 onCancel={() => {
                     setIsEditModalOpen(false);
                     setEditingQuestion(null);
                 }}
                 isLoading={isUpdating}
-            /> */}
+                totalQuestions={questions.length}
+            />
 
             {/* Delete */}
             <ConfirmationModal

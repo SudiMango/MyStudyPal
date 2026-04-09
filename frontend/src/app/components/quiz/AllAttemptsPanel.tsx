@@ -10,10 +10,10 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { formatDate } from "@/lib/util";
-import { ListAttemptPage_QuizAttemptDetailsResponse } from "@/lib/dto/quiz-attempt-dto";
+import { QuizAttemptResponse } from "@/lib/dto/quiz-attempt-dto";
 
 interface AttemptListProps {
-    attempts: ListAttemptPage_QuizAttemptDetailsResponse[];
+    attempts: QuizAttemptResponse[];
 }
 
 const AllAttemptsPanel: React.FC<AttemptListProps> = ({ attempts }) => {

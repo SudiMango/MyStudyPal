@@ -13,7 +13,6 @@ import {
     Clock,
     Target,
     Award,
-    alertCircle,
     ArrowLeft,
     Calendar,
     SquareCheck,
@@ -23,8 +22,8 @@ import {
 import { formatDate } from "@/lib/util";
 import { getOneStudySet } from "@/lib/api/study-set-api";
 import {
-    OneAttemptPage_QuizAttemptDetailsResponse,
     QuizAttemptAnswerResponse,
+    QuizAttemptResponse,
 } from "@/lib/dto/quiz-attempt-dto";
 import { StudySetResponse } from "@/lib/dto/study-set-dto";
 
@@ -32,8 +31,7 @@ const AttemptDetailsPage = () => {
     const { studySetId, attemptId } = useParams();
     const router = useRouter();
 
-    const [attempt, setAttempt] =
-        useState<OneAttemptPage_QuizAttemptDetailsResponse | null>(null);
+    const [attempt, setAttempt] = useState<QuizAttemptResponse | null>(null);
     const [attemptAnswers, setAttemptAnswers] = useState<
         QuizAttemptAnswerResponse[]
     >([]);
@@ -88,7 +86,6 @@ const AttemptDetailsPage = () => {
     if (error || !attempt) {
         return (
             <div className="flex flex-col items-center justify-center w-full py-20">
-                <alertCircle className="w-12 h-12 text-red-500 mb-4" />
                 <p className="text-white text-lg">
                     {error || "Attempt not found"}
                 </p>

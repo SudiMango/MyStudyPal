@@ -23,6 +23,22 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { QuizResponse } from "@/lib/dto/quiz-dto";
 import { QuizAttemptResponse } from "@/lib/dto/quiz-attempt-dto";
+import SettingsModal from "@/app/components/global/SettingsModal";
+import { formatDate } from "@/lib/util";
+import AbstractModal from "@/app/components/global/AbstractModal";
+import { FieldConfig } from "@/lib/types/modal";
+
+const UPDATE_QUIZ_FIELDS: FieldConfig[] = [
+    {
+        key: "name",
+        type: "text",
+        label: "Name",
+        required: false,
+        maxLength: 60,
+        showCharCount: true,
+        placeholder: "e.g., Chapter 5 Quiz",
+    },
+];
 
 const QuizViewPage = () => {
     const router = useRouter();
@@ -36,7 +52,9 @@ const QuizViewPage = () => {
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchEverything = async () => {
         setIsLoading(true);
@@ -96,48 +114,31 @@ const QuizViewPage = () => {
 
     const stats = getStats();
 
-    const handleUpdateName = async (newName: string) => {
-        setIsUpdating(true);
-        const res = await updateQuiz(quizId as string, { name: newName });
-        if (res.success && res.data) {
-            setQuizDetails(res.data);
-            setIsSettingsOpen(false);
-        } else {
-            toast.error(res.error);
-        }
-        setIsUpdating(false);
-    };
-
-    const handleQuestionUpdated = (updatedQuestion: QuizQuestionResponse) => {
-        setQuestions((prev) =>
-            prev.map((question) =>
-                question.questionId === updatedQuestion.questionId
-                    ? updatedQuestion
-                    : question,
-            ),
-        );
-    };
-
-    const handleQuestionDeleted = (questionId: string) => {
-        setQuestions((prev) =>
-            prev.filter((question) => question.questionId !== questionId),
-        );
-        setQuizDetails((prev) =>
-            prev
-                ? {
-                      ...prev,
-                      totalQuestions: Math.max(0, prev.totalQuestions - 1),
-                  }
-                : prev,
-        );
-    };
-
     const handleConfirmDelete = async () => {
-        setIsUpdating(true);
+        setIsDeleting(true);
         const res = await deleteQuiz(quizId as string);
         if (res.success) {
             router.push(`/app/study-sets/${studySetId}`);
         }
+        setIsDeleting(false);
+    };
+
+    const handleConfirmUpdate = async (quizId: string, name: string) => {
+        setIsUpdating(true);
+
+        const payload = {
+            name,
+        };
+
+        const response = await updateQuiz(quizId, payload);
+
+        if (response.success && response.data) {
+            fetchEverything();
+            setIsEditModalOpen(false);
+        } else {
+            toast.error(response.error);
+        }
+
         setIsUpdating(false);
     };
 
@@ -153,21 +154,72 @@ const QuizViewPage = () => {
     return (
         <div className="flex flex-col items-center min-h-screen w-full p-5 mt-5 overflow-x-hidden">
             <div className="flex flex-col justify-center items-center w-full h-full max-w-150">
+                {/* Settings */}
+                <SettingsModal
+                    isOpen={isSettingsOpen}
+                    onClose={() => setIsSettingsOpen(false)}
+                    onEdit={() => {
+                        setIsSettingsOpen(false);
+                        setIsEditModalOpen(true);
+                    }}
+                    onDelete={() => {
+                        setIsSettingsOpen(false);
+                        setIsDeleteModalOpen(true);
+                    }}
+                    info={[
+                        {
+                            label: "Created",
+                            value: formatDate(quizDetails.createdAt),
+                        },
+                        {
+                            label: "Updated",
+                            value: formatDate(quizDetails.updatedAt),
+                        },
+                        {
+                            label: "Total questions",
+                            value: questions.length.toString(),
+                        },
+                        {
+                            label: "Total attempts",
+                            value: attempts.length.toString(),
+                        },
+                    ]}
+                />
+
+                {/* Edit quiz modal */}
+                <AbstractModal
+                    isOpen={isEditModalOpen}
+                    title="Edit Quiz"
+                    fields={UPDATE_QUIZ_FIELDS}
+                    initialValues={{
+                        name: quizDetails?.name ?? "",
+                    }}
+                    onConfirm={({ name }) =>
+                        handleConfirmUpdate(quizDetails.quizId, name)
+                    }
+                    onCancel={() => {
+                        setIsEditModalOpen(false);
+                    }}
+                    isLoading={isUpdating}
+                    confirmLabel="Save"
+                    confirmLoadingLabel="Saving..."
+                />
+
+                {/* Delete quiz modal */}
                 <ConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onCancel={() => setIsDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
-                    message="Are you sure you want to delete this quiz? This action cannot be undone."
+                    message="Are you sure you want to delete this quiz?"
                     confirmMessage="Deleting..."
                     isLoading={isUpdating}
                 />
 
+                {/* Breadcrumbs */}
                 <div className="mr-auto mb-2 opacity-70 text-sm">
                     <button
                         className="underline hover:opacity-85 cursor-pointer"
-                        onClick={() =>
-                            router.push("/app/study-sets#flashcards")
-                        }
+                        onClick={() => router.push("/app/study-sets")}
                     >
                         study sets
                     </button>
@@ -175,7 +227,7 @@ const QuizViewPage = () => {
                     <button
                         className="underline hover:opacity-85 cursor-pointer"
                         onClick={() =>
-                            router.push(`/app/study-sets/${studySetId}`)
+                            router.push(`/app/study-sets/${studySetId}#quizzes`)
                         }
                     >
                         {studySet?.name}
@@ -189,6 +241,7 @@ const QuizViewPage = () => {
                     </button>
                 </div>
 
+                {/* Header */}
                 <div className="flex flex-row items-center w-full mb-6">
                     <label className="mr-auto text-3xl font-bold flex items-center gap-3">
                         📝 {quizDetails?.name}
@@ -214,6 +267,7 @@ const QuizViewPage = () => {
                     </div>
                 </div>
 
+                {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-2">
                     <div className="bg-(--discord-gray-4) p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center shadow-md">
                         <Trophy
@@ -258,12 +312,13 @@ const QuizViewPage = () => {
                     </div>
                 </div>
 
+                {/* All questions */}
                 <AllQuestionsPanel
                     questions={questions}
-                    onQuestionUpdated={handleQuestionUpdated}
-                    onQuestionDeleted={handleQuestionDeleted}
+                    fetchEverything={fetchEverything}
                 />
 
+                {/* All attempts */}
                 <AllAttemptsPanel attempts={attempts} />
             </div>
         </div>

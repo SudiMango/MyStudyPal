@@ -10,7 +10,7 @@ export interface QuizAttemptAnswerResponse {
     userAnswer: string[];
     isCorrect: boolean;
     pointsEarned: number;
-    question: QuizQuestionResponse;
+    question: QuizQuestionResponse | null;
 }
 
 /**
