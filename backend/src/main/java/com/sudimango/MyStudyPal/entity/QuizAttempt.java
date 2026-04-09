@@ -53,6 +53,10 @@ public class QuizAttempt {
 
     @OneToMany(mappedBy = "quizAttempt", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    @OrderBy("quizQuestion ASC")
     private List<QuizAttemptAnswer> quizAttemptAnswers;
+
+    @OneToMany(mappedBy = "quizAttempt", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @OrderBy("orderIndex ASC")
+    private List<QuizAttemptQuestion> quizAttemptQuestions;
 }

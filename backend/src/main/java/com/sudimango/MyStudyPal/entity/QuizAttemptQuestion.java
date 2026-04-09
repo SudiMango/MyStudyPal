@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,33 +25,45 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "quiz_attempt_answers")
+@Table(name = "quiz_attempt_questions")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class QuizAttemptAnswer {
-    
+public class QuizAttemptQuestion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String answerId;
-    
+    private String attemptQuestionId;
+
+    @Column
+    private String originalQuestionId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private QuestionType questionType;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String questionText;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
-    private List<String> userAnswer;
-    
+    private List<String> options;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private List<String> correctAnswers;
+
+    @Column(columnDefinition = "TEXT")
+    private String hint;
+
     @Column(nullable = false)
-    private Boolean isCorrect;
-    
+    private double points;
+
     @Column(nullable = false)
-    private double pointsEarned;
-    
+    private int orderIndex;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attempt_id", nullable = false)
     @JsonIgnore
     private QuizAttempt quizAttempt;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attempt_question_id", nullable = false)
-    @JsonIgnore
-    private QuizAttemptQuestion quizAttemptQuestion;
 }

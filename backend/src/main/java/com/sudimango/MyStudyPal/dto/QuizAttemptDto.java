@@ -32,7 +32,7 @@ public class QuizAttemptDto {
                 answer.getUserAnswer(),
                 answer.getIsCorrect(),
                 answer.getPointsEarned(),
-                Optional.ofNullable(answer.getQuizQuestion())
+                Optional.ofNullable(answer.getQuizAttemptQuestion())
                     .map(QuizQuestionResponse::new)
                     .orElse(null)
             );

@@ -3,7 +3,7 @@ package com.sudimango.MyStudyPal.service.study.quiz;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +26,7 @@ import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
 import com.sudimango.MyStudyPal.entity.QuizAttempt;
 import com.sudimango.MyStudyPal.entity.QuizAttemptAnswer;
+import com.sudimango.MyStudyPal.entity.QuizAttemptQuestion;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 import com.sudimango.MyStudyPal.exception.AiJsonException;
 import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
@@ -66,28 +67,32 @@ public class QuizAttemptService {
         // Create quiz attempt
         QuizAttempt attempt = QuizAttempt.builder().quiz(quiz)
                 .startedAt(Instant.now().minusSeconds(request.timeSpentSeconds())).completedAt(Instant.now()).score(0.0)
-                .maxScore(0.0).quizAttemptAnswers(new ArrayList<>()).build();
+                .maxScore(0.0).quizAttemptAnswers(new ArrayList<>()).quizAttemptQuestions(new ArrayList<>()).build();
 
         // Get all valid questions
         Map<String, QuizQuestion> questionMap = quiz.getQuizQuestions().stream()
                 .collect(Collectors.toMap(QuizQuestion::getQuestionId, q -> q));
+        Map<String, QuizAttemptQuestion> attemptQuestionMap = createQuestionSnapshots(attempt, quiz.getQuizQuestions());
 
         double totalEarned = 0.0;
         double totalPossible = 0.0;
-        Map<QuizQuestion, QuizAttemptDto.AnswerSubmission> qtoa = new HashMap<>();
+        List<AbstractMap.SimpleEntry<QuizAttemptQuestion, QuizAttemptDto.AnswerSubmission>> qtoa = new ArrayList<>();
+        List<AnswerSubmission> submittedAnswers = request.answers() == null ? List.of() : request.answers();
 
         // Handle submitted answers
-        for (QuizAttemptDto.AnswerSubmission submission : request.answers()) {
+        for (QuizAttemptDto.AnswerSubmission submission : submittedAnswers) {
             QuizQuestion question = questionMap.get(submission.questionId());
             if (question == null)
                 continue;
+            QuizAttemptQuestion attemptQuestion = attemptQuestionMap.get(submission.questionId());
 
             if (question.getQuestionType() == QuestionType.SHORT_ANSWER) {
-                qtoa.put(question, submission);
+                qtoa.add(new AbstractMap.SimpleEntry<>(attemptQuestion, submission));
             } else {
-                double pointsToGive = getPointsForAnswer(question, submission.userAnswer());
+                double pointsToGive = getPointsForAnswer(attemptQuestion, submission.userAnswer());
 
-                QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt).quizQuestion(question)
+                QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt)
+                        .quizAttemptQuestion(attemptQuestion)
                         .userAnswer(submission.userAnswer()).isCorrect(pointsToGive > 0.0 ? true : false)
                         .pointsEarned(pointsToGive).build();
 
@@ -98,14 +103,16 @@ public class QuizAttemptService {
         }
 
         // Save unanswered questions as 0-point records
-        Set<String> submittedIds = request.answers().stream().map(QuizAttemptDto.AnswerSubmission::questionId)
+        Set<String> submittedIds = submittedAnswers.stream().map(QuizAttemptDto.AnswerSubmission::questionId)
                 .collect(Collectors.toSet());
 
         for (QuizQuestion question : quiz.getQuizQuestions()) {
             if (submittedIds.contains(question.getQuestionId()))
                 continue;
+            QuizAttemptQuestion attemptQuestion = attemptQuestionMap.get(question.getQuestionId());
 
-            QuizAttemptAnswer unanswered = QuizAttemptAnswer.builder().quizAttempt(attempt).quizQuestion(question)
+            QuizAttemptAnswer unanswered = QuizAttemptAnswer.builder().quizAttempt(attempt)
+                    .quizAttemptQuestion(attemptQuestion)
                     .userAnswer(List.of()).isCorrect(false).pointsEarned(0.0).build();
 
             attempt.getQuizAttemptAnswers().add(unanswered);
@@ -114,7 +121,7 @@ public class QuizAttemptService {
 
         AbstractMap.SimpleEntry<Double, Double> shortAnswerGrades = gradeShortAnswerQuestions(qtoa, attempt);
         attempt.setScore(totalEarned + shortAnswerGrades.getKey());
-        attempt.setMaxScore(totalPossible + shortAnswerGrades.getKey());
+        attempt.setMaxScore(totalPossible + shortAnswerGrades.getValue());
 
         QuizAttempt saved = attemptRepository.save(attempt);
         return new CreateQuizAttemptResponse(saved.getAttemptId());
@@ -146,12 +153,9 @@ public class QuizAttemptService {
         QuizAttempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz attempt not found with id: " + attemptId));
 
-        List<QuizAttemptAnswerResponse> response = new ArrayList<>();
-        for (QuizAttemptAnswer qa : attempt.getQuizAttemptAnswers()) {
-            response.add(new QuizAttemptAnswerResponse(qa));
-        }
-
-        return response;
+        return attempt.getQuizAttemptAnswers().stream()
+                .sorted(Comparator.comparingInt(qa -> qa.getQuizAttemptQuestion().getOrderIndex()))
+                .map(QuizAttemptAnswerResponse::new).collect(Collectors.toList());
     }
 
     /**
@@ -160,7 +164,7 @@ public class QuizAttemptService {
      * 
      */
 
-    private double getPointsForAnswer(QuizQuestion question, Object userAnswer) {
+    private double getPointsForAnswer(QuizAttemptQuestion question, Object userAnswer) {
         if (userAnswer == null) {
             return 0.0;
         }
@@ -243,7 +247,8 @@ public class QuizAttemptService {
         return 0.0;
     }
 
-    private AbstractMap.SimpleEntry<Double, Double> gradeShortAnswerQuestions(Map<QuizQuestion, AnswerSubmission> qtoa,
+    private AbstractMap.SimpleEntry<Double, Double> gradeShortAnswerQuestions(
+            List<AbstractMap.SimpleEntry<QuizAttemptQuestion, AnswerSubmission>> qtoa,
             QuizAttempt attempt) {
         double totalEarned = 0.0;
         double totalPossible = 0.0;
@@ -252,8 +257,8 @@ public class QuizAttemptService {
         List<String> correctAnswers = new ArrayList<>();
         List<String> userAnswers = new ArrayList<>();
         List<Double> maxPoints = new ArrayList<>();
-        for (Map.Entry<QuizQuestion, QuizAttemptDto.AnswerSubmission> entry : qtoa.entrySet()) {
-            QuizQuestion key = entry.getKey();
+        for (AbstractMap.SimpleEntry<QuizAttemptQuestion, QuizAttemptDto.AnswerSubmission> entry : qtoa) {
+            QuizAttemptQuestion key = entry.getKey();
             QuizAttemptDto.AnswerSubmission value = entry.getValue();
 
             questions.add(key.getQuestionText());
@@ -283,11 +288,11 @@ public class QuizAttemptService {
         }
 
         int gradeIndex = 0;
-        for (Map.Entry<QuizQuestion, AnswerSubmission> entry : qtoa.entrySet()) {
-            QuizQuestion key = entry.getKey();
+        for (AbstractMap.SimpleEntry<QuizAttemptQuestion, AnswerSubmission> entry : qtoa) {
+            QuizAttemptQuestion key = entry.getKey();
             AnswerSubmission value = entry.getValue();
 
-            QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt).quizQuestion(key)
+            QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt).quizAttemptQuestion(key)
                     .userAnswer(value.userAnswer()).isCorrect(grades.get(gradeIndex).score() > 0.0 ? true : false)
                     .pointsEarned(grades.get(gradeIndex).score()).build();
 
@@ -297,5 +302,17 @@ public class QuizAttemptService {
         }
 
         return new AbstractMap.SimpleEntry<>(totalEarned, totalPossible);
+    }
+
+    private Map<String, QuizAttemptQuestion> createQuestionSnapshots(QuizAttempt attempt, List<QuizQuestion> questions) {
+        return questions.stream().collect(Collectors.toMap(QuizQuestion::getQuestionId, question -> {
+            QuizAttemptQuestion snapshot = QuizAttemptQuestion.builder().quizAttempt(attempt)
+                    .originalQuestionId(question.getQuestionId()).questionType(question.getQuestionType())
+                    .questionText(question.getQuestionText()).options(question.getOptions())
+                    .correctAnswers(question.getCorrectAnswers()).hint(question.getHint()).points(question.getPoints())
+                    .orderIndex(question.getOrderIndex()).build();
+            attempt.getQuizAttemptQuestions().add(snapshot);
+            return snapshot;
+        }));
     }
 }

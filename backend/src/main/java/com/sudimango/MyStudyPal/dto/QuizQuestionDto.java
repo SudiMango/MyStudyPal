@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.sudimango.MyStudyPal.entity.QuestionType;
 import com.sudimango.MyStudyPal.entity.Quiz;
+import com.sudimango.MyStudyPal.entity.QuizAttemptQuestion;
 import com.sudimango.MyStudyPal.entity.QuizQuestion;
 
 import jakarta.validation.constraints.NotBlank;
@@ -76,6 +77,19 @@ public class QuizQuestionDto {
         public QuizQuestionResponse(QuizQuestion question) {
             this(
                 question.getQuestionId(),
+                question.getQuestionType(),
+                question.getQuestionText(),
+                question.getOptions(),
+                question.getCorrectAnswers(),
+                question.getHint(),
+                question.getPoints(),
+                question.getOrderIndex()
+            );
+        }
+
+        public QuizQuestionResponse(QuizAttemptQuestion question) {
+            this(
+                question.getOriginalQuestionId(),
                 question.getQuestionType(),
                 question.getQuestionText(),
                 question.getOptions(),
