@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
 # Copy maven wrapper and pom
