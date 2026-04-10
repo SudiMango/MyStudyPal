@@ -20,6 +20,9 @@ public class RefreshTokenService {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.cookie.secure}")
+    private boolean isCookieSecure;
+
     public void saveRefreshTokenForUser(User user, String refreshToken) {
         RefreshToken refreshTokenObj = RefreshToken.builder()
                                             .token(refreshToken)
@@ -36,8 +39,8 @@ public class RefreshTokenService {
                     refreshTokenRepository.deleteById(cookie.getValue());
                     ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
                         .httpOnly(true)
-                        .secure(false)
-                        .sameSite("Lax")
+                        .secure(isCookieSecure)
+                        .sameSite(isCookieSecure ? "None" : "Lax")
                         .path("/")
                         .maxAge(0)
                         .build();
@@ -56,8 +59,8 @@ public class RefreshTokenService {
     public ResponseCookie createRefreshTokenCookie(String refreshToken, HttpServletResponse response) {
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
+                .secure(isCookieSecure)
+                .sameSite(isCookieSecure ? "None" : "Lax")
                 .path("/")
                 .maxAge(JwtService.REFRESH_TOKEN_EXPIRATION)
                 .build();

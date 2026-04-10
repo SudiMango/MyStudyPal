@@ -14,12 +14,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.genai.errors.ClientException;
 import com.sudimango.MyStudyPal.component.GeminiClient;
 import com.sudimango.MyStudyPal.dto.DocumentDto;
 import com.sudimango.MyStudyPal.entity.Document;
 import com.sudimango.MyStudyPal.entity.StudySet;
 import com.sudimango.MyStudyPal.entity.User;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
+import com.sudimango.MyStudyPal.exception.TooManyRequestsException;
 import com.sudimango.MyStudyPal.exception.UnsupportedFormatException;
 import com.sudimango.MyStudyPal.repository.DocumentChunkRepository;
 import com.sudimango.MyStudyPal.repository.DocumentRepository;
@@ -93,7 +95,10 @@ public class DocumentService {
                 documentChunkRepository.saveChunkWithEmbedding(savedDoc.getDocumentId(), content, vectorStr, chunkIdx);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (e instanceof ClientException) {
+                throw new TooManyRequestsException(e.getMessage());
+            }
+
             throw new RuntimeException(
                     "Something went wrong while ingesting pdf file. Please try again after some time.");
         } finally {

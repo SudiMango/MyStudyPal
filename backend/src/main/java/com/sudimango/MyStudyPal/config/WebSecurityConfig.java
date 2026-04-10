@@ -43,6 +43,9 @@ public class WebSecurityConfig {
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -59,7 +62,7 @@ public class WebSecurityConfig {
                         .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
                         .successHandler(oauth2LoginSuccessHandler).failureHandler((request, response, exception) -> {
                             String encodedMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
-                            response.sendRedirect("http://localhost:3000/signup?error=" + encodedMessage);
+                            response.sendRedirect(frontendUrl + "/signup?error=" + encodedMessage);
                         }))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -87,7 +90,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // Add frontend url
+        config.setAllowedOrigins(List.of(frontendUrl));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);

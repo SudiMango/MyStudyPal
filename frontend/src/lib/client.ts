@@ -19,7 +19,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 const apiClient = axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
     withCredentials: true,
 });
 
@@ -88,7 +88,9 @@ apiClient.interceptors.response.use(
             } catch (refreshError: any) {
                 processQueue(refreshError, null);
                 TokenStore.set(null);
-                if (window.location.pathname !== "/login") {
+                const isProtectedRoute =
+                    window.location.pathname.startsWith("/app");
+                if (isProtectedRoute) {
                     window.location.href = "/login";
                 }
                 return Promise.reject(refreshError);

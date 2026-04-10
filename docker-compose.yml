@@ -1,0 +1,38 @@
+services:
+    backend:
+        container_name: mystudypal-backend
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        environment:
+            # Database
+            SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:5432/${DB_NAME}
+            SPRING_DATASOURCE_USERNAME: ${DB_USER}
+            SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+            DB_SSL_MODE: ${DB_SSL_MODE}
+            # OAuth
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+            # Email
+            MAIL_USERNAME: ${SENDER_EMAIL}
+            MAIL_PASSWORD: ${SENDER_PASSWORD}
+            # App Config
+            JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+            FRONTEND_URL: ${FRONTEND_URL}
+            BACKEND_URL: ${BACKEND_URL}
+            COOKIE_SECURE: ${COOKIE_SECURE}
+            GEMINI_API_KEY: ${GEMINI_API_KEY}
+        ports:
+            - "8080:8080"
+
+    frontend:
+        container_name: mystudypal-frontend
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        environment:
+            NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+        depends_on:
+            - backend
+        ports:
+            - "3001:3000"

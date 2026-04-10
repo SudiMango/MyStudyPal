@@ -92,9 +92,8 @@ public class QuizAttemptService {
                 double pointsToGive = roundToTwoDecimals(getPointsForAnswer(attemptQuestion, submission.userAnswer()));
 
                 QuizAttemptAnswer answerRecord = QuizAttemptAnswer.builder().quizAttempt(attempt)
-                        .quizAttemptQuestion(attemptQuestion)
-                        .userAnswer(submission.userAnswer()).isCorrect(pointsToGive > 0.0 ? true : false)
-                        .pointsEarned(pointsToGive).build();
+                        .quizAttemptQuestion(attemptQuestion).userAnswer(submission.userAnswer())
+                        .isCorrect(pointsToGive > 0.0 ? true : false).pointsEarned(pointsToGive).build();
 
                 attempt.getQuizAttemptAnswers().add(answerRecord);
                 totalEarned += pointsToGive;
@@ -112,8 +111,8 @@ public class QuizAttemptService {
             QuizAttemptQuestion attemptQuestion = attemptQuestionMap.get(question.getQuestionId());
 
             QuizAttemptAnswer unanswered = QuizAttemptAnswer.builder().quizAttempt(attempt)
-                    .quizAttemptQuestion(attemptQuestion)
-                    .userAnswer(List.of()).isCorrect(false).pointsEarned(0.0).build();
+                    .quizAttemptQuestion(attemptQuestion).userAnswer(List.of()).isCorrect(false).pointsEarned(0.0)
+                    .build();
 
             attempt.getQuizAttemptAnswers().add(unanswered);
             totalPossible += question.getPoints();
@@ -248,14 +247,14 @@ public class QuizAttemptService {
     }
 
     private AbstractMap.SimpleEntry<Double, Double> gradeShortAnswerQuestions(
-            List<AbstractMap.SimpleEntry<QuizAttemptQuestion, AnswerSubmission>> qtoa,
-            QuizAttempt attempt) {
+            List<AbstractMap.SimpleEntry<QuizAttemptQuestion, AnswerSubmission>> qtoa, QuizAttempt attempt) {
         double totalEarned = 0.0;
         double totalPossible = 0.0;
 
         List<String> questions = new ArrayList<>();
         List<String> correctAnswers = new ArrayList<>();
         List<String> userAnswers = new ArrayList<>();
+        List<String> hints = new ArrayList<>();
         List<Double> maxPoints = new ArrayList<>();
         for (AbstractMap.SimpleEntry<QuizAttemptQuestion, QuizAttemptDto.AnswerSubmission> entry : qtoa) {
             QuizAttemptQuestion key = entry.getKey();
@@ -264,12 +263,14 @@ public class QuizAttemptService {
             questions.add(key.getQuestionText());
             correctAnswers.add(key.getCorrectAnswers().get(0));
             userAnswers.add(convertUserAnswerToList(value.userAnswer()).get(0));
+            hints.add(key.getHint());
             maxPoints.add(key.getPoints());
             totalPossible += key.getPoints();
         }
 
         // Handle AI response for grading short answers
-        String response = geminiClient.markShortAnswerQuestions(questions, correctAnswers, userAnswers, maxPoints);
+        String response = geminiClient.markShortAnswerQuestions(questions, correctAnswers, userAnswers, hints,
+                maxPoints);
         if (response == null || response.trim().equals("")) {
             throw new EmptyAiResponseException(
                     "AI response for grading short answer questions for the quiz was empty.");
@@ -309,7 +310,8 @@ public class QuizAttemptService {
         return Math.round(value * 100.0) / 100.0;
     }
 
-    private Map<String, QuizAttemptQuestion> createQuestionSnapshots(QuizAttempt attempt, List<QuizQuestion> questions) {
+    private Map<String, QuizAttemptQuestion> createQuestionSnapshots(QuizAttempt attempt,
+            List<QuizQuestion> questions) {
         return questions.stream().collect(Collectors.toMap(QuizQuestion::getQuestionId, question -> {
             QuizAttemptQuestion snapshot = QuizAttemptQuestion.builder().quizAttempt(attempt)
                     .originalQuestionId(question.getQuestionId()).questionType(question.getQuestionType())
