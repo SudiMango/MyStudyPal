@@ -9,81 +9,155 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardRequest;
-import com.sudimango.MyStudyPal.entity.Flashcard;
-import com.sudimango.MyStudyPal.service.FlashcardService;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.CreateFlashcardRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.FlashcardResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardDto.UpdateFlashcardRequest;
+import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/flashcard")
+@RequestMapping("/flashcard")
 public class FlashcardController {
 
     @Autowired
     private FlashcardService flashcardService;
 
-    @GetMapping("/{setId}")
-    public ResponseEntity<?> getAllFlashcardsOfSet(@PathVariable String setId) {
-        try {
-            List<Flashcard> flashcards = flashcardService.getAllFlashcardsOfSet(setId);
-            return ResponseEntity.status(HttpStatus.OK).body(flashcards);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    /**
+    * Create a new flashcard for a flashcard set
+    * 
+    * @apiNote {@code POST /flashcard/{flashcardSetId}}
+    * 
+    * @param flashcardSetId - id of flashcard set
+    * @param createFlashcardRequest - request body
+    * 
+    * @see CreateFlashcardRequest CreateFlashcardRequest class for request body structure
+    * @see FlashcardResponse FlashcardResponse class for response body structure
+    * 
+    * @return
+    * {@code FlashcardResponse HTTP 201} - Flashcard created successfully
+    * 
+    * @throws
+    * {@code HTTP 404} - flashcard set not found
+    * {@code HTTP 422} - error with request body
+    */
+    @PostMapping("/{flashcardSetId}")
+    public ResponseEntity<FlashcardResponse> createFlashcard(@PathVariable String flashcardSetId,
+            @Valid @RequestBody CreateFlashcardRequest createFlashcardRequest) {
+        FlashcardResponse flashcard = flashcardService.createFlashcard(flashcardSetId, createFlashcardRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(flashcard);
     }
 
+    /**
+     * Get all flashcards of a flashcard set
+     * 
+     * @apiNote {@code GET /flashcard/{flashcardSetId}}
+     * 
+     * @param flashcardSetId - id of flashcard set
+     * 
+     * @see FlashcardResponse FlashcardResponse class for response body structure
+     * 
+     * @return
+     * {@code List<FlashcardResponse> HTTP 200} - Flashcards retrieved successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard set not found
+     */
+    @GetMapping("/{flashcardSetId}")
+    public ResponseEntity<List<FlashcardResponse>> getAllFlashcardsOfSet(@PathVariable String flashcardSetId) {
+        List<FlashcardResponse> flashcards = flashcardService.getAllFlashcardsOfSet(flashcardSetId);
+        return ResponseEntity.status(HttpStatus.OK).body(flashcards);
+    }
+
+    /**
+     * Review/unreview a flashcard
+     * 
+     * @apiNote {@code PATCH /flashcard/review/{flashcardId}}
+     * 
+     * @param flashcardId - id of flashcard
+     * 
+     * @return
+     * {@code HTTP 200} - Flashcard reviewed/unreviewed successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard not found
+     */
     @PatchMapping("/review/{flashcardId}")
     public ResponseEntity<?> changeReviewStatus(@PathVariable String flashcardId) {
-        try {
-            flashcardService.changeReviewStatus(flashcardId);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        flashcardService.changeReviewStatus(flashcardId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
+    /**
+     * Star/unstar a flashcard
+     * 
+     * @apiNote {@code PATCH /flashcard/star/{flashcardId}}
+     * 
+     * @param flashcardId - id of flashcard
+     * 
+     * @return
+     * {@code HTTP 200} - Flashcard starred/unstarred successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard not found
+     */
     @PatchMapping("/star/{flashcardId}")
     public ResponseEntity<?> changeStarStatus(@PathVariable String flashcardId) {
-        try {
-            flashcardService.changeStarStatus(flashcardId);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        flashcardService.changeStarStatus(flashcardId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
+    /**
+     * Update a flashcard
+     * 
+     * @apiNote {@code PATCH /flashcard/{flashcardSetId}}
+     * 
+     * @param flashcardSetId - id of flashcard set
+     * @param updateFlashcardRequest - request body
+     * 
+     * @see UpdateFlashcardRequest UpdateFlashcardRequest class for request body structure
+     * @see FlashcardResponse FlashcardResponse class for response body structure
+     * 
+     * @return
+     * {@code FlashcardResponse HTTP 200} - Flashcard updated successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard set not found
+     * {@code HTTP 422} - Validation errors with request body
+     */
+    @PatchMapping("/{flashcardId}")
+    public ResponseEntity<FlashcardResponse> updateFlashcard(@PathVariable String flashcardId,
+            @Valid @RequestBody UpdateFlashcardRequest updateFlashcardRequest) {
+        FlashcardResponse flashcard = flashcardService.updateFlashcard(flashcardId, updateFlashcardRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(flashcard);
+    }
+
+    /**
+    * Delete a flashcard
+    * 
+    * @apiNote {@code DEL /flashcard/{flashcardId}}
+    * 
+    * @param flashcardId - id of flashcard
+    * 
+    * @return
+    * {@code HTTP 200} - Flashcard deleted successfully
+    * 
+    * @throws
+    * {@code HTTP 403} - Current user doesn't own this resource
+    * {@code HTTP 404} - flashcard not found
+    */
     @DeleteMapping("/{flashcardId}")
     public ResponseEntity<?> deleteFlashcard(@PathVariable String flashcardId) {
-        try {
-            flashcardService.deleteFlashcard(flashcardId);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        flashcardService.deleteFlashcard(flashcardId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
-
-    @PatchMapping("/{flashcardId}")
-    public ResponseEntity<?> updateFlashcard(@PathVariable String flashcardId, 
-                                            @Valid @RequestBody UpdateFlashcardRequest request) {
-        try {
-            flashcardService.updateFlashcard(flashcardId, request);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
-
-    // @PostMapping("/generate")
-    // public ResponseEntity<?> generateFlashcards(@Valid @RequestBody GenerateFlashcardSetRequest request, @AuthenticationPrincipal User user) {
-    //     try {
-    //         flashcardService.generateFlashcards(request, user.getUserId());
-    //         return ResponseEntity.status(HttpStatus.CREATED).body(null);
-    //     } catch (Exception e) {
-    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-    //     }
-    // }
 }

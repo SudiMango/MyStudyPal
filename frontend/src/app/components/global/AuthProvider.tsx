@@ -8,21 +8,22 @@ import React, {
     ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import apiClient from "@/lib/api/client";
 import { TokenStore } from "@/lib/token-store";
-import { loginWithEmail, logoutFromApp } from "@/lib/api/auth-api";
-
-interface User {
-    username: string;
-}
+import {
+    getLoggedInUser,
+    loginWithEmail,
+    logoutFromApp,
+} from "@/lib/api/auth-api";
+import { UserDetailsResponse } from "@/lib/dto/auth-dto";
+import { toast } from "sonner";
 
 interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
-    user: User | null;
+    user: UserDetailsResponse | null;
     login: (
         email: string,
-        password: string
+        password: string,
     ) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
 }
@@ -30,25 +31,30 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<UserDetailsResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+        () => TokenStore.get() !== null,
+    );
     const router = useRouter();
     const pathname = usePathname();
 
-    // Check auth status of user on every page visit
     useEffect(() => {
         const checkAuthStatus = async () => {
             try {
-                const { data } = await apiClient.post("/auth/refresh");
-                if (data.accessToken) {
-                    TokenStore.set(data.accessToken);
+                const res = await getLoggedInUser();
+
+                if (res.success && res.data) {
                     setIsAuthenticated(true);
+                    setUser(res.data);
                 } else {
-                    throw new Error("No access token");
+                    TokenStore.set(null);
+                    setUser(null);
+                    setIsAuthenticated(false);
                 }
-            } catch (error) {
+            } catch {
                 TokenStore.set(null);
+                setUser(null);
                 setIsAuthenticated(false);
             } finally {
                 setIsLoading(false);
@@ -72,8 +78,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await loginWithEmail(email, password);
         if (result.success && result.data) {
             TokenStore.set(result.data.accessToken);
-            setIsAuthenticated(true);
-            return { success: true };
+
+            const userRes = await getLoggedInUser();
+            if (userRes.success && userRes.data) {
+                setUser(userRes.data);
+                setIsAuthenticated(true);
+                return { success: true };
+            } else {
+                TokenStore.set(null);
+                return {
+                    success: false,
+                    error: "Failed to fetch user details",
+                };
+            }
         } else {
             return { success: false, error: result.error };
         }
@@ -86,27 +103,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setIsAuthenticated(false);
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
     };
 
-    const isAppRoute = pathname.startsWith("/app");
+    // const isAppRoute = pathname.startsWith("/app");
 
-    if (isLoading && isAppRoute) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Loading...</p>
-            </div>
-        );
-    }
+    // if (isLoading && isAppRoute) {
+    //     return (
+    //         <div className="flex items-center justify-center h-screen">
+    //             <p>Loading...</p>
+    //         </div>
+    //     );
+    // }
 
-    if (!isAuthenticated && isAppRoute) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Redirecting to login...</p>
-            </div>
-        );
-    }
+    // if (!isAuthenticated && isAppRoute) {
+    //     return (
+    //         <div className="flex items-center justify-center h-screen">
+    //             <p>Redirecting to login...</p>
+    //         </div>
+    //     );
+    // }
 
     return (
         <AuthContext.Provider

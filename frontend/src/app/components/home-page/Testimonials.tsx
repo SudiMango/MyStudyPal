@@ -64,7 +64,7 @@ const Testimonials = () => {
     ];
 
     return (
-        <div className="flex flex-col justify-center items-center w-full max-w-[800px] mb-10">
+        <div className="flex flex-col justify-center items-center w-full max-w-200 mb-10">
             <div className="flex flex-row justify-center items-center mr-auto text-sm mt-5 px-5 [@media(min-width:850px)]:px-0">
                 <Star className="h-5 w-5 text-(--discord-blurple) mr-1.5 fill-current" />
                 <label className="text-(--discord-blurple)">Testimonials</label>
@@ -90,6 +90,7 @@ const Testimonials = () => {
                                 alt="Profile image"
                                 width={50}
                                 height={50}
+                                priority
                                 className="rounded-full w-9 h-9 outline-2 outline-white object-cover"
                             />
                             <div className="flex flex-col">

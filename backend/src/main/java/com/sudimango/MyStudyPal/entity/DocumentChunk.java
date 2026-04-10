@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class DocumentChunk {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String documentChunkId;
@@ -30,7 +31,10 @@ public class DocumentChunk {
     
     @Column(name = "embedding", columnDefinition = "vector(768)")
     private String embedding;
-
+    
+    @Column(nullable = false)
+    private int chunkIndex;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)
     private Document document;

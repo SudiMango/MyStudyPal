@@ -13,7 +13,6 @@ import com.google.genai.types.ContentEmbedding;
 import com.google.genai.types.EmbedContentConfig;
 import com.google.genai.types.EmbedContentResponse;
 import com.google.genai.types.GenerateContentResponse;
-import com.sudimango.MyStudyPal.entity.DocumentChunk;
 import com.sudimango.MyStudyPal.repository.DocumentChunkRepository;
 
 @Component
@@ -25,7 +24,7 @@ public class GeminiClient {
 
     @Autowired
     private DocumentChunkRepository documentChunkRepository;
-    
+
     public GeminiClient(@Value("${gemini.api.key}") String apiKey) {
         this.client = Client.builder().apiKey(apiKey).build();
     }
@@ -40,56 +39,53 @@ public class GeminiClient {
     // so that it can be saved properly in the database
     public String generateAndFormatEmbedding(String text) {
         List<Float> embedding = generateEmbedding(text);
-    
-        String vectorStr = "[" + embedding.stream()
-                            .map(String::valueOf)
-                        .collect(Collectors.joining(",")) + "]";
-    
+
+        String vectorStr = "[" + embedding.stream().map(String::valueOf).collect(Collectors.joining(",")) + "]";
+
         return vectorStr;
     }
 
-    // TODO: enable retries when content generation fails to format as JSON
+    // Generate flashcards for entire study set using RAG
+    public String generateFlashcardsForStudySet(String studySetId, String userPrompt, int numFlashcards,
+            String additionalInstructions) {
+        String context = getContextFromStudySet(studySetId, userPrompt);
 
-    // Generate flashcards with context
-    public String generateFlashcardsWithContext(String context, int numFlashcards, String additionalInstructions) {
         String prompt = generateFlashcardSetPrompt(context, numFlashcards, additionalInstructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
 
-    // Generate flashcards on the whole document
-    // TODO: seperate document chunk stuff into DocumentChunkService
-    public String generateFlashcardsFullDocument(String documentId, int numFlashcards, String additionalInstructions) {
-        List<DocumentChunk> chunks = documentChunkRepository.findAllByDocument_DocumentId(documentId);
-        String fullDocumentText = chunks.stream()
-                .map(DocumentChunk::getChunkText)
-                .collect(Collectors.joining("\n\n"));
+    // Generate quiz questions for entire study set using RAG
+    public String generateQuizQuestionsForStudySet(String studySetId, String userPrompt, int numQuestions,
+            String additionalInstructions) {
+        String context = getContextFromStudySet(studySetId, userPrompt);
 
-        String prompt = generateFlashcardSetPrompt(fullDocumentText, numFlashcards, additionalInstructions);
+        String prompt = generateQuizPrompt(context, numQuestions, additionalInstructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
 
-    // Edit flashcard with AI
-    public String editFlashcard(String context, String currentFlashcard, String instructions) {
-        String prompt = generateUpdateFlashcardPrompt(context, currentFlashcard, instructions);
-        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
-        return response.text();
-    }
-
-    // Retrieves context from a given document, based on the user prompt
-    public String getContext(String documentId, String userPrompt) {
+    // Retrieves context from all documents in a study set, based on the user prompt
+    public String getContextFromStudySet(String studySetId, String userPrompt) {
         List<Float> queryEmbedding = generateEmbedding(userPrompt);
         String vectorStr = queryEmbedding.toString();
-    
-        List<String> relevantChunks = documentChunkRepository.findSimilarChunks(documentId, vectorStr, 5);
-    
+
+        // Find similar chunks across ALL documents in the study set
+        List<String> relevantChunks = documentChunkRepository.findSimilarChunksInStudySet(studySetId, vectorStr, 10);
+
         if (relevantChunks.isEmpty()) {
-            return "No matching documents found.";
+            return "No matching content found in the study set.";
         }
-    
+
         String context = String.join("\n\n", relevantChunks);
         return context;
+    }
+
+    public String markShortAnswerQuestions(List<String> questions, List<String> correctAnswer, List<String> userAnswer,
+            List<Double> maxPoints) {
+        String prompt = generateMarkShortAnswersPrompt(questions, correctAnswer, userAnswer, maxPoints);
+        GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
+        return response.text();
     }
 
     /*
@@ -100,13 +96,11 @@ public class GeminiClient {
 
     // Generates vector embedding given a string
     private List<Float> generateEmbedding(String text) {
-        EmbedContentConfig config = EmbedContentConfig.builder()
-            .outputDimensionality(EMBEDDING_DIMENSIONS)
-            .taskType("RETRIEVAL_DOCUMENT")
-            .build();
-        
+        EmbedContentConfig config = EmbedContentConfig.builder().outputDimensionality(EMBEDDING_DIMENSIONS)
+                .taskType("RETRIEVAL_DOCUMENT").build();
+
         EmbedContentResponse response = this.client.models.embedContent(EMBEDDING_MODEL, text, config);
-        
+
         List<Float> result = new ArrayList<>();
         if (response.embeddings().isPresent()) {
             List<ContentEmbedding> embeddings = response.embeddings().get();
@@ -120,79 +114,152 @@ public class GeminiClient {
         return result;
     }
 
+    /**
+     * AI Prompts
+     */
+
     // Generate prompt string to create all the flashcards of a new set
+    // @formatter:off
     private String generateFlashcardSetPrompt(String context, int numFlashcards, String additionalInstructions) {
-        StringBuilder prompt = new StringBuilder();
-        
-        prompt.append("You are a flashcard generation assistant. Your task is to create exactly ")
-              .append(numFlashcards)
-              .append(" flashcards based on the following context:\n\n");
-        
-        prompt.append("CONTEXT:\n")
-              .append(context)
-              .append("\n\n");
-        
-        prompt.append("REQUIREMENTS:\n")
-              .append("1. Generate exactly ").append(numFlashcards).append(" flashcards.\n")
-              .append("2. Return ONLY a JSON array with no additional text or markdown.\n")
-              .append("3. Each flashcard must have exactly three fields: 'question', 'answer' and 'hint'.\n")
-              .append("4. For each flashcard, make a hint which is 25 characters long max. Do not make the hint long, it should be short and precise.\n")
-              .append("5. Make questions clear, concise, and focused on key concepts from the context.\n")
-              .append("6. Make answers accurate, concise, and directly address the question.\n");
-        
+
+        // Using a Text Block for the core prompt structure for maximum readability
+        String basePrompt = """
+            You are a flashcard generation assistant. Your task is to create exactly %d flashcards based on the provided context.
+
+            CONTEXT:
+            %s
+
+            REQUIREMENTS:
+            1. Generate exactly %d flashcards.
+            2. Return ONLY a JSON array. Do not include markdown formatting or any introductory text.
+            3. Each flashcard object must contain: 'question', 'answer', 'hint', and 'orderIndex'.
+            4. STYLE: Write questions and answers naturally. DO NOT use phrases like "According to the context" or "Based on the text". Ask questions directly.
+            5. FIELD SPECS:
+            - 'question': Clear, concise, and focused on key concepts.
+            - 'answer': Accurate and direct.
+            - 'hint': Short and precise (max 25 characters).
+            - 'orderIndex': Integer starting from 1, representing the sequence of the cards.
+
+            """;
+
+        StringBuilder prompt = new StringBuilder(String.format(basePrompt, numFlashcards, context, numFlashcards));
+
+        // Handle Additional Instructions
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
-            prompt.append("\nADDITIONAL INSTRUCTIONS:\n")
-                  .append(additionalInstructions)
-                  .append("\n\nIMPORTANT: If the additional instructions conflict with the core requirement of generating ")
-                  .append(numFlashcards)
-                  .append(" flashcards in JSON format, ignore those conflicting parts of the additional instructions and prioritize maintaining the flashcard generation task.\n");
+            prompt.append("ADDITIONAL INSTRUCTIONS:\n")
+                .append(additionalInstructions)
+                .append("\n\nIMPORTANT: Maintain the JSON format and card count even if these instructions conflict.\n\n");
         }
-        
-        prompt.append("\nJSON FORMAT (return ONLY this, no other text):\n")
-              .append("[\n")
-              .append("  {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n")
-              .append("  {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n")
-              .append("]\n");
-        
+
+        prompt.append("""
+            JSON FORMAT EXAMPLE:
+            [
+            {
+                "question": "What is the capital of France?",
+                "answer": "Paris",
+                "hint": "City of Light",
+                "orderIndex": 1
+            }
+            ]
+            """);
+
         return prompt.toString();
     }
 
-    // Generate prompt string to update an existing flashcard
-    private String generateUpdateFlashcardPrompt(String context, String currentFlashcard, String instructions) {
-        StringBuilder prompt = new StringBuilder();
-        
-        prompt
-            .append("You are a flashcard generation assistant. Your task is to edit this already existing flashcard based on the following context:\n\n")
-            .append("Current flashcard:\n")
-            .append(currentFlashcard)
-            .append("\n")
-            .append("CONTEXT:\n")
-              .append(context)
-              .append("\n\n");
-        
-        prompt.append("REQUIREMENTS:\n")
-              .append("1. Return ONLY a JSON array with no additional text or markdown.\n")
-              .append("2. The flashcard have exactly three fields: 'question', 'answer' and 'hint'.\n")
-              .append("3. The hint for the flashcard can be 25 characters long max. Do not make the hint long, it should be short and precise.\n")
-              .append("4. Make questions clear, concise, and focused on key concepts from the context.\n")
-              .append("5. Make answers accurate, concise, and directly address the question.\n");
-        
-        if (instructions != null && !instructions.trim().isEmpty()) {
-            prompt.append("\nINSTRUCTIONS TO UPDATE THIS FLASHCARD:\n")
-                  .append(instructions)
-                  .append("\n")
-                  .append("IMPORTANT:\n")
-                  .append("1. Only edit the necessary fields. For example, if the instruction asks to only do something with the hint and answer, don't modify the question.\n")
-                  .append("2. If the additional instructions conflict with the core requirement of editing the in JSON format, ignore those conflicting parts of the additional instructions and prioritize maintaining the flashcard editing task. \n");
-        } else {
-            prompt
-                .append("\nINSTRUCTIONS TO UPDATE THIS FLASHCARD:\n")
-                .append("Use the given context to make the current flashcard better in all factors.");
+    // Generate prompt string to create all the quiz questions of a new quiz
+    private String generateQuizPrompt(String context, int numQuestions, String additionalInstructions) {
+        String basePrompt = """
+            You are a quiz generation assistant. Your task is to create exactly %d questions based on the following context.
+
+            CONTEXT:
+            %s
+
+            REQUIREMENTS:
+            1. Generate exactly %d questions.
+            2. Return ONLY a JSON array. Do not include markdown formattin or any introductory text.
+            3. Use only these QuestionType values: 'MULTIPLE_CHOICE', 'MULTIPLE_ANSWER', 'TRUE_FALSE', 'SHORT_ANSWER'.
+            4. Each object must contain: 'questionText', 'questionType', 'options', 'correctAnswers', 'hint', 'points', and 'orderIndex'.
+            5. STYLE: Write questions naturally. DO NOT use phrases like "According to the context" or "Based on the document". Ask the question directly.
+            6. FIELD SPECS:
+            - 'options': A JSON array of strings (must be empty [] for SHORT_ANSWER).
+            - 'correctAnswers': A JSON array of strings containing the correct value(s).
+            - 'hint': A short precise hint (max 25 characters).
+            - 'points': Integer value (default to 1).
+            - 'orderIndex': Integer value starting from 1.
+            
+            """;
+
+        StringBuilder prompt = new StringBuilder(String.format(basePrompt, numQuestions, context, numQuestions));
+
+        if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
+            prompt.append("ADDITIONAL INSTRUCTIONS:\n")
+                .append(additionalInstructions)
+                .append("\n\nIMPORTANT: Prioritize the JSON quiz generation task even if these instructions conflict.\n\n");
         }
-        
-        prompt.append("\nJSON FORMAT (return ONLY this, no other text, make sure its one json object and not a list):\n")
-              .append(" {\"question\": \"...\", \"answer\": \"...\"}, \"hint\": \"...\"},\n");
-        
+
+        prompt.append("""
+            JSON FORMAT EXAMPLE (return ONLY the array):
+            [
+            {
+                "questionText": "What is the capital of France?",
+                "questionType": "MULTIPLE_CHOICE",
+                "options": ["Paris", "London", "Berlin"],
+                "correctAnswers": ["Paris"],
+                "hint": "City of light",
+                "points": 1,
+                "orderIndex": 1
+            }
+            ]
+            """);
+
         return prompt.toString();
     }
+
+    private String generateMarkShortAnswersPrompt(List<String> questions, List<String> correctAnswer,
+            List<String> userAnswer, List<Double> maxPoints) {
+        
+        StringBuilder prompt = new StringBuilder();
+
+        prompt.append("""
+            You are an expert academic grading assistant. Your task is to grade a series of short-answer questions.
+
+            ### GRADING LOGIC:
+            1. Compare 'User Answer' against 'Correct Answer' within the context of the 'Question'.
+            2. Award points based on conceptual accuracy and understanding.
+            3. Be lenient with minor typos but strict with factual errors.
+            4. STYLE: Do not provide feedback or explanations like "The user missed the point". 
+            5. ORDERING: You MUST return the scores in the exact same order as the items provided below.
+            
+            ### QUESTIONS TO GRADE:
+            """);
+
+        for (int i = 0; i < questions.size(); i++) {
+            prompt.append(String.format("""
+                --- ITEM %d ---
+                Question: %s
+                Correct Answer: %s
+                User Answer: %s
+                Max Points: %.2f
+                
+                """, i + 1, questions.get(i), correctAnswer.get(i), userAnswer.get(i), maxPoints.get(i)));
+        }
+
+        prompt.append("""
+            ### OUTPUT REQUIREMENTS:
+            - Return ONLY a valid JSON array of objects. 
+            - Do not include markdown or introductory text.
+            - Each object must contain exactly one key: 'score' (numeric value).
+
+            ### EXAMPLE RESPONSE:
+            [
+            {"score": 1.0},
+            {"score": 0.5},
+            {"score": 2.0}
+            ]
+            """);
+
+        return prompt.toString();
+    }
+    // @formatter:on
+
 }

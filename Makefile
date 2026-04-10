@@ -1,4 +1,4 @@
-.PHONY: fe be
+.PHONY: fe be dev
 
 # Start frontend
 fe:
@@ -6,4 +6,12 @@ fe:
 
 # Start backend
 be:
-	cd backend && mvnw.cmd spring-boot:run
+	cd backend && chmod +x mvnw && ./mvnw spring-boot:run
+
+# Start both simultaneously
+dev:
+	concurrently \
+		--names "FE,BE" \
+		--prefix-colors "blue,green" \
+		"make fe" \
+		"make be"

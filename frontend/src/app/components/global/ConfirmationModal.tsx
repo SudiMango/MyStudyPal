@@ -22,7 +22,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-5">
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-5 backdrop-blur-sm">
             <div className="bg-(--discord-gray-2) p-6 rounded-lg shadow-xl max-w-md w-full">
                 <p className="text-white text-lg mb-4">{message}</p>
                 <div className="flex justify-end gap-4">

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/app/components/global/AuthProvider";
+import { toast } from "sonner";
 
 const LoginPage = () => {
     const { login } = useAuth();
@@ -21,7 +22,7 @@ const LoginPage = () => {
 
     useEffect(() => {
         if (error && !shownRef.current) {
-            alert(error);
+            toast.error(error);
             shownRef.current = true;
         }
     }, [error]);
@@ -30,7 +31,7 @@ const LoginPage = () => {
         e.preventDefault();
 
         if (!email || !password) {
-            alert("Please fill in all the fields.");
+            toast.error("Please fill in all the fields.");
             return;
         }
 
@@ -38,10 +39,10 @@ const LoginPage = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            redirect("/app/flashcard-sets");
+            redirect("/app/study-sets");
         }
         if (result.error) {
-            alert(result.error);
+            toast.error(result.error);
         }
 
         setLoading(false);
@@ -52,8 +53,8 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)]">
-            <div className="bg-(--discord-gray-2) flex flex-col items-center justify-center rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)] w-full px-4">
+            <div className="bg-(--discord-gray-2) flex flex-col items-center justify-center rounded-2xl p-5 shadow-xl space-y-4 w-full max-w-sm">
                 {/* Title */}
                 <div className="flex flex-col items-center justify-center">
                     <label className="font-extrabold text-2xl text-white">

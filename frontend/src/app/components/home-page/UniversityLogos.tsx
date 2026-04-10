@@ -43,6 +43,7 @@ const UniversityLogos = () => {
                         src={uni.logo}
                         width={1000}
                         height={1000}
+                        priority
                         className={`h-20 ${uni.width} mx-6 rounded-md border-2 border-(--discord-blurple) bg-white`}
                     />
                 ))}

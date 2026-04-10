@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,132 +14,134 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sudimango.MyStudyPal.dto.request.flashcard.CreateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.request.flashcard.UpdateFlashcardSetRequest;
-import com.sudimango.MyStudyPal.dto.response.CreateFlashcardSetResponse;
-import com.sudimango.MyStudyPal.dto.response.FlashcardSetResponse;
-import com.sudimango.MyStudyPal.entity.User;
-import com.sudimango.MyStudyPal.service.FlashcardSetService;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.CreateFlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.FlashcardSetResponse;
+import com.sudimango.MyStudyPal.dto.FlashcardSetDto.UpdateFlashcardSetRequest;
+import com.sudimango.MyStudyPal.service.study.flashcard.FlashcardSetService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/flashcard-set")
+@RequestMapping("/flashcard-set")
 public class FlashcardSetController {
 
     @Autowired
     private FlashcardSetService flashcardSetService;
 
-    // TODO: handle errors and http codes properly
-
     /**
-     * Create a new flashcard set with new flashcards from its associated document id
+     * Create a new flashcard set with new flashcards
      * 
-     * @apiNote {@code POST /api/flashcard-set/create}
+     * @apiNote {@code POST /flashcard-set/{studySetId}}
      * 
+     * @param studySetId - id of study set
      * @param flashcardSetRequest - request body
+     * 
      * @see CreateFlashcardSetRequest CreateFlashcardSetRequest class for request body structure
-     * 
-     * @return
-     * {@code HTTP 201} - Flashcard set and flashcards created successfully {null}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
-     * {@code HTTP 500} - Something went wrong while creating the flashcard set {error: ""}
-     * 
      * @see CreateFlashcardSetResponse CreateFlashcardSetResponse class for response body structure
+     * 
+     * @return
+     * {@code HTTP 201} - Flashcard set and flashcards created successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - Study set not found
+     * {@code HTTP 422} - Validation errors with request body
      */
-    @PostMapping("/create")
-    public ResponseEntity<?> createFlashcardSet(@Valid @RequestBody CreateFlashcardSetRequest flashcardSetRequest,
-                                                @AuthenticationPrincipal User user) {
-        try {
-            CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @PostMapping("/{studySetId}")
+    public ResponseEntity<CreateFlashcardSetResponse> createFlashcardSet(@PathVariable String studySetId,
+            @Valid @RequestBody CreateFlashcardSetRequest flashcardSetRequest) {
+        CreateFlashcardSetResponse response = flashcardSetService.createFlashcardSet(flashcardSetRequest, studySetId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
-     * Get all the flashcard sets for the logged in user
+     * Get all the flashcard sets in a study set
      * 
-     * @apiNote {@code GET /api/flashcard-set/get-all}
+     * @apiNote {@code GET /flashcard-set/{studySetId}}
      * 
-     * @return
-     * {@code HTTP 200} - Retrieved all flashcard sets successfully {FlashcardSetResponse[]}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
-     * {@code HTTP 500} - Something went wrong while retrieving flashcard sets {error: ""}
+     * @param studySetId - id of study set
      * 
      * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
+     * 
+     * @return
+     * {@code List<FlashcardSetResponse> HTTP 200} - Retrieved all flashcard sets successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - Study set not found
      */
-    @GetMapping("/get-all")
-    public ResponseEntity<?> getFlashcardSets(@AuthenticationPrincipal User user) {
-        try {
-            List<FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSets(user.getUserId());
-            return ResponseEntity.status(HttpStatus.OK).body(flashcardSets);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @GetMapping("/study-set/{studySetId}")
+    public ResponseEntity<List<FlashcardSetResponse>> getFlashcardSets(@PathVariable String studySetId) {
+        List<FlashcardSetResponse> flashcardSets = flashcardSetService.getFlashcardSetsForStudySet(studySetId);
+        return ResponseEntity.status(HttpStatus.OK).body(flashcardSets);
     }
 
     /**
-     * Get a particular flashcard set for the logged in user
+     * Get a particular flashcard set
      * 
-     * @apiNote {@code GET /api/flashcard-set/{setId}}
+     * @apiNote {@code GET /flashcard-set/{flashcardSetId}}
      * 
-     * @return
-     * {@code HTTP 200} - Retrieved flashcard set successfully {FlashcardSetResponse}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
-     * {@code HTTP 500} - Something went wrong while retrieving flashcard set {error: ""}
+     * @param flashcardSetId - id of flashcard set
      * 
      * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
+     * 
+     * @return
+     * {@code HTTP 200} - Retrieved flashcard set successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard set not found
      */
-    @GetMapping("/{setId}")
-    public ResponseEntity<?> getOneFlashcardSet(@PathVariable String setId) {
-        try {
-            FlashcardSetResponse flashcardSet = flashcardSetService.getOneFlashcardSet(setId);
-            return ResponseEntity.status(HttpStatus.OK).body(flashcardSet);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @GetMapping("/{flashcardSetId}")
+    public ResponseEntity<FlashcardSetResponse> getOneFlashcardSet(@PathVariable String flashcardSetId) {
+        FlashcardSetResponse flashcardSet = flashcardSetService.getOneFlashcardSet(flashcardSetId);
+        return ResponseEntity.status(HttpStatus.OK).body(flashcardSet);
     }
 
     /**
-     * Update a particular flashcard set for the logged in user
+     * Update a flashcard set
      * 
-     * @apiNote {@code PATCH /api/flashcard-set/{setId}}
+     * @apiNote {@code PATCH /flashcard-set/{flashcardSetId}}
+     * 
+     * @param flashcardSetId - id of flashcard set
+     * @param updateFlashcardSetRequest - request body
+     * 
+     * @see UpdateFlashcardSetRequest UpdateFlashcardSetRequest class for request body structure
+     * @see FlashcardSetResponse FlashcardSetResponse class for response body structure
      * 
      * @return
-     * {@code HTTP 200} - Updated flashcard set successfully {null}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
-     * {@code HTTP 500} - Something went wrong while updating flashcard set {error: ""}
+     * {@code FlashcardSetResponse HTTP 200} - Updated flashcard set successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard set not found
+     * {@code HTTP 422} - Validation errors with request body
      */
-    @PatchMapping("/{setId}")
-    public ResponseEntity<?> updateFlashcardSet(@PathVariable String setId, 
-                                                @Valid @RequestBody UpdateFlashcardSetRequest request) {
-        try {
-            flashcardSetService.updateFlashcardSet(setId, request);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @PatchMapping("/{flashcardSetId}")
+    public ResponseEntity<?> updateFlashcardSet(@PathVariable String flashcardSetId,
+            @Valid @RequestBody UpdateFlashcardSetRequest updateFlashcardSetRequest) {
+        FlashcardSetResponse set = flashcardSetService.updateFlashcardSet(flashcardSetId, updateFlashcardSetRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(set);
     }
 
     /**
-     * Delete a particular flashcard set for the logged in user
+     * Delete a flashcard set
      * 
-     * @apiNote {@code DELETE /api/flashcard-set/{setId}}
+     * @apiNote {@code DEL /flashcard-set/{flashcardSetId}}
+     * 
+     * @param flashcardSetId - id of flashcard set
      * 
      * @return
-     * {@code HTTP 200} - Deleted flashcard set successfully {null}
-     * {@code HTTP 400} - Validation errors with request body {errors: []}
-     * {@code HTTP 500} - Something went wrong while deleting flashcard set {error: ""}
+     * {@code HTTP 200} - Deleted flashcard set successfully
+     * 
+     * @throws
+     * {@code HTTP 403} - Current user doesn't own this resource
+     * {@code HTTP 404} - flashcard set not found
      */
-    @DeleteMapping("/{setId}")
-    public ResponseEntity<?> deleteFlashcardSet(@PathVariable String setId) {
-        try {
-            flashcardSetService.deleteFlashcardSet(setId);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @DeleteMapping("/{flashcardSetId}")
+    public ResponseEntity<?> deleteFlashcardSet(@PathVariable String flashcardSetId) {
+        flashcardSetService.deleteFlashcardSet(flashcardSetId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 }
