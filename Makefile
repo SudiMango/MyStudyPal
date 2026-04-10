@@ -2,7 +2,7 @@
 
 # Start frontend
 fe:
-	cd frontend && npm run dev
+	cd frontend && npm run dev -- -p 3001
 
 # Start backend
 be:
