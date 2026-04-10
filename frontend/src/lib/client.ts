@@ -88,7 +88,9 @@ apiClient.interceptors.response.use(
             } catch (refreshError: any) {
                 processQueue(refreshError, null);
                 TokenStore.set(null);
-                if (window.location.pathname !== "/login") {
+                const isProtectedRoute =
+                    window.location.pathname.startsWith("/app");
+                if (isProtectedRoute) {
                     window.location.href = "/login";
                 }
                 return Promise.reject(refreshError);
