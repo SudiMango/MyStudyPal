@@ -1,22 +1,26 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
     getAllFlashcardsInSet,
     changeReviewStatus,
-    Flashcard,
     changeStarStatus,
 } from "@/lib/api/flashcard-api";
-import { FlashcardSet, getOneFlashcardSet } from "@/lib/api/flashcard-set-api";
+import { getOneFlashcardSet } from "@/lib/api/flashcard-set-api";
+import { getOneStudySet } from "@/lib/api/study-set-api";
+import { FlashcardResponse } from "@/lib/dto/flashcard-dto";
+import { StudySetResponse } from "@/lib/dto/study-set-dto";
+import { FlashcardSetResponse } from "@/lib/dto/flashcard-set-dto";
+import { toast } from "sonner";
 
-export const useFlashcards = (setId: string) => {
+export const useFlashcards = (studySetId: string, flashcardSetId: string) => {
     /**
      *
      * Variables
      *
      */
 
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [flashcardSet, setFlashcardSet] = useState<FlashcardSet>();
+    const [flashcards, setFlashcards] = useState<FlashcardResponse[]>([]);
+    const [flashcardSet, setFlashcardSet] = useState<FlashcardSetResponse>();
+    const [studySet, setStudySet] = useState<StudySetResponse>();
     const [currIndex, setCurrIndex] = useState<number>(0);
 
     const [showHint, setShowHint] = useState<boolean>(false);
@@ -40,31 +44,38 @@ export const useFlashcards = (setId: string) => {
     const fetchEverything = async () => {
         setIsLoading(true);
 
-        const setResponse = await getOneFlashcardSet(setId);
-        if (setResponse.success && setResponse.data) {
+        const setResponse = await getOneFlashcardSet(flashcardSetId);
+        if (setResponse.data) {
             setFlashcardSet(setResponse.data);
         } else {
-            alert(setResponse.error);
+            toast.error(setResponse.error);
         }
 
-        const response = await getAllFlashcardsInSet(setId);
+        const studySetResponse = await getOneStudySet(studySetId);
+        if (studySetResponse.data) {
+            setStudySet(studySetResponse.data);
+        } else {
+            toast.error(studySetResponse.error);
+        }
+
+        const response = await getAllFlashcardsInSet(flashcardSetId);
         if (response.success && response.data) {
             setFlashcards(response.data);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsLoading(false);
     };
 
     useEffect(() => {
-        if (!setId) {
+        if (!flashcardSetId) {
             setIsLoading(false);
-            alert("Flashcard set ID is missing.");
+            toast.error("Flashcard set ID is missing.");
             return;
         }
 
         fetchEverything();
-    }, [setId]);
+    }, [flashcardSetId]);
 
     /**
      *
@@ -125,21 +136,21 @@ export const useFlashcards = (setId: string) => {
         if (isStarring.has(flashcardToUpdate.flashcardId)) return;
 
         setIsStarring((prev) =>
-            new Set(prev).add(flashcardToUpdate.flashcardId)
+            new Set(prev).add(flashcardToUpdate.flashcardId),
         );
 
         const originalFlashcards = [...flashcards];
 
         setFlashcards(
             flashcards.map((card, idx) =>
-                idx === index ? { ...card, starred: !card.starred } : card
-            )
+                idx === index ? { ...card, isStarred: !card.isStarred } : card,
+            ),
         );
 
         const response = await changeStarStatus(flashcardToUpdate.flashcardId);
         if (!response.success) {
             setFlashcards(originalFlashcards);
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsStarring((prev) => {
             const newSet = new Set(prev);
@@ -161,23 +172,25 @@ export const useFlashcards = (setId: string) => {
         if (isReviewing.has(flashcardToUpdate.flashcardId)) return;
 
         setIsReviewing((prev) =>
-            new Set(prev).add(flashcardToUpdate.flashcardId)
+            new Set(prev).add(flashcardToUpdate.flashcardId),
         );
 
         const originalFlashcards = [...flashcards];
 
         setFlashcards(
             flashcards.map((card, idx) =>
-                idx === index ? { ...card, reviewed: !card.reviewed } : card
-            )
+                idx === index
+                    ? { ...card, isReviewed: !card.isReviewed }
+                    : card,
+            ),
         );
 
         const response = await changeReviewStatus(
-            flashcardToUpdate.flashcardId
+            flashcardToUpdate.flashcardId,
         );
         if (!response.success) {
             setFlashcards(originalFlashcards);
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsReviewing((prev) => {
             const newSet = new Set(prev);
@@ -210,6 +223,7 @@ export const useFlashcards = (setId: string) => {
     return {
         flashcards,
         flashcardSet,
+        studySet,
         currIndex,
         showHint,
         showAnswer,

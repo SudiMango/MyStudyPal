@@ -1,50 +1,54 @@
-import apiClient from "./client";
+import { ApiResponse } from "../types/api";
+import { getErrorMessage } from "../util";
+import apiClient from "../client";
+import { DocumentResponse } from "../dto/document-dto";
 
-/**
- *
- * DTOs
- *
- */
-
-interface UploadDocumentResponse {
-    success: boolean;
-    data?: {
-        documentId: string;
-    };
-    error?: string;
-}
-
-/**
- *
- * API calls
- *
- */
-
-// Upload document
-export const uploadDocument = async (
-    file: File
-): Promise<UploadDocumentResponse> => {
+// Upload multiple documents
+export const uploadDocuments = async (
+    studySetId: string,
+    files: File[],
+): Promise<ApiResponse> => {
     try {
         const formData = new FormData();
-        formData.append("file", file);
 
-        const response = await apiClient.post<{ documentId: string }>(
-            "/document/upload",
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
+        files.forEach((file) => {
+            formData.append("files", file);
+        });
+
+        await apiClient.post(`/document/${studySetId}`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: getErrorMessage(error) };
+    }
+};
+
+// Get all documents for a single study set
+export const getAllDocumentsForStudySet = async (
+    studySetId: string,
+): Promise<ApiResponse<DocumentResponse[]>> => {
+    try {
+        const response = await apiClient.get<DocumentResponse[]>(
+            `/document/${studySetId}`,
         );
-
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "File upload failed";
-        return { success: false, error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
+    }
+};
+
+// Delete a single document
+export const deleteDocument = async (
+    documentId: string,
+): Promise<ApiResponse> => {
+    try {
+        await apiClient.delete(`/document/${documentId}`);
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: getErrorMessage(error) };
     }
 };

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { TokenStore } from "@/lib/token-store";
 
-export default function OAuthCallbackPage() {
+function OAuthCallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -13,10 +13,10 @@ export default function OAuthCallbackPage() {
 
         if (token) {
             TokenStore.set(token);
-            router.push("/app/flashcard-sets");
+            router.push("/app/study-sets");
         } else {
             router.push(
-                "/login?error=OAuth2 authentication failed. Please try again."
+                "/login?error=OAuth2 authentication failed. Please try again.",
             );
         }
     }, [searchParams, router]);
@@ -25,5 +25,13 @@ export default function OAuthCallbackPage() {
         <div className="flex items-center justify-center h-screen">
             <p>Please wait, completing login...</p>
         </div>
+    );
+}
+
+export default function OAuthCallbackPage() {
+    return (
+        <Suspense>
+            <OAuthCallbackContent />
+        </Suspense>
     );
 }

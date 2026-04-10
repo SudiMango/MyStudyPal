@@ -1,14 +1,13 @@
-import apiClient from "./client"; // <- Use the new client
-
-interface LoginResponse {
-    accessToken: string;
-}
+import apiClient from "../client";
+import { LoginResponse, UserDetailsResponse } from "../dto/auth-dto";
+import { ApiResponse } from "../types/api";
+import { getErrorMessage } from "../util";
 
 // Login with email
 export const loginWithEmail = async (
     email: string,
-    password: string
-): Promise<{ success: boolean; data?: LoginResponse; error?: string }> => {
+    password: string,
+): Promise<ApiResponse<LoginResponse>> => {
     try {
         const response = await apiClient.post<LoginResponse>("/auth/login", {
             username: email,
@@ -16,20 +15,15 @@ export const loginWithEmail = async (
         });
         return { success: true, data: response.data };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            "An unknown error occurred";
-        return { success: false, error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Signup with email
 export const signupWithEmail = async (
     email: string,
-    password: string
-): Promise<{ success: boolean; error?: string }> => {
+    password: string,
+): Promise<ApiResponse> => {
     try {
         await apiClient.post("/auth/signup", {
             username: email,
@@ -37,20 +31,27 @@ export const signupWithEmail = async (
         });
         return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.response?.data?.errors?.join(" ") ||
-            error.message ||
-            "An unknown error occurred";
-        return { success: false, error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
+    }
+};
+
+// Refresh access token
+export const getLoggedInUser = async (): Promise<
+    ApiResponse<UserDetailsResponse>
+> => {
+    try {
+        const response = await apiClient.get("/auth/me");
+        return { success: true, data: response.data };
+    } catch (error: any) {
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Verify email with code
 export const verifyEmail = async (
     username: string,
-    verificationCode: string
-): Promise<{ success: boolean; error?: string }> => {
+    verificationCode: string,
+): Promise<ApiResponse> => {
     try {
         await apiClient.post("/auth/verify-account", {
             username,
@@ -58,48 +59,34 @@ export const verifyEmail = async (
         });
         return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.message ||
-            "An unknown error occurred";
-        return { success: false, error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Resend verification code
 export const resendVerificationEmail = async (
-    username: string
-): Promise<{ success: boolean; error?: string }> => {
+    username: string,
+): Promise<ApiResponse> => {
     try {
         await apiClient.post("/auth/resend-verification", { username });
         return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.message ||
-            "An unknown error occurred";
-        return { success: false, error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Logout
-export const logoutFromApp = async (): Promise<{
-    success: boolean;
-    error?: string;
-}> => {
+export const logoutFromApp = async (): Promise<ApiResponse> => {
     try {
         await apiClient.post("/auth/logout");
         return { success: true };
     } catch (error: any) {
-        const errorMessage =
-            error.response?.data?.error ||
-            error.message ||
-            "An unknown error occurred";
-        return { success: false, error: errorMessage };
+        return { success: false, error: getErrorMessage(error) };
     }
 };
 
 // Google login url
 export const getGoogleLoginUrl = (): string => {
-    return `http://localhost:8080/oauth2/authorization/google`;
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+    return `${baseUrl}/oauth2/authorization/google`;
 };

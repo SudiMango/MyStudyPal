@@ -10,13 +10,18 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "./AuthProvider";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
     const [showDropdown, setShowDropdown] = useState<boolean>(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+    const { isAuthenticated, user, logout } = useAuth();
+    const router = useRouter();
+    const username = user?.username?.split("@")[0] ?? "user";
 
     return (
-        <header className="bg-(--discord-gray-2) shadow-md flex flex-row px-4 min-h-[65px]">
+        <header className="bg-(--discord-gray-2) shadow-md flex flex-row px-4 min-h-16.25">
             {/* Website logo */}
             <Link
                 className="inline-flex flex-row w-auto text-xl justify-center items-center text-(--discord-blurple) font-bold"
@@ -41,7 +46,7 @@ const Header = () => {
                 >
                     FAQ
                 </Link>
-                <div className="h-[45px] w-0.5 bg-(--discord-gray-3) mx-3" />
+                <div className="h-11.25 w-0.5 bg-(--discord-gray-3) mx-3" />
 
                 <div className="relative h-full">
                     <button
@@ -54,20 +59,49 @@ const Header = () => {
 
                     {showDropdown && (
                         <div className="absolute bg-(--discord-gray-2) w-50 right-0 top-20 shadow-xl rounded-lg flex flex-col items-center justify-center">
-                            <Link
-                                href="/login"
-                                className="w-full text-center p-3 text-lg hover:bg-(--discord-gray-1) rounded-lg"
-                                onClick={() => setShowDropdown(true)}
-                            >
-                                Login
-                            </Link>
-                            <Link
-                                href="/signup"
-                                className="w-full text-center p-3 text-lg hover:bg-(--discord-gray-1) rounded-lg"
-                                onClick={() => setShowDropdown(true)}
-                            >
-                                Signup
-                            </Link>
+                            {isAuthenticated ? (
+                                <>
+                                    <div className="w-full text-left p-3 rounded-t-lg border-b border-(--discord-gray-3)">
+                                        <p className="text-sm opacity-70">
+                                            Hi, {username}!
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/app/study-sets"
+                                        className="w-full text-left p-3 text-lg hover:bg-(--discord-gray-1)"
+                                        onClick={() => setShowDropdown(false)}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <button
+                                        onClick={async () => {
+                                            await logout();
+                                            setShowDropdown(false);
+                                            router.push("/");
+                                        }}
+                                        className="w-full text-left p-3 text-lg hover:bg-(--discord-gray-1) rounded-b-lg text-red-400"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="w-full text-center p-3 text-lg hover:bg-(--discord-gray-1) rounded-lg"
+                                        onClick={() => setShowDropdown(false)}
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        href="/signup"
+                                        className="w-full text-center p-3 text-lg hover:bg-(--discord-gray-1) rounded-lg"
+                                        onClick={() => setShowDropdown(false)}
+                                    >
+                                        Signup
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -112,6 +146,7 @@ const Header = () => {
                             href="/login"
                             className="text-xl p-3"
                             onClick={() => setIsMobileMenuOpen(false)}
+                            hidden={isAuthenticated}
                         >
                             Login
                         </Link>
@@ -119,9 +154,32 @@ const Header = () => {
                             href="/signup"
                             className="text-xl p-3"
                             onClick={() => setIsMobileMenuOpen(false)}
+                            hidden={isAuthenticated}
                         >
                             Signup
                         </Link>
+                        <label hidden={!isAuthenticated} className="text-xl p-3">
+                            Hi, {username}!
+                        </label>
+                        <Link
+                            href="/app/study-sets"
+                            className="text-xl p-3"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            hidden={!isAuthenticated}
+                        >
+                            Dashboard
+                        </Link>
+                        <button
+                            onClick={async () => {
+                                await logout();
+                                setIsMobileMenuOpen(false);
+                                router.push("/");
+                            }}
+                            className="text-xl p-3 text-red-400"
+                            hidden={!isAuthenticated}
+                        >
+                            Logout
+                        </button>
                     </div>
                 </div>
             )}

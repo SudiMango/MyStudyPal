@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 const SignupPage = () => {
     const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ const SignupPage = () => {
 
     useEffect(() => {
         if (error && !shownRef.current) {
-            alert(error);
+            toast.error(error);
             shownRef.current = true;
         }
     }, [error]);
@@ -30,12 +31,12 @@ const SignupPage = () => {
         e.preventDefault();
 
         if (!email || !password || !confirmPassword) {
-            alert("Please fill in all the fields.");
+            toast.error("Please fill in all the fields.");
             return;
         }
 
         if (password !== confirmPassword) {
-            alert("Passwords do not match.");
+            toast.error("Passwords do not match.");
             return;
         }
 
@@ -45,7 +46,7 @@ const SignupPage = () => {
         if (result.success) {
             redirect(`/verify-account?email=${email}`);
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
 
         setLoading(false);
@@ -56,8 +57,8 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)]">
-            <div className="bg-(--discord-gray-2) flex flex-col items-center justify-center rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-65px)] w-full px-4">
+            <div className="bg-(--discord-gray-2) flex flex-col items-center justify-center rounded-2xl p-5 shadow-xl space-y-4 w-full max-w-sm">
                 {/* Title */}
                 <div className="flex flex-col items-center justify-center">
                     <label className="font-extrabold text-2xl text-white">

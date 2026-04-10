@@ -3,6 +3,7 @@
 import { resendVerificationEmail, verifyEmail } from "@/lib/api/auth-api";
 import { redirect, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const VerifyAccount = () => {
     const searchParams = useSearchParams();
@@ -16,11 +17,11 @@ const VerifyAccount = () => {
         e.preventDefault();
 
         if (!initialEmail) {
-            alert("Email field isn't set properly.");
+            toast.error("Email field isn't set properly.");
         }
 
         if (!code) {
-            alert("Please enter your verification code.");
+            toast.error("Please enter your verification code.");
         }
 
         setLoading(true);
@@ -29,7 +30,7 @@ const VerifyAccount = () => {
         if (result.success) {
             redirect(`/login?email=${email}`);
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
 
         setLoading(false);
@@ -37,16 +38,16 @@ const VerifyAccount = () => {
 
     const resendVerificationCode = async () => {
         if (!initialEmail) {
-            alert("Email field isn't set properly.");
+            toast.error("Email field isn't set properly.");
         }
 
         const result = await resendVerificationEmail(email);
         if (result.success) {
-            alert(
-                "Successfully resent verification code email. Please check your email again."
+            toast.error(
+                "Successfully resent verification code email. Please check your email again.",
             );
         } else {
-            alert(result.error);
+            toast.error(result.error);
         }
     };
 

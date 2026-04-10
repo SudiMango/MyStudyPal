@@ -6,6 +6,8 @@ interface SettingsDropdownProps {
     onEdit?: () => void;
     onDelete?: () => void;
     onClose?: () => void;
+    showEdit?: boolean;
+    showDelete?: boolean;
 }
 
 const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
@@ -13,6 +15,8 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
     onEdit,
     onDelete,
     onClose,
+    showEdit = true,
+    showDelete = true,
 }) => {
     if (!isOpen) return null;
 
@@ -24,6 +28,7 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
     return (
         <div className="absolute right-0 top-8 bg-(--discord-gray-2) rounded-lg shadow-xl border border-(--discord-gray-1) p-2 w-35 z-50">
             <button
+                hidden={!showEdit}
                 onClick={(e) => {
                     e.stopPropagation();
                     handleButtonClick(onEdit);
@@ -34,6 +39,7 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
                 <label>Edit</label>
             </button>
             <button
+                hidden={!showDelete}
                 onClick={(e) => {
                     e.stopPropagation();
                     handleButtonClick(onDelete);
