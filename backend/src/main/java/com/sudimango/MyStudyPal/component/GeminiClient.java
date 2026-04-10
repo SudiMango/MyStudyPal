@@ -82,8 +82,8 @@ public class GeminiClient {
     }
 
     public String markShortAnswerQuestions(List<String> questions, List<String> correctAnswer, List<String> userAnswer,
-            List<Double> maxPoints) {
-        String prompt = generateMarkShortAnswersPrompt(questions, correctAnswer, userAnswer, maxPoints);
+            List<String> hint, List<Double> maxPoints) {
+        String prompt = generateMarkShortAnswersPrompt(questions, correctAnswer, userAnswer, hint, maxPoints);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
@@ -124,7 +124,7 @@ public class GeminiClient {
 
         // Using a Text Block for the core prompt structure for maximum readability
         String basePrompt = """
-            You are a flashcard generation assistant. Your task is to create exactly %d flashcards based on the provided context.
+            You are a flashcard generation assistant. Your task is to create exactly %d flashcards based on the provided context. If no context is provided, use your own knowledge of the topic to create the flashcards.
 
             CONTEXT:
             %s
@@ -169,7 +169,7 @@ public class GeminiClient {
     // Generate prompt string to create all the quiz questions of a new quiz
     private String generateQuizPrompt(String context, int numQuestions, String additionalInstructions) {
         String basePrompt = """
-            You are a quiz generation assistant. Your task is to create exactly %d questions based on the following context.
+            You are a quiz generation assistant. Your task is to create exactly %d questions based on the following context. If no context is provided, use your own knowledge of the topic to create the questions.
 
             CONTEXT:
             %s
@@ -183,7 +183,7 @@ public class GeminiClient {
             6. FIELD SPECS:
             - 'options': A JSON array of strings (must be empty [] for SHORT_ANSWER).
             - 'correctAnswers': A JSON array of strings containing the correct value(s).
-            - 'hint': A short precise hint (max 25 characters).
+            - 'hint': A short precise hint (max 25 characters). Do not make the hint too close to the correct answer.
             - 'points': Integer value (default to 1).
             - 'orderIndex': Integer value starting from 1.
             
@@ -216,7 +216,7 @@ public class GeminiClient {
     }
 
     private String generateMarkShortAnswersPrompt(List<String> questions, List<String> correctAnswer,
-            List<String> userAnswer, List<Double> maxPoints) {
+            List<String> userAnswer, List<String> hint, List<Double> maxPoints) {
         
         StringBuilder prompt = new StringBuilder();
 
@@ -224,9 +224,10 @@ public class GeminiClient {
             You are an expert academic grading assistant. Your task is to grade a series of short-answer questions.
 
             ### GRADING LOGIC:
-            1. Compare 'User Answer' against 'Correct Answer' within the context of the 'Question'.
+            1. Compare 'User Answer' against 'Correct Answer' within the context of the 'Question' and the 'Hint'.
             2. Award points based on conceptual accuracy and understanding.
             3. Be lenient with minor typos but strict with factual errors.
+            4. If the answer is basically the exact same as the hint, give lower marks. Ignore the hint if it is empty.
             4. STYLE: Do not provide feedback or explanations like "The user missed the point". 
             5. ORDERING: You MUST return the scores in the exact same order as the items provided below.
             
