@@ -13,6 +13,7 @@ import com.sudimango.MyStudyPal.exception.EmailDeliveryFailedException;
 import com.sudimango.MyStudyPal.exception.EmptyAiResponseException;
 import com.sudimango.MyStudyPal.exception.ForbiddenException;
 import com.sudimango.MyStudyPal.exception.ResourceNotFoundException;
+import com.sudimango.MyStudyPal.exception.TooManyRequestsException;
 import com.sudimango.MyStudyPal.exception.UnauthorizedException;
 import com.sudimango.MyStudyPal.exception.UnsupportedFormatException;
 
@@ -78,6 +79,13 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
     @ExceptionHandler(UnsupportedFormatException.class)
     public ResponseEntity<ErrorDto.ErrorResponse> handleException(UnsupportedFormatException e) {
+        ErrorDto.ErrorResponse error = new ErrorDto.ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorDto.ErrorResponse> handleException(TooManyRequestsException e) {
         ErrorDto.ErrorResponse error = new ErrorDto.ErrorResponse(e.getMessage());
         return new ResponseEntity<>(error, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
