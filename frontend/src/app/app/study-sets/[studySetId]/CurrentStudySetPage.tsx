@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getOneStudySet } from "@/lib/api/study-set-api";
+import {
+    deleteStudySet,
+    getOneStudySet,
+    updateStudySet,
+} from "@/lib/api/study-set-api";
 import {
     Loader,
     Layers,
@@ -10,33 +14,73 @@ import {
     ChartNoAxesCombined,
     FileText,
     Calendar,
+    Settings,
 } from "lucide-react";
 import QuizzesTab from "@/app/components/study-set-page/QuizzesTab";
 import DocumentsTab from "@/app/components/study-set-page/DocumentsTab";
 import { formatDate } from "@/lib/util";
 import FlashcardSetsTab from "@/app/components/study-set-page/FlashcardSetsTab";
 import { StudySetResponse } from "@/lib/dto/study-set-dto";
+import SettingsModal from "@/app/components/global/SettingsModal";
+import ConfirmationModal from "@/app/components/global/ConfirmationModal";
+import AbstractModal from "@/app/components/global/AbstractModal";
+import { FieldConfig } from "@/lib/types/modal";
+import { toast } from "sonner";
+
+const UPDATE_STUDY_SET_FIELDS: FieldConfig[] = [
+    { key: "icon", type: "emoji", label: "Icon", row: 1, width: "w-12" },
+    {
+        key: "name",
+        type: "text",
+        label: "Name",
+        row: 1,
+        flex: 1,
+        required: false,
+        maxLength: 30,
+        showCharCount: true,
+        placeholder: "e.g., Bio 101 Midterm",
+    },
+    {
+        key: "description",
+        type: "textarea",
+        label: "Description",
+        row: 2,
+        maxLength: 100,
+        showCharCount: true,
+        placeholder: "What is this study set about?",
+        rows: 3,
+    },
+];
 
 const CurrentStudySetPage = () => {
     const { studySetId } = useParams();
-    const router = useRouter();
 
     const [studySet, setStudySet] = useState<StudySetResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<
         "flashcards" | "quizzes" | "stats" | "documents"
     >("flashcards");
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    // Edit
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    // Delete
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const fetchDetails = async () => {
+        if (!studySetId) return;
+        const response = await getOneStudySet(studySetId as string);
+        if (response.data) {
+            setStudySet(response.data);
+            console.log(response.data);
+        }
+        setIsLoading(false);
+    };
 
     useEffect(() => {
-        const fetchDetails = async () => {
-            if (!studySetId) return;
-            const response = await getOneStudySet(studySetId as string);
-            if (response.data) {
-                setStudySet(response.data);
-                console.log(response.data);
-            }
-            setIsLoading(false);
-        };
         fetchDetails();
     }, [studySetId]);
 
@@ -52,6 +96,48 @@ const CurrentStudySetPage = () => {
             setActiveTab(hash);
         }
     }, []);
+
+    // Edit
+    const handleConfirmUpdate = async (
+        studySetId: string,
+        name: string,
+        description: string,
+        icon: string,
+    ) => {
+        setIsUpdating(true);
+
+        const payload = {
+            name,
+            description,
+            icon,
+        };
+
+        const response = await updateStudySet(studySetId, payload);
+
+        if (response.success && response.data) {
+            fetchDetails();
+            setIsEditModalOpen(false);
+        } else {
+            toast.error(response.error);
+        }
+
+        setIsUpdating(false);
+    };
+
+    // Delete
+    const handleConfirmDelete = async () => {
+        setIsDeleting(true);
+        const response = await deleteStudySet(studySet!.studySetId);
+
+        if (!response.error) {
+            fetchDetails();
+        } else {
+            toast.error(response.error);
+        }
+
+        setIsDeleteModalOpen(false);
+        setIsDeleting(false);
+    };
 
     if (isLoading) {
         return (
@@ -72,6 +158,78 @@ const CurrentStudySetPage = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full">
+            {/* Settings */}
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                onEdit={() => {
+                    setIsSettingsOpen(false);
+                    setIsEditModalOpen(true);
+                }}
+                onDelete={() => {
+                    setIsSettingsOpen(false);
+                    setIsDeleteModalOpen(true);
+                }}
+                info={[
+                    {
+                        label: "Created",
+                        value: formatDate(studySet.createdAt),
+                    },
+                    {
+                        label: "Updated",
+                        value: formatDate(studySet.updatedAt),
+                    },
+                    {
+                        label: "Total flashcard sets",
+                        value: studySet.totalFlashcardSets.toString(),
+                    },
+                    {
+                        label: "Total quizzes",
+                        value: studySet.totalQuizzes.toString(),
+                    },
+                    {
+                        label: "Total documents",
+                        value: studySet.totalDocuments.toString(),
+                    },
+                ]}
+            />
+
+            {/* Edit study set modal */}
+            <AbstractModal
+                isOpen={isEditModalOpen}
+                title="Edit Study Set"
+                fields={UPDATE_STUDY_SET_FIELDS}
+                initialValues={{
+                    icon: studySet?.icon ?? "",
+                    name: studySet?.name ?? "",
+                    description: studySet?.description ?? "",
+                }}
+                onConfirm={({ name, description, icon }) =>
+                    handleConfirmUpdate(
+                        studySet.studySetId,
+                        name,
+                        description,
+                        icon,
+                    )
+                }
+                onCancel={() => {
+                    setIsEditModalOpen(false);
+                }}
+                isLoading={isUpdating}
+                confirmLabel="Save"
+                confirmLoadingLabel="Saving..."
+            />
+
+            {/* Delete flashcard set */}
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onCancel={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                message="Are you sure you want to delete this flashcard set?"
+                confirmMessage="Deleting..."
+                isLoading={isDeleting}
+            />
+
             {/* Header Section */}
             <div className="w-full bg-linear-to-br from-(--discord-gray-1) to-(--discord-gray-2) border-b border-(--discord-gray-3) py-8 px-5">
                 <div className="max-w-150 mx-auto">
@@ -85,6 +243,13 @@ const CurrentStudySetPage = () => {
                                 {studySet.description}
                             </p>
                         </div>
+
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="rounded-xl bg-(--discord-gray-1) hover:bg-(--discord-gray-2) group p-2.5 border border-white/5 transition-colors"
+                        >
+                            <Settings className="w-5 h-5 group-hover:text-(--discord-blurple)" />
+                        </button>
                     </div>
 
                     {/* Stats Row */}
@@ -105,18 +270,6 @@ const CurrentStudySetPage = () => {
                             <FileText className="w-4 h-4 text-(--discord-blurple)" />
                             <label className="text-sm">
                                 {studySet.totalDocuments} documents
-                            </label>
-                        </div>
-                        <div className="bg-(--discord-gray-3) py-2 px-4 rounded-lg flex flex-row items-center space-x-2 whitespace-nowrap">
-                            <Calendar className="w-4 h-4 text-(--discord-blurple)" />
-                            <label className="text-sm">
-                                Created {formatDate(studySet.createdAt)}
-                            </label>
-                        </div>
-                        <div className="bg-(--discord-gray-3) py-2 px-4 rounded-lg flex flex-row items-center space-x-2 whitespace-nowrap">
-                            <Calendar className="w-4 h-4 text-(--discord-blurple)" />
-                            <label className="text-sm">
-                                Updated {formatDate(studySet.updatedAt)}
                             </label>
                         </div>
                     </div>

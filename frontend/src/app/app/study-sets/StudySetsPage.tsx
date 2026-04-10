@@ -204,9 +204,7 @@ const StudySetsPage = () => {
         const response = await deleteStudySet(setToDelete.studySetId);
 
         if (!response.error) {
-            setStudySets((prev) =>
-                prev.filter((set) => set.studySetId !== setToDelete.studySetId),
-            );
+            fetchStudySets();
         } else {
             toast.error(response.error);
         }

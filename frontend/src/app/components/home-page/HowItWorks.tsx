@@ -22,10 +22,10 @@ const HowItWorks = () => {
                         </label>
                         <div className="w-full h-full flex flex-1 items-center justify-center">
                             <Image
-                                src="/university-logos/ubc.png"
+                                src="/how-to-use/1.png"
                                 alt="smth"
-                                width={100}
-                                height={80}
+                                width={1000}
+                                height={1000}
                                 priority
                                 className="border border-(--discord-blurple) rounded-md object-cover"
                             />
@@ -35,10 +35,10 @@ const HowItWorks = () => {
                         <label>2. Review your flashcards</label>
                         <div className="w-full h-full flex flex-1 items-center justify-center">
                             <Image
-                                src="/university-logos/ubc.png"
+                                src="/how-to-use/2.png"
                                 alt="smth"
-                                width={100}
-                                height={80}
+                                width={1000}
+                                height={1000}
                                 priority
                                 className="border border-(--discord-blurple) rounded-md object-cover"
                             />
@@ -50,10 +50,10 @@ const HowItWorks = () => {
                         <label>3. Test yourself</label>
                         <div className="w-full h-full flex flex-1 items-center justify-center">
                             <Image
-                                src="/university-logos/ubc.png"
+                                src="/how-to-use/3.png"
                                 alt="smth"
-                                width={100}
-                                height={80}
+                                width={1000}
+                                height={1000}
                                 priority
                                 className="border border-(--discord-blurple) rounded-md object-cover"
                             />
@@ -63,10 +63,10 @@ const HowItWorks = () => {
                         <label>4. Track your progress</label>
                         <div className="w-full h-full flex flex-1 items-center justify-center">
                             <Image
-                                src="/university-logos/ubc.png"
+                                src="/how-to-use/4.png"
                                 alt="smth"
-                                width={100}
-                                height={80}
+                                width={1000}
+                                height={1000}
                                 priority
                                 className="border border-(--discord-blurple) rounded-md object-cover"
                             />

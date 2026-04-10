@@ -5,21 +5,26 @@ import {
     ChevronUp,
     Circle,
     EllipsisVertical,
+    Plus,
     Square,
     SquareCheck,
 } from "lucide-react";
 import ConfirmationModal from "../global/ConfirmationModal";
 import SettingsDropdown from "../global/SettingsDropdown";
 import {
+    createQuizQuestion,
     deleteQuizQuestion,
     updateQuizQuestion,
 } from "@/lib/api/quiz-question-api";
 import {
+    CreateQuizQuestionRequest,
     QuizQuestionResponse,
     UpdateQuizQuestionRequest,
 } from "@/lib/dto/quiz-question-dto";
 import { toast } from "sonner";
 import EditQuizQuestionModal from "./EditQuizQuestionModal";
+import CreateQuizQuestionModal from "./CreateQuizQuestionModal";
+import { useParams } from "next/navigation";
 
 interface QuestionListProps {
     questions: QuizQuestionResponse[];
@@ -34,6 +39,8 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
      * Variables
      */
 
+    const { quizId } = useParams();
+
     // Global
     const [showAllQuestions, setShowAllQuestions] = useState<boolean>(false);
     const [showDropdown, setShowDropdown] = useState<number | null>(null);
@@ -44,6 +51,10 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
     const [questionToDelete, setQuestionToDelete] =
         useState<QuizQuestionResponse | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Create
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     // Edit
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -100,6 +111,23 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
             document.removeEventListener("mousedown", handleClickOutside);
     }, [showDropdown]);
 
+    // Creating
+    const handleCreateClick = () => {
+        setIsCreateModalOpen(true);
+    };
+
+    const handleConfirmCreate = async (req: CreateQuizQuestionRequest) => {
+        setIsCreating(true);
+        const response = await createQuizQuestion(quizId as string, req);
+        if (response.success && response.data) {
+            fetchEverything();
+            setIsCreateModalOpen(false);
+        } else {
+            toast.error(response.error);
+        }
+        setIsCreating(false);
+    };
+
     // Deleting
     const handleDeleteClick = (question: QuizQuestionResponse) => {
         setQuestionToDelete(question);
@@ -150,6 +178,17 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
 
     return (
         <div className="bg-(--discord-gray-3) w-full rounded-xl shadow-lg p-5 mt-5 outline outline-(--discord-blurple) flex flex-col">
+            {/* Create */}
+            <CreateQuizQuestionModal
+                isOpen={isCreateModalOpen}
+                onConfirm={(req) => handleConfirmCreate(req)}
+                onCancel={() => {
+                    setIsCreateModalOpen(false);
+                }}
+                isLoading={isCreating}
+                totalQuestions={questions.length}
+            />
+
             {/* Edit */}
             <EditQuizQuestionModal
                 isOpen={isEditModalOpen}
@@ -350,6 +389,15 @@ const AllQuestionsPanel: React.FC<QuestionListProps> = ({
                         </div>
                     );
                 })}
+
+                {/* Create new quiz question */}
+                <button
+                    onClick={handleCreateClick}
+                    className="flex flex-row justify-center items-center bg-(--discord-blurple) hover:bg-(--discord-blurple-hover) cursor-pointer rounded-xl h-10 text-white font-medium w-full"
+                >
+                    <Plus className="mr-1" />
+                    New question
+                </button>
             </div>
         </div>
     );
