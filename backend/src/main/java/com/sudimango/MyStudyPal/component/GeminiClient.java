@@ -18,7 +18,7 @@ import com.sudimango.MyStudyPal.repository.DocumentChunkRepository;
 @Component
 public class GeminiClient {
     private final Client client;
-    private static final String CHAT_MODEL = "gemini-2.5-flash";
+    private static final String CHAT_MODEL = "gemini-3-flash-preview";
     private static final String EMBEDDING_MODEL = "gemini-embedding-001";
     private static final int EMBEDDING_DIMENSIONS = 768;
 
