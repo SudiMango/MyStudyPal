@@ -28,6 +28,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     private RefreshTokenService refreshTokenService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
        
@@ -44,7 +47,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
         refreshTokenService.saveRefreshTokenForUser(user, refreshToken);
 
-        String targetUrl = "http://localhost:3000/login/oauth/callback?token=" + accessToken;
+        String targetUrl = frontendUrl + "/login/oauth/callback?token=" + accessToken;
         response.sendRedirect(targetUrl);
     }
     

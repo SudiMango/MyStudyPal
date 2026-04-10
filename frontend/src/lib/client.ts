@@ -19,7 +19,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 const apiClient = axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
     withCredentials: true,
 });
 

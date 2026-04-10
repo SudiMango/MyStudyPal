@@ -4,13 +4,11 @@ const nextConfig: NextConfig = {
     output: "standalone",
     devIndicators: false,
     async rewrites() {
+        const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8080";
         return [
             {
                 source: "/api/:path*",
-                destination:
-                    process.env.NODE_ENV === "development"
-                        ? "http://127.0.0.1:8000/:path*"
-                        : "http://backend:8000/:path*",
+                destination: `${backendUrl}/:path*`,
             },
         ];
     },

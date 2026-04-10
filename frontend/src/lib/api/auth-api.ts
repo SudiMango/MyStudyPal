@@ -87,5 +87,6 @@ export const logoutFromApp = async (): Promise<ApiResponse> => {
 
 // Google login url
 export const getGoogleLoginUrl = (): string => {
-    return `http://localhost:8080/oauth2/authorization/google`;
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+    return `${baseUrl}/oauth2/authorization/google`;
 };
