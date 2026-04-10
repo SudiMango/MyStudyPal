@@ -400,7 +400,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
                                         icon: <Brain className="w-5 h-5" />,
                                         onClick: () =>
                                             router.push(
-                                                `/app/study-sets/${studySetId}/quizzes/${quiz.quizId}`,
+                                                `/app/study-sets/${studySetId}/quizzes/${quiz.quizId}/attempt`,
                                             ),
                                     },
                                     {
@@ -410,7 +410,7 @@ const QuizzesTab: React.FC<QuizzesTabProps> = ({ studySetId }) => {
                                         ),
                                         onClick: () =>
                                             router.push(
-                                                `/app/study-sets/${studySetId}/quizzes/${quiz.quizId}#stats`,
+                                                `/app/study-sets/${studySetId}/quizzes/${quiz.quizId}`,
                                             ),
                                     },
                                 ]}

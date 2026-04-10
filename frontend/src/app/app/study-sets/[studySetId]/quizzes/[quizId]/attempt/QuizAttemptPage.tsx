@@ -153,7 +153,9 @@ const QuizAttemptPage = () => {
         setIsSubmitting(false);
 
         if (res.success) {
-            router.push(`/app/study-sets/${studySetId}/quizzes/${quizId}`);
+            router.push(
+                `/app/study-sets/${studySetId}/quizzes/${quizId}/attempt/${res.data?.attemptId}`,
+            );
         } else {
             toast.error(
                 res.error || "Failed to submit quiz. Please try again.",
