@@ -19,12 +19,12 @@ const Footer = () => {
                     <Github className="w-5 h-5" />
                 </Link>
                 <Link
-                    href="/privacy"
+                    href="/legal#privacy"
                     className="hover:text-(--discord-blurple)"
                 >
                     Privacy Policy
                 </Link>
-                <Link href="/terms" className="hover:text-(--discord-blurple)">
+                <Link href="/legal#terms" className="hover:text-(--discord-blurple)">
                     Terms of Service
                 </Link>
             </div>
