@@ -1,9 +1,13 @@
 # MyStudyPal
 
+**_NOTE: MyStudyPal isn't a finished application. Expect unfinished features and bugs. If you find a bug or want to add/finish a feature, feel free to look at [how to contribute to this project.](#contributing)_**
+
+---
+
 MyStudyPal is an AI-powered study platform that turns learning materials into useful study tools.  
 Upload notes or textbooks, generate flashcards and quizzes, and track progress as you study.
 
-Create a study set -> upload your documents -> create flashcards and quizzes!
+Create a study set --> upload your documents --> create flashcards and quizzes!
 
 ## What it does
 
@@ -65,7 +69,9 @@ make fe   # frontend
 
 ## Contributing
 
-Contributions are welcome. Bug fixes, UX improvements, and new features are all appreciated.
+Contributions are welcome. Bug fixes, UX improvements, and new features are all appreciated. Feel free to clone the project and open PRs.
+
+**_IMPORTANT: If you open a PR, keep changes focused and include a short description of what you added/changed and your approach. If possible, also add images of what you changed._**
 
 If you want a place to start, here are good first ideas:
 
@@ -78,5 +84,3 @@ If you want a place to start, here are good first ideas:
 - Improve generated quiz variety (difficulty levels, question types)
 - Better optimization across the frontend and backend
 - Improve accessibility, design, keyboard navigation, etc across the UI
-
-If you open a PR, keep changes focused and include a short description of the problem and your approach.
