@@ -75,6 +75,7 @@ Contributions are welcome. Bug fixes, UX improvements, and new features are all 
 
 If you want a place to start, here are good first ideas:
 
+- Be able to upload multiple file types other than just .pdf
 - Add support for user-provided API keys (so users can bring their own Gemini key)
 - Add support for different AI providers to be used instead of just Gemini
 - Extend the tracking and stats for quizzes and flashcards so that users can better see their improvement over time
