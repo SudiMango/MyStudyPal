@@ -7,6 +7,7 @@ import {
     updateStudySet,
     createStudySet,
 } from "@/lib/api/study-set-api";
+import { uploadDocuments } from "@/lib/api/document-api";
 import {
     Brain,
     ChartNoAxesCombined,
@@ -24,6 +25,7 @@ import { StudySetResponse } from "@/lib/dto/study-set-dto";
 import { FieldConfig } from "@/lib/types/modal";
 import AbstractModal from "@/app/components/global/AbstractModal";
 import { toast } from "sonner";
+import UploadFileSection from "@/app/components/create-flashcard-set-page/UploadFileSection";
 
 const CREATE_STUDY_SET_FIELDS: FieldConfig[] = [
     { key: "icon", type: "emoji", label: "Icon", row: 1, width: "w-12" },
@@ -75,6 +77,46 @@ const UPDATE_STUDY_SET_FIELDS: FieldConfig[] = [
     },
 ];
 
+const StepIndicator = ({ currentStep }: { currentStep: 1 | 2 }) => (
+    <div className="flex items-center justify-center gap-3 mb-5">
+        {[1, 2].map((step) => {
+            const isActive = step === currentStep;
+            const isPast = step < currentStep;
+            return (
+                <React.Fragment key={step}>
+                    <div className="flex flex-col items-center gap-1">
+                        <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                                isActive
+                                    ? "bg-(--discord-blurple) text-white"
+                                    : isPast
+                                      ? "bg-(--discord-blurple) text-white opacity-60"
+                                      : "border-2 border-(--discord-gray-4) text-(--discord-text-muted)"
+                            }`}
+                        >
+                            {step}
+                        </div>
+                        <span
+                            className={`text-xs ${isActive ? "text-white font-medium" : "text-(--discord-text-muted)"}`}
+                        >
+                            {step === 1 ? "Study Set" : "Documents"}
+                        </span>
+                    </div>
+                    {step < 2 && (
+                        <div
+                            className={`w-12 h-0.5 mb-4 rounded transition-all ${
+                                currentStep > 1
+                                    ? "bg-(--discord-blurple)"
+                                    : "bg-(--discord-gray-4)"
+                            }`}
+                        />
+                    )}
+                </React.Fragment>
+            );
+        })}
+    </div>
+);
+
 const StudySetsPage = () => {
     /**
      * Variables
@@ -94,6 +136,12 @@ const StudySetsPage = () => {
     // Create
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [createdStudySetId, setCreatedStudySetId] = useState<string | null>(
+        null,
+    );
+    const [files, setFiles] = useState<File[]>([]);
 
     // Edit
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -147,14 +195,33 @@ const StudySetsPage = () => {
 
         const response = await createStudySet(payload);
 
-        if (!response.error) {
-            fetchStudySets();
+        if (response.success && response.data) {
             setIsCreateModalOpen(false);
+            setCreatedStudySetId(response.data.studySetId);
+            setFiles([]);
+            setIsUploadModalOpen(true);
         } else {
             toast.error(response.error);
         }
 
         setIsCreating(false);
+    };
+
+    // Upload
+    const handleUploadAndRedirect = async () => {
+        if (!createdStudySetId) return;
+
+        setIsUploading(true);
+        if (files.length > 0) {
+            await uploadDocuments(createdStudySetId, files);
+        }
+
+        setIsUploadModalOpen(false);
+        setFiles([]);
+        const studySetId = createdStudySetId;
+        setCreatedStudySetId(null);
+        router.push(`/app/study-sets/${studySetId}`);
+        setIsUploading(false);
     };
 
     // Edit
@@ -249,19 +316,33 @@ const StudySetsPage = () => {
                 isOpen={isCreateModalOpen}
                 title="Create Study Set"
                 fields={CREATE_STUDY_SET_FIELDS}
-                initialValues={{
-                    icon: "📚",
-                    name: "",
-                    description: "",
-                }}
+                initialValues={{ icon: "📚", name: "", description: "" }}
                 onConfirm={({ name, icon, description }) =>
                     handleConfirmCreate(name, icon, description)
                 }
                 onCancel={() => setIsCreateModalOpen(false)}
                 isLoading={isCreating}
-                confirmLabel="Create"
+                confirmLabel="Next"
                 confirmLoadingLabel="Creating..."
-            />
+            >
+                <StepIndicator currentStep={1} />
+            </AbstractModal>
+
+            {/* Upload document modal */}
+            <AbstractModal
+                isOpen={isUploadModalOpen}
+                title="Upload Documents"
+                onConfirm={() => handleUploadAndRedirect()}
+                onCancel={() => handleUploadAndRedirect()}
+                isLoading={isUploading}
+                confirmLabel="Create"
+                confirmLoadingLabel={
+                    files.length > 0 ? "Uploading..." : "Finishing..."
+                }
+            >
+                <StepIndicator currentStep={2} />
+                <UploadFileSection files={files} onFilesChange={setFiles} />
+            </AbstractModal>
 
             {/* Edit study set modal */}
             <AbstractModal

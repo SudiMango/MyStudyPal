@@ -65,8 +65,7 @@ const AbstractModal: React.FC<AbstractModalProps> = ({
         .filter((f) => f.required)
         .every((f) => values[f.key]?.trim());
 
-    const isConfirmDisabled =
-        isLoading || confirmDisabled || (!children && !isFieldsValid);
+    const isConfirmDisabled = isLoading || confirmDisabled || !isFieldsValid;
 
     const set = (key: string, val: string) =>
         setValues((prev) => ({ ...prev, [key]: val }));
@@ -184,12 +183,12 @@ const AbstractModal: React.FC<AbstractModalProps> = ({
             >
                 <h2 className="text-white text-xl font-bold mb-4">{title}</h2>
                 <div className="space-y-4">
-                    {children ??
-                        rows.map((rowFields, i) => (
-                            <div key={i} className="flex flex-row gap-2">
-                                {rowFields.map(renderField)}
-                            </div>
-                        ))}
+                    {children}
+                    {rows.map((rowFields, i) => (
+                        <div key={i} className="flex flex-row gap-2">
+                            {rowFields.map(renderField)}
+                        </div>
+                    ))}
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
                     <button

@@ -134,7 +134,8 @@ public class GeminiClient {
             2. Return ONLY a JSON array. Do not include markdown formatting or any introductory text.
             3. Each flashcard object must contain: 'question', 'answer', 'hint', and 'orderIndex'.
             4. STYLE: Write questions and answers naturally. DO NOT use phrases like "According to the context" or "Based on the text". Ask questions directly.
-            5. FIELD SPECS:
+            5. PRIORITY: Only generate flashcards on content that would realistically appear on an exam. Prioritize definitions, mechanisms, processes, key relationships, and important facts. Skip trivia, fun facts, historical anecdotes, and peripheral details unless they are relevant for the topic of the set or explicitly asked for by the user in the additional instructions part.
+            6. FIELD SPECS:
             - 'question': Clear, concise, and focused on key concepts.
             - 'answer': Accurate and direct.
             - 'hint': Short and precise (max 25 characters).
@@ -180,7 +181,8 @@ public class GeminiClient {
             3. Use only these QuestionType values: 'MULTIPLE_CHOICE', 'MULTIPLE_ANSWER', 'TRUE_FALSE', 'SHORT_ANSWER'.
             4. Each object must contain: 'questionText', 'questionType', 'options', 'correctAnswers', 'hint', 'points', and 'orderIndex'.
             5. STYLE: Write questions naturally. DO NOT use phrases like "According to the context" or "Based on the document". Ask the question directly.
-            6. FIELD SPECS:
+            6. PRIORITY: Only generate questions on content that would realistically appear on an exam. Prioritize definitions, mechanisms, processes, key relationships, and important facts. Skip trivia, fun facts, historical anecdotes, and peripheral details unless they are relevant for the topic of the quiz or explicitly asked for by the user in the additional instructions part.
+            7. FIELD SPECS:
             - 'options': A JSON array of strings (must be empty [] for SHORT_ANSWER).
             - 'correctAnswers': A JSON array of strings containing the correct value(s).
             - 'hint': A short precise hint (max 25 characters). Do not make the hint too close to the correct answer.

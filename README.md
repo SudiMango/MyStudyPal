@@ -78,7 +78,11 @@ If you want a place to start, here are good first ideas:
 - Be able to upload multiple file types other than just .pdf
 - Add support for user-provided API keys (so users can bring their own Gemini key)
 - Add support for different AI providers to be used instead of just Gemini
+- Make backend AI stuff async for better UX
 - Extend the tracking and stats for quizzes and flashcards so that users can better see their improvement over time
+- Be able to generate quizzes based on a flashcard set
+- Be able to use the same document across multiple study sets instead of needing to reupload the same one multiple times
+- Be able to create a flashcard set on a particular document, using the entire document as context rather than using RAG
 - Be able to visually choose which question types you want in the quiz
 - Be able to only view starred/unreviewed flashcards
 - Be able to bulk generate flashcards and quiz questions using AI after a quiz/flashcard set has been created
