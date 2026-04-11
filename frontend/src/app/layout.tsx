@@ -25,7 +25,28 @@ export const metadata: Metadata = {
     },
     description: "Your ultimate study companion.",
     icons: {
-        icon: "/favicon.svg",
+        icon: [],
+    },
+    openGraph: {
+        title: "MyStudyPal",
+        description: "Your ultimate study companion.",
+        url: "https://mystudypal.sudicodes.xyz",
+        siteName: "MyStudyPal",
+        images: [
+            {
+                url: "https://mystudypal.sudicodes.xyz/preview.png",
+                width: 804,
+                height: 405,
+                alt: "MyStudyPal",
+            },
+        ],
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "MyStudyPal",
+        description: "Your ultimate study companion.",
+        images: ["https://mystudypal.sudicodes.xyz/preview.png"],
     },
 };
 
