@@ -106,8 +106,10 @@ public class QuizAttemptService {
                 .collect(Collectors.toSet());
 
         for (QuizQuestion question : quiz.getQuizQuestions()) {
-            if (submittedIds.contains(question.getQuestionId()))
+            if (submittedIds.contains(question.getQuestionId())) {
                 continue;
+            }
+
             QuizAttemptQuestion attemptQuestion = attemptQuestionMap.get(question.getQuestionId());
 
             QuizAttemptAnswer unanswered = QuizAttemptAnswer.builder().quizAttempt(attempt)
@@ -118,9 +120,18 @@ public class QuizAttemptService {
             totalPossible += question.getPoints();
         }
 
-        AbstractMap.SimpleEntry<Double, Double> shortAnswerGrades = gradeShortAnswerQuestions(qtoa, attempt);
-        attempt.setScore(roundToTwoDecimals(totalEarned + shortAnswerGrades.getKey()));
-        attempt.setMaxScore(totalPossible + shortAnswerGrades.getValue());
+        // Handle short answer grading
+        double shortAnswerEarned = 0.0;
+        double shortAnswerPossible = 0.0;
+
+        if (!qtoa.isEmpty()) {
+            AbstractMap.SimpleEntry<Double, Double> shortAnswerGrades = gradeShortAnswerQuestions(qtoa, attempt);
+            shortAnswerEarned = shortAnswerGrades.getKey();
+            shortAnswerPossible = shortAnswerGrades.getValue();
+        }
+
+        attempt.setScore(roundToTwoDecimals(totalEarned + shortAnswerEarned));
+        attempt.setMaxScore(totalPossible + shortAnswerPossible);
 
         QuizAttempt saved = attemptRepository.save(attempt);
         return new CreateQuizAttemptResponse(saved.getAttemptId());

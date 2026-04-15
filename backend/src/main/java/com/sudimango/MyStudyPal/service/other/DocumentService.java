@@ -93,6 +93,7 @@ public class DocumentService {
             for (String content : chunks) {
                 String vectorStr = geminiClient.generateAndFormatEmbedding(content);
                 documentChunkRepository.saveChunkWithEmbedding(savedDoc.getDocumentId(), content, vectorStr, chunkIdx);
+                chunkIdx++;
             }
         } catch (Exception e) {
             if (e instanceof ClientException) {

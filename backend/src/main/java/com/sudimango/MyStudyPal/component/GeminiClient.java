@@ -50,7 +50,7 @@ public class GeminiClient {
             String additionalInstructions) {
         String context = getContextFromStudySet(studySetId, userPrompt);
 
-        String prompt = generateFlashcardSetPrompt(context, numFlashcards, additionalInstructions);
+        String prompt = generateFlashcardSetPrompt(context, userPrompt, numFlashcards, additionalInstructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
@@ -60,7 +60,7 @@ public class GeminiClient {
             String additionalInstructions) {
         String context = getContextFromStudySet(studySetId, userPrompt);
 
-        String prompt = generateQuizPrompt(context, numQuestions, additionalInstructions);
+        String prompt = generateQuizPrompt(context, userPrompt, numQuestions, additionalInstructions);
         GenerateContentResponse response = this.client.models.generateContent(CHAT_MODEL, prompt, null);
         return response.text();
     }
@@ -120,13 +120,16 @@ public class GeminiClient {
 
     // Generate prompt string to create all the flashcards of a new set
     // @formatter:off
-    private String generateFlashcardSetPrompt(String context, int numFlashcards, String additionalInstructions) {
+    private String generateFlashcardSetPrompt(String context, String userPrompt, int numFlashcards, String additionalInstructions) {
 
         // Using a Text Block for the core prompt structure for maximum readability
         String basePrompt = """
-            You are a flashcard generation assistant. Your task is to create exactly %d flashcards based on the provided context. If no context is provided, use your own knowledge of the topic to create the flashcards.
+            You are a flashcard generation assistant. Your task is to create exactly %d flashcards based on the provided context. If no context is provided, use your own knowledge of the user's request to create the flashcards.
 
             CONTEXT:
+            %s
+
+            USER REQUEST:
             %s
 
             REQUIREMENTS:
@@ -143,7 +146,9 @@ public class GeminiClient {
 
             """;
 
-        StringBuilder prompt = new StringBuilder(String.format(basePrompt, numFlashcards, context, numFlashcards));
+        StringBuilder prompt = new StringBuilder(
+            String.format(basePrompt, numFlashcards, context, userPrompt, numFlashcards)
+        );
 
         // Handle Additional Instructions
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
@@ -168,11 +173,14 @@ public class GeminiClient {
     }
 
     // Generate prompt string to create all the quiz questions of a new quiz
-    private String generateQuizPrompt(String context, int numQuestions, String additionalInstructions) {
+    private String generateQuizPrompt(String context, String userPrompt, int numQuestions, String additionalInstructions) {
         String basePrompt = """
-            You are a quiz generation assistant. Your task is to create exactly %d questions based on the following context. If no context is provided, use your own knowledge of the topic to create the questions.
+            You are a quiz generation assistant. Your task is to create exactly %d questions based on the following context. If no context is provided, use your own knowledge of the user's request to create the questions.
 
             CONTEXT:
+            %s
+
+            USER REQUEST:
             %s
 
             REQUIREMENTS:
@@ -191,7 +199,7 @@ public class GeminiClient {
             
             """;
 
-        StringBuilder prompt = new StringBuilder(String.format(basePrompt, numQuestions, context, numQuestions));
+        StringBuilder prompt = new StringBuilder(String.format(basePrompt, numQuestions, context, userPrompt, numQuestions));
 
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
             prompt.append("ADDITIONAL INSTRUCTIONS:\n")
