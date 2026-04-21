@@ -4,6 +4,7 @@ services:
         build:
             context: ./backend
             dockerfile: Dockerfile
+        restart: always
         environment:
             # Database
             SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:5432/${DB_NAME}
@@ -32,6 +33,7 @@ services:
             dockerfile: Dockerfile
             args:
                 NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+        restart: always
         environment:
             NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
         depends_on:
